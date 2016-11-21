@@ -528,7 +528,7 @@
         [self logDebug:[NSString stringWithFormat:@" protocolId: %u",task.protocolId]];
         [self logDebug:[NSString stringWithFormat:@" ackRequest: %@",(task.ackRequest ? task.ackRequest.description  : @"(not present)")]];
     }
-    
+
     @try
     {
         if(status == SCTP_STATUS_M_FOOS)
