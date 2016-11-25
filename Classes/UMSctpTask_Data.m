@@ -28,7 +28,7 @@
                            protocolId:(uint32_t)pid
                            ackRequest:(NSDictionary *)ack
 {
-    self = [super initWithName:[[self class]description]  receiver:rx sender:tx requiresSynchronisation:YES];
+    self = [super initWithName:[[self class]description]  receiver:rx sender:tx requiresSynchronisation:NO];
     if(self)
     {
         self.name = @"UMSctpTask_Data";

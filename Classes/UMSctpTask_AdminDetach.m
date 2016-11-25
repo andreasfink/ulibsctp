@@ -20,7 +20,7 @@
     self = [super initWithName:[[self class]description]
                       receiver:rx
                         sender:tx
-       requiresSynchronisation:YES];
+       requiresSynchronisation:NO];
     if(self)
     {
         self.name = @"UMSctpTask_AdminDetach";
