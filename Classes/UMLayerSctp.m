@@ -522,6 +522,7 @@
     [self reportStatus];
 }
 
+-
 - (void)_dataTask:(UMSctpTask_Data *)task
 {
     id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
@@ -536,6 +537,10 @@
 
     @try
     {
+        @synchronized(self)
+        {
+
+        }
         if(status == SCTP_STATUS_M_FOOS)
         {
             @throw([NSException exceptionWithName:@"FOOS" reason:@"Link out of service" userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
