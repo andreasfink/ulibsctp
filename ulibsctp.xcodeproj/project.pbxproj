@@ -16,6 +16,7 @@
 		A634B49B1A2E9AF700854472 /* UMLayerSctpUserProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */; };
 		A666CA301B4B102000854472 /* sctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A666CA2F1B4B102000854472 /* sctp.framework */; };
 		A666CA311B4B127D00854472 /* sctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A666CA2F1B4B102000854472 /* sctp.framework */; };
+		A6827E121E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = A6827E101E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A68974271A2D1EF800854472 /* UMSctpTask_AdminSetConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = A68974251A2D1EF800854472 /* UMSctpTask_AdminSetConfig.h */; };
 		A68974281A2D1EF800854472 /* UMSctpTask_AdminSetConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = A68974261A2D1EF800854472 /* UMSctpTask_AdminSetConfig.m */; };
 		A68974791A2D440F00854472 /* UMLayerSctpUser.h in Headers */ = {isa = PBXBuildFile; fileRef = A68974771A2D440F00854472 /* UMLayerSctpUser.h */; };
@@ -72,6 +73,7 @@
 		A634B4971A2E9AF700854472 /* UMLayerSctpUserProfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpUserProfile.h; sourceTree = "<group>"; };
 		A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMLayerSctpUserProfile.m; sourceTree = "<group>"; };
 		A666CA2F1B4B102000854472 /* sctp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = sctp.framework; path = /Library/Frameworks/sctp.framework; sourceTree = "<absolute>"; };
+		A6827E101E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpApplicationContextProtocol.h; sourceTree = "<group>"; };
 		A68974251A2D1EF800854472 /* UMSctpTask_AdminSetConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMSctpTask_AdminSetConfig.h; sourceTree = "<group>"; };
 		A68974261A2D1EF800854472 /* UMSctpTask_AdminSetConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMSctpTask_AdminSetConfig.m; sourceTree = "<group>"; };
 		A68974771A2D440F00854472 /* UMLayerSctpUser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpUser.h; sourceTree = "<group>"; };
@@ -161,6 +163,7 @@
 			children = (
 				A6C78D121A29271D006C66A2 /* ulibsctp.h */,
 				A61F7D521A2C9E4C0090FC94 /* UMLayerSctpStatus.h */,
+				A6827E101E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h */,
 				A61F7D501A2C9D380090FC94 /* UMLayerSctpUserProtocol.h */,
 				A68974771A2D440F00854472 /* UMLayerSctpUser.h */,
 				A68974781A2D440F00854472 /* UMLayerSctpUser.m */,
@@ -243,6 +246,7 @@
 				A6C78DB31A294607006C66A2 /* UMSctpTask_Close.h in Headers */,
 				A6C78DA91A2945D9006C66A2 /* UMSctpTask_AdminAttach.h in Headers */,
 				A68974271A2D1EF800854472 /* UMSctpTask_AdminSetConfig.h in Headers */,
+				A6827E121E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h in Headers */,
 				A634B4991A2E9AF700854472 /* UMLayerSctpUserProfile.h in Headers */,
 				A61F7D531A2C9E4C0090FC94 /* UMLayerSctpStatus.h in Headers */,
 				A61F7D511A2C9D380090FC94 /* UMLayerSctpUserProtocol.h in Headers */,

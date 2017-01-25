@@ -20,7 +20,7 @@
 #import "UMLayerSctpReceiverThread.h"
 #import "UMLayerSctpUser.h"
 #import "UMLayerSctpUserProfile.h"
-
+#import "UMLayerSCTPApplicationContextProtocol.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -127,9 +127,9 @@
     [self queueFromAdmin:task];
 }
 
-- (void)adminSetConfig:(NSDictionary *)cfg;
+- (void)adminSetConfig:(NSDictionary *)cfg applicationContext:(id<UMLayerSctpApplicationContextProtocol>)appContext;
 {
-    UMLayerTask *task = [[UMSctpTask_AdminSetConfig alloc]initWithReceiver:self config:cfg];
+    UMLayerTask *task = [[UMSctpTask_AdminSetConfig alloc]initWithReceiver:self config:cfg applicationContext:appContext];
     [self queueFromAdmin:task];
 }
 
@@ -194,7 +194,7 @@
     {
         [self logDebug:[NSString stringWithFormat:@"setConfig %@",task.config]];
     }
-    [self setConfig:task.config];
+    [self setConfig:task.config applicationContext:task.appContext];
 }
 
 - (void)_adminAttachTask:(UMSctpTask_AdminAttach *)task
@@ -1315,7 +1315,7 @@
 
 #pragma mark -
 #pragma mark Config Handling
-- (void)setConfig:(NSDictionary *)cfg
+- (void)setConfig:(NSDictionary *)cfg applicationContext:(id<UMLayerSctpApplicationContextProtocol>)appContext
 {
     [self readLayerConfig:cfg];
     if (cfg[@"local-ip"])
@@ -1344,7 +1344,6 @@
     {
         heartbeatMs = [cfg[@"heartbeat"] intValue];
     }
-
 }
 
 

@@ -9,6 +9,7 @@
 #import <ulib/ulib.h>
 #import "UMLayerSctpStatus.h"
 #import "UMLayerSctpUserProtocol.h"
+#import "UMLayerSctpApplicationContextProtocol.h"
 
 @class UMSctpTask_AdminInit;
 @class UMSctpTask_AdminSetConfig;
@@ -68,7 +69,7 @@
 #pragma mark Task Creators
 
 - (void)adminInit;
-- (void)adminSetConfig:(NSDictionary *)config;
+- (void)adminSetConfig:(NSDictionary *)config applicationContext:(id<UMLayerSctpApplicationContextProtocol>)appContext;
 - (void)adminAttachFor:(id<UMLayerSctpUserProtocol>)caller
                profile:(UMLayerSctpUserProfile *)p
                 userId:(id)uid;
@@ -114,7 +115,7 @@
 
 #pragma mark -
 #pragma mark Config Handling
-- (void)setConfig:(NSDictionary *)cfg;
+- (void)setConfig:(NSDictionary *)cfg applicationContext:(id<UMLayerSctpApplicationContextProtocol>)appContext;
 - (NSDictionary *)config;
 
 @end

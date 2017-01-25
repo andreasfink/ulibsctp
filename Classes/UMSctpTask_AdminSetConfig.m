@@ -13,7 +13,7 @@
 
 @synthesize config;
 
-- (UMSctpTask_AdminSetConfig *)initWithReceiver:(UMLayer *)rx config:(NSDictionary *)cfg
+- (UMSctpTask_AdminSetConfig *)initWithReceiver:(UMLayer *)rx config:(NSDictionary *)cfg appplicationContext:(id)app
 {
     self = [super initWithName:[[self class]description]
                       receiver:rx
@@ -23,6 +23,7 @@
     {
         self.name = @"UMSctpTask_AdminSetConfig";
         self.config = cfg;
+        appContext = app;
     }
     return self;
 }
@@ -33,5 +34,9 @@
     [link _adminSetConfigTask:self];
 }
 
+-(id) appContext
+{
+    return appContext;
+}
 
 @end

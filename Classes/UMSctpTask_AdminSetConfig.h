@@ -14,10 +14,13 @@
 @interface UMSctpTask_AdminSetConfig : UMLayerTask
 {
     NSDictionary *config;
+    id          appContext;
 }
 @property(readwrite,strong)     NSDictionary *config;
 
-- (UMSctpTask_AdminSetConfig *)initWithReceiver:(UMLayerSctp *)receiver config:(NSDictionary *)cfg;
+- (UMSctpTask_AdminSetConfig *)initWithReceiver:(UMLayerSctp *)receiver
+                                         config:(NSDictionary *)cfg
+                             applicationContext:(id)appContext;
 - (void)main;
-
+- (id)appContext;
 @end
