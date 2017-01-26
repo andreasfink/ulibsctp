@@ -72,7 +72,7 @@
         timeoutInMs = 400;
         heartbeatMs = 30000;
         users = [[NSMutableArray alloc]init];
-        status = SCTP_STATUS_OFF;
+        self.status = SCTP_STATUS_OFF;
 #ifdef __APPLE__
         int major;
         int minor;
@@ -756,7 +756,7 @@
         [logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
     }
     [receiverThread shutdownBackgroundTask];
-    status = SCTP_STATUS_OOS;
+    self.status = SCTP_STATUS_OOS;
     if(fd >=0)
     {
         close(fd);

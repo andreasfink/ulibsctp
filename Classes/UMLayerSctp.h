@@ -44,7 +44,7 @@
     int             heartbeatMs;
 }
 
-@property(readwrite,assign) SCTP_Status     status;
+@property(readwrite,assign,atomic) SCTP_Status     status;
 @property(readwrite,strong) UMBackgrounder  *receiverThread;
 @property(readwrite,assign) int fd;
 

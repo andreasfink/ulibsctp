@@ -18,6 +18,7 @@
 }
 
 @property(readwrite,assign) BOOL allMessages;
+@property(readwrite,assign) BOOL statusUpdates;
 @property(readwrite,strong) NSArray *streamIds;
 @property(readwrite,strong) NSArray *protocolIds;
 @property(readwrite,assign) BOOL monitoring;

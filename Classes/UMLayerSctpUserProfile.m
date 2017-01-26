@@ -12,6 +12,7 @@
 
 
 @synthesize allMessages;
+@synthesize statusUpdates;
 @synthesize streamIds;
 @synthesize protocolIds;
 @synthesize monitoring;
