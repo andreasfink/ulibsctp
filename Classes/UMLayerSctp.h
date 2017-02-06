@@ -27,7 +27,7 @@
 {
     NSMutableArray *users;
 
-    SCTP_Status     status;
+    SCTP_Status     _status;
     UMBackgrounder  *receiverThread;
     int             fd;
     NSArray         *configured_local_addresses;

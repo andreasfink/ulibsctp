@@ -45,7 +45,7 @@
 
 @implementation UMLayerSctp
 
-@synthesize status;
+//@synthesize status;
 @synthesize receiverThread;
 @synthesize fd;
 @synthesize configured_local_addresses;
@@ -541,11 +541,11 @@
         {
 
         }
-        if(status == SCTP_STATUS_M_FOOS)
+        if(self.status == SCTP_STATUS_M_FOOS)
         {
             @throw([NSException exceptionWithName:@"FOOS" reason:@"Link out of service" userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
         }
-        if(status != SCTP_STATUS_IS)
+        if(self.status != SCTP_STATUS_IS)
         {
             @throw([NSException exceptionWithName:@"NOT_IS" reason:@"trying to send data on non open link" userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
         }
@@ -709,7 +709,7 @@
     id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
     
     
-    switch(status)
+    switch(self.status)
     {
         case SCTP_STATUS_M_FOOS:
             if(logLevel <=UMLOG_DEBUG)
@@ -762,7 +762,7 @@
         close(fd);
         fd = -1;
     }
-    status = SCTP_STATUS_OFF;
+    self.status = SCTP_STATUS_OFF;
 }
 
 - (void) powerdownInReceiverThread
@@ -771,13 +771,13 @@
     {
         [logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
     }
-    status = SCTP_STATUS_OOS;
+    self.status = SCTP_STATUS_OOS;
     if(fd >=0)
     {
         close(fd);
         fd = -1;
     }
-    status = SCTP_STATUS_OFF;
+    self.status = SCTP_STATUS_OFF;
 }
 
 
@@ -791,7 +791,7 @@
             {
                 [u.user sctpStatusIndication:self
                                       userId:u.userId
-                                      status:status];
+                                      status:self.status];
             }
         }
     }
