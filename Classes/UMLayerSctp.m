@@ -20,7 +20,7 @@
 #import "UMLayerSctpReceiverThread.h"
 #import "UMLayerSctpUser.h"
 #import "UMLayerSctpUserProfile.h"
-#import "UMLayerSCTPApplicationContextProtocol.h"
+#import "UMLayerSctpApplicationContextProtocol.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
