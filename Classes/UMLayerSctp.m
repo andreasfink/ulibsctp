@@ -1057,6 +1057,14 @@
                 [self powerdownInReceiverThread];
                 return -1;
             }
+            else if (snp->sn_assoc_change.sac_state == SCTP_CANT_STR_ASSOC)
+            {
+                [logFeed infoText:@" SCTP_CANT_STR_ASSOC: SCTP_COMM_LOST->OFF"];
+                self.status=SCTP_STATUS_OFF;
+                [self reportStatus];
+                [self powerdownInReceiverThread];
+                return -1;
+            }
             else if(snp->sn_assoc_change.sac_error!=0)
             {
                 [logFeed majorError:snp->sn_assoc_change.sac_error withText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)->OFF"];
