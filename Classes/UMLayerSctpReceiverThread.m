@@ -18,7 +18,9 @@
     if(self)
     {
         link = lnk;
-        control_sleeper = [[UMSleeper alloc]init];
+        control_sleeper = [[UMSleeper alloc]initFromFile:__FILE__
+                                                    line:__LINE__
+                                                function:__func__];
     }
     return self;
 }

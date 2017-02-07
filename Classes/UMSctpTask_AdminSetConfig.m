@@ -13,7 +13,7 @@
 
 @synthesize config;
 
-- (UMSctpTask_AdminSetConfig *)initWithReceiver:(UMLayer *)rx config:(NSDictionary *)cfg appplicationContext:(id)app
+- (UMSctpTask_AdminSetConfig *)initWithReceiver:(UMLayerSctp *)rx config:(NSDictionary *)cfg appplicationContext:(id)app
 {
     self = [super initWithName:[[self class]description]
                       receiver:rx
