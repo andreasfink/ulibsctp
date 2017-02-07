@@ -21,6 +21,7 @@
         control_sleeper = [[UMSleeper alloc]initFromFile:__FILE__
                                                     line:__LINE__
                                                 function:__func__];
+        [control_sleeper prepare];
     }
     return self;
 }
@@ -81,9 +82,10 @@
         NSLog(@"backgroundTask #2");
         return;
     }
-    if(workSleeper==NULL)
+    if(self.workSleeper==NULL)
     {
         self.workSleeper = [[UMSleeper alloc]initFromFile:__FILE__ line:__LINE__ function:__func__];
+        [self.workSleeper prepare];
     }
     self.runningStatus = UMBackgrounder_running;
     [control_sleeper wakeUp:UMSleeper_StartupCompletedSignal];
