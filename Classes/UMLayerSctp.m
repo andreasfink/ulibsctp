@@ -470,7 +470,14 @@
             free(remote_addresses);
             if(logLevel <= UMLOG_DEBUG)
             {
-                [self logDebug:[NSString stringWithFormat:@"connectx() returned %d (errno=%d)",err,errno]];
+                if(errno == EINPROGRESS)
+                {
+                    [self logDebug:[NSString stringWithFormat:@"connectx() returned %d (errno=EINPROGRESS)",err]];
+                }
+                else
+                {
+                    [self logDebug:[NSString stringWithFormat:@"connectx() returned %d (errno=%d)",err,errno]];
+                }
             }
             if ((err < 0) && (err !=EINPROGRESS))
             {
@@ -489,7 +496,7 @@
             {
                 [self logDebug:[NSString stringWithFormat:@"started receiver thread"]];
             }
-            self.status = SCTP_STATUS_IS;
+            self.status = SCTP_STATUS_OOS; /* we are CONNECTING but not yet CONNECTED. We are once the SCTP event up is received */
         }
     }
     @catch (NSException *exception)
