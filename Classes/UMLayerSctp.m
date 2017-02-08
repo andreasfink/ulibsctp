@@ -329,12 +329,12 @@
                 /* FIRST IP */
                 if(logLevel <= UMLOG_DEBUG)
                 {
-                    [self logDebug:[NSString stringWithFormat:@"bind(%@)",address]];
+                    [self logDebug:[NSString stringWithFormat:@"bind(%@:%d)",address,self.configured_local_port]];
                 }
                 err = bind(self.fd, (struct sockaddr *)&local_addr,sizeof(local_addr));
                 if(logLevel <= UMLOG_DEBUG)
                 {
-                    [self logDebug:[NSString stringWithFormat:@"bind(%@) returns %d (errno=%d)",address,err,errno]];
+                    [self logDebug:[NSString stringWithFormat:@"bind(%@:%d) returns %d (errno=%d)",address,self.configured_local_port,err,errno]];
                 }
                 if(err!=0)
                 {
