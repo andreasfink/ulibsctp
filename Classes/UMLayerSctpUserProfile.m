@@ -3,7 +3,7 @@
 //  ulibsctp
 //
 //  Created by Andreas Fink on 03.12.14.
-//  Copyright (c) 2016 Andreas Fink
+//  Copyright © 2017 Andreas Fink (andreas@fink.org). All rights reserved.
 //
 
 #import "UMLayerSctpUserProfile.h"
