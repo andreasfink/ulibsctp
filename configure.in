@@ -14,6 +14,9 @@ PROJECT_NAME="ulibsctp"
 AUTHOR="Andreas Fink <andreas@fink.org>"
 CONFIG_DEFINE="ULIBSCTP_CONFIG"
 VERSION=`head -n 1 VERSION`
+MAJORVER=`echo $VERSION | cut -f1 -d.`
+MINORVER=`echo $VERSION | cut -f2 -d.`
+REVISION=`echo $VERSION | cut -f3 -d.`
 CONFIG_HEADER=ulibsctp_config.h
 DEPENDENT_PKGCONFIGS="ulib"
 PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
@@ -28,7 +31,6 @@ AC_SUBST(PROJECT_NAME)
 AC_SUBST(AUTHOR)
 AC_SUBST(CONFIG_DEFINE)
 AC_SUBST(CONFIG_HEADER)
-AC_SUBST(VERSION)
 
 dnl Set user who runs ./configure
 CUSER=`id -un`
@@ -67,6 +69,7 @@ case "$host" in
 	LDFLAGS="-framework CoreFoundation -framework IOKit -framework Security -F/Library/Frameworks ${FRAMEWORKS}"
 	LIBTOOL="libtool -static -o"
 	LIBS="${LIBS} -framework sctp"
+	SHARED_LIBRARY_EXTENSION=dylib
     ;;
 
   *-linux-*)
@@ -145,6 +148,11 @@ AC_CONFIG_SECTION([Generating output files])
 dnl Final Output
 AC_SUBST(CONFIGURATION)
 AC_SUBST(PROJECT_NAME)
+AC_SUBST(VERSION)
+AC_SUBST(MAJORVER)
+AC_SUBST(MINORVER)
+AC_SUBST(REVISION)
+AC_SUBST(SHARED_LIBRARY_EXTENSION)
 AC_CONFIG_SECTION([Generating output files]) 
 AC_CONFIG_FILES([Makefile.osx])
 AC_CONFIG_FILES([Makefile.linux])
