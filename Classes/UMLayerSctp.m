@@ -311,71 +311,73 @@
         /**********************/
         /* BIND               */
         /**********************/
-        usable_ips = -1;
-        NSMutableArray *usable_addresses = [[NSMutableArray alloc]init];
-        for(NSString *address in self.configured_local_addresses)
-        {
-            struct sockaddr_in		local_addr;
-            memset(&local_addr,0x00,sizeof(local_addr));
-            
-            local_addr.sin_family = AF_INET;
+        //if(self.isPassive)
+        //{
+            usable_ips = -1;
+            NSMutableArray *usable_addresses = [[NSMutableArray alloc]init];
+            for(NSString *address in self.configured_local_addresses)
+            {
+                struct sockaddr_in        local_addr;
+                memset(&local_addr,0x00,sizeof(local_addr));
+                
+                local_addr.sin_family = AF_INET;
 #ifdef __APPLE__
-            local_addr.sin_len         = sizeof(struct sockaddr_in);
+                local_addr.sin_len         = sizeof(struct sockaddr_in);
 #endif
-
-            inet_aton(address.UTF8String, &local_addr.sin_addr);
-            local_addr.sin_port = htons(self.configured_local_port);
-            
-            if(usable_ips == -1)
-            {
-                /* FIRST IP */
-                if(logLevel <= UMLOG_DEBUG)
+                
+                inet_aton(address.UTF8String, &local_addr.sin_addr);
+                local_addr.sin_port = htons(self.configured_local_port);
+                
+                if(usable_ips == -1)
                 {
-                    [self logDebug:[NSString stringWithFormat:@"bind(%@:%d)",address,self.configured_local_port]];
-                }
-                err = bind(self.fd, (struct sockaddr *)&local_addr,sizeof(local_addr));
-                if(logLevel <= UMLOG_DEBUG)
-                {
-                    [self logDebug:[NSString stringWithFormat:@"bind(%@:%d) returns %d (errno=%d)",address,self.configured_local_port,err,errno]];
-                }
-                if(err!=0)
-                {
-                    [self logMinorError:errno location:@"bind"];
-                }
-                else
-                {
-                    usable_ips = 1;
-                    [usable_addresses addObject:address];
-                }
-            }
-            else
-            {
-                /* Further IP */
-                if(logLevel <= UMLOG_DEBUG)
-                {
-                    [self logDebug:[NSString stringWithFormat:@"sctp_bindx(%@)",address]];
-                }
-                err = sctp_bindx(self.fd, (struct sockaddr *)&local_addr,1,SCTP_BINDX_ADD_ADDR);
-                if(logLevel <= UMLOG_DEBUG)
-                {
-                    [self logDebug:[NSString stringWithFormat:@"sctp_bindx(%@) returns %d (errno=%d)",address,err,errno]];
-                }
-                if(err!=0)
-                {
-                    [self logMinorError:errno location:@"bind"];
+                    /* FIRST IP */
+                    if(logLevel <= UMLOG_DEBUG)
+                    {
+                        [self logDebug:[NSString stringWithFormat:@"bind(%@:%d)",address,self.configured_local_port]];
+                    }
+                    err = bind(self.fd, (struct sockaddr *)&local_addr,sizeof(local_addr));
+                    if(logLevel <= UMLOG_DEBUG)
+                    {
+                        [self logDebug:[NSString stringWithFormat:@"bind(%@:%d) returns %d (errno=%d)",address,self.configured_local_port,err,errno]];
+                    }
+                    if(err!=0)
+                    {
+                        [self logMinorError:errno location:@"bind"];
+                    }
+                    else
+                    {
+                        usable_ips = 1;
+                        [usable_addresses addObject:address];
+                    }
                 }
                 else
                 {
-                    usable_ips++;
-                    [usable_addresses addObject:address];
+                    /* Further IP */
+                    if(logLevel <= UMLOG_DEBUG)
+                    {
+                        [self logDebug:[NSString stringWithFormat:@"sctp_bindx(%@)",address]];
+                    }
+                    err = sctp_bindx(self.fd, (struct sockaddr *)&local_addr,1,SCTP_BINDX_ADD_ADDR);
+                    if(logLevel <= UMLOG_DEBUG)
+                    {
+                        [self logDebug:[NSString stringWithFormat:@"sctp_bindx(%@) returns %d (errno=%d)",address,err,errno]];
+                    }
+                    if(err!=0)
+                    {
+                        [self logMinorError:errno location:@"bind"];
+                    }
+                    else
+                    {
+                        usable_ips++;
+                        [usable_addresses addObject:address];
+                    }
                 }
             }
-        }
-        if(usable_ips <= 0)
-        {
-            @throw([NSException exceptionWithName:@"EADDRNOTAVAIL" reason:@"no configured IP is available" userInfo:@{@"errno":@(EADDRNOTAVAIL),@"backtrace": UMBacktrace(NULL,0)}]);
-        }
-        
+            if(usable_ips <= 0)
+            {
+                @throw([NSException exceptionWithName:@"EADDRNOTAVAIL" reason:@"no configured IP is available" userInfo:@{@"errno":@(EADDRNOTAVAIL),@"backtrace": UMBacktrace(NULL,0)}]);
+            }
+        //}
         /**********************/
         /* ENABLING EVENTS    */
         /**********************/
