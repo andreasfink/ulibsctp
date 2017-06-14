@@ -305,7 +305,9 @@
         linger.l_onoff  = 1;
         linger.l_linger = 32;
         setsockopt(self.fd, SOL_SOCKET, SO_LINGER, &linger, sizeof (struct linger));
-        
+
+
+        /* FIXME: we should not bind/bindx if we use CONNECTX  with a nailed down destination port otherwise a incoming port becomes unique to one connection */
         /**********************/
         /* BIND               */
         /**********************/
