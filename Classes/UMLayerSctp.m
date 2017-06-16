@@ -296,7 +296,10 @@
         [self setNonBlocking];
         
         setsockopt(self.fd, IPPROTO_SCTP, SCTP_NODELAY, (char *)&on, sizeof(on));
+#ifdef	__APPLE__
         setsockopt(self.fd, IPPROTO_SCTP, SCTP_REUSE_PORT, (char *)&on, sizeof(on));
+#endif
+
 
         if(logLevel <= UMLOG_DEBUG)
         {
