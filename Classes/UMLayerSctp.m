@@ -296,7 +296,8 @@
         [self setNonBlocking];
         
         setsockopt(self.fd, IPPROTO_SCTP, SCTP_NODELAY, (char *)&on, sizeof(on));
-        
+        setsockopt(self.fd, IPPROTO_SCTP, SCTP_REUSE_PORT, (char *)&on, sizeof(on));
+
         if(logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:@"enabling linger"];
@@ -810,7 +811,6 @@
 
 - (void)setNonBlocking
 {
-    
     [self logDebug:@"setting socket to non blocking"];
     int flags = fcntl(fd, F_GETFL, 0);
     fcntl(fd, F_SETFL, flags  | O_NONBLOCK);
