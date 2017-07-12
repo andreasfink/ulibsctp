@@ -76,10 +76,8 @@
     {
         ulib_set_thread_name(self.name);
     }
-    NSLog(@"backgroundTask #1");
     if(self.runningStatus != UMBackgrounder_startingUp)
     {
-        NSLog(@"backgroundTask #2");
         return;
     }
     if(self.workSleeper==NULL)
