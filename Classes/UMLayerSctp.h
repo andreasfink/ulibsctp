@@ -25,8 +25,8 @@
 
 @interface UMLayerSctp : UMLayer
 {
-    NSMutableArray *users;
-
+    UMSynchronizedArray *users;
+    
     SCTP_Status     _status;
     UMBackgrounder  *receiverThread;
     int             fd;

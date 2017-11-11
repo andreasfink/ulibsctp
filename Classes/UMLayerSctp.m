@@ -71,7 +71,7 @@
         fd = -1;
         timeoutInMs = 400;
         heartbeatMs = 30000;
-        users = [[NSMutableArray alloc]init];
+        users = [[UMSynchronizedArray alloc]init];
         self.status = SCTP_STATUS_OFF;
 #ifdef __APPLE__
         int major;
@@ -199,44 +199,39 @@
 
 - (void)_adminAttachTask:(UMSctpTask_AdminAttach *)task
 {
-    @synchronized(users)
-    {
-        id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
-        
-        UMLayerSctpUser *u      = [[UMLayerSctpUser alloc]init];
-        u.profile              = task.profile;
-        u.user                  = user;
-        u.userId                = task.userId;
+    id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
 
-        [users addObject:u];
-        if(defaultUser==NULL)
-        {
-            defaultUser = u;
-        }
-        
-        if(logLevel <= UMLOG_DEBUG)
-        {
-            [self logDebug:[NSString stringWithFormat:@"attached %@",
-                            user.layerName]];
-        }
-        [user adminAttachConfirm:self
-                          userId:u.userId];
+    UMLayerSctpUser *u      = [[UMLayerSctpUser alloc]init];
+    u.profile              = task.profile;
+    u.user                  = user;
+    u.userId                = task.userId;
+
+    [users addObject:u];
+    if(defaultUser==NULL)
+    {
+        defaultUser = u;
     }
+
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:[NSString stringWithFormat:@"attached %@",
+                        user.layerName]];
+    }
+    [user adminAttachConfirm:self
+                      userId:u.userId];
 }
 
 - (void)_adminDetachTask:(UMSctpTask_AdminDetach *)task
 {
-    @synchronized(users)
+    NSArray *usrs = [users copy];
+    for(UMLayerSctpUser *u in usrs)
     {
-        for(UMLayerSctpUser *u in users)
+        if([u.userId isEqualTo:task.userId])
         {
-            if([u.userId isEqualTo:task.userId])
-            {
-                [users removeObject:u];
-                [u.user adminDetachConfirm:self
-                                  userId:u.userId];
-                break;
-            }
+            [users removeObject:u];
+            [u.user adminDetachConfirm:self
+                                userId:u.userId];
+            break;
         }
     }
 }
@@ -552,10 +547,6 @@
 
     @try
     {
-        @synchronized(self)
-        {
-
-        }
         if(self.status == SCTP_STATUS_M_FOOS)
         {
             @throw([NSException exceptionWithName:@"FOOS" reason:@"Link out of service" userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
@@ -584,19 +575,17 @@
                                             0,                                  /* uint32_t timetolive, */
                                             0);                                 /*	 uint32_t context */
         
-        @synchronized(users)
+        NSArray *usrs = [users copy];
+        for(UMLayerSctpUser *u in usrs)
         {
-            for(UMLayerSctpUser *u in users)
+            if([u.profile wantsMonitor])
             {
-                if([u.profile wantsMonitor])
-                {
-                    [u.user sctpMonitorIndication:self
-                                           userId:u.userId
-                                         streamId:task.streamId
-                                       protocolId:task.protocolId
-                                             data:task.data
-                                         incoming:NO];
-                }
+                [u.user sctpMonitorIndication:self
+                                       userId:u.userId
+                                     streamId:task.streamId
+                                   protocolId:task.protocolId
+                                         data:task.data
+                                     incoming:NO];
             }
         }
 
@@ -798,16 +787,14 @@
 
 -(void) reportStatus
 {
-    @synchronized(users)
+    NSArray *usrs = [users copy];
+    for(UMLayerSctpUser *u in usrs)
     {
-        for(UMLayerSctpUser *u in users)
+        if([u.profile wantsStatusUpdates])
         {
-            if([u.profile wantsStatusUpdates])
-            {
-                [u.user sctpStatusIndication:self
-                                      userId:u.userId
-                                      status:self.status];
-            }
+            [u.user sctpStatusIndication:self
+                                  userId:u.userId
+                                  status:self.status];
         }
     }
 }
@@ -983,30 +970,28 @@
         
         uint16_t streamId = sinfo.sinfo_stream;
         uint32_t protocolId = ntohl(sinfo.sinfo_ppid);
-        
-        @synchronized(users)
+
+        NSArray *usrs = [users copy];
+        for(UMLayerSctpUser *u in usrs)
         {
-            for(UMLayerSctpUser *u in users)
+            if( [u.profile wantsProtocolId:protocolId]
+               || [u.profile wantsStreamId:streamId])
             {
-                if( [u.profile wantsProtocolId:protocolId]
-                 || [u.profile wantsStreamId:streamId])
-                {
-                    [self logDebug:[NSString stringWithFormat:@"passing data '%@' to USER[%@]",data.description,u.user.layerName]];
-                    [u.user sctpDataIndication:self
-                                        userId:u.userId
-                                      streamId:streamId
-                                    protocolId:protocolId
-                                          data:data];
-                }
-                if([u.profile wantsMonitor])
-                {
-                    [u.user sctpMonitorIndication:self
-                                           userId:u.userId
-                                         streamId:streamId
-                                       protocolId:protocolId
-                                             data:data
-                                      incoming:YES];
-                }
+                [self logDebug:[NSString stringWithFormat:@"passing data '%@' to USER[%@]",data.description,u.user.layerName]];
+                [u.user sctpDataIndication:self
+                                    userId:u.userId
+                                  streamId:streamId
+                                protocolId:protocolId
+                                      data:data];
+            }
+            if([u.profile wantsMonitor])
+            {
+                [u.user sctpMonitorIndication:self
+                                       userId:u.userId
+                                     streamId:streamId
+                                   protocolId:protocolId
+                                         data:data
+                                     incoming:YES];
             }
         }
     }
