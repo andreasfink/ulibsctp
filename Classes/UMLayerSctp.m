@@ -71,7 +71,7 @@
         fd = -1;
         timeoutInMs = 400;
         heartbeatMs = 30000;
-        users = [[UMSynchronizedArray alloc]init];
+        _users = [[UMSynchronizedArray alloc]init];
         self.status = SCTP_STATUS_OFF;
 #ifdef __APPLE__
         int major;
@@ -206,7 +206,7 @@
     u.user                  = user;
     u.userId                = task.userId;
 
-    [users addObject:u];
+    [_users addObject:u];
     if(defaultUser==NULL)
     {
         defaultUser = u;
@@ -223,12 +223,12 @@
 
 - (void)_adminDetachTask:(UMSctpTask_AdminDetach *)task
 {
-    NSArray *usrs = [users copy];
+    NSArray *usrs = [_users arrayCopy];
     for(UMLayerSctpUser *u in usrs)
     {
         if([u.userId isEqualTo:task.userId])
         {
-            [users removeObject:u];
+            [_users removeObject:u];
             [u.user adminDetachConfirm:self
                                 userId:u.userId];
             break;
@@ -575,7 +575,7 @@
                                             0,                                  /* uint32_t timetolive, */
                                             0);                                 /*	 uint32_t context */
         
-        NSArray *usrs = [users copy];
+        NSArray *usrs = [_users arrayCopy];
         for(UMLayerSctpUser *u in usrs)
         {
             if([u.profile wantsMonitor])
@@ -787,7 +787,7 @@
 
 -(void) reportStatus
 {
-    NSArray *usrs = [users copy];
+    NSArray *usrs = [_users arrayCopy];
     for(UMLayerSctpUser *u in usrs)
     {
         if([u.profile wantsStatusUpdates])
@@ -971,7 +971,7 @@
         uint16_t streamId = sinfo.sinfo_stream;
         uint32_t protocolId = ntohl(sinfo.sinfo_ppid);
 
-        NSArray *usrs = [users copy];
+        NSArray *usrs = [_users arrayCopy];
         for(UMLayerSctpUser *u in usrs)
         {
             if( [u.profile wantsProtocolId:protocolId]

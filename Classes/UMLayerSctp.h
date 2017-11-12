@@ -25,7 +25,7 @@
 
 @interface UMLayerSctp : UMLayer
 {
-    UMSynchronizedArray *users;
+    UMSynchronizedArray *_users;
     
     SCTP_Status     _status;
     UMBackgrounder  *receiverThread;
