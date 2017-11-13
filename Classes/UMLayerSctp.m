@@ -275,15 +275,23 @@
         /**********************/
         /* SOCKET             */
         /**********************/
-        [self logDebug:@"calling socket()"];
+        if(logLevel <= UMLOG_DEBUG)
+        {
+            [self logDebug:@"calling socket()"];
+        }
         self.fd = socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP);
-        [self logDebug:[NSString stringWithFormat:@" socket() returned fd=%d errno=%d",self.fd,errno]];
+        if(logLevel <= UMLOG_DEBUG)
+        {
+            [self logDebug:[NSString stringWithFormat:@" socket() returned fd=%d errno=%d",self.fd,errno]];
+        }
         if(self.fd < 0)
         {
             @throw([NSException exceptionWithName:@"socket()" reason:@"calling socket failed" userInfo:@{@"errno":@(errno),@"backtrace": UMBacktrace(NULL,0)}]);
         }
-        [self logDebug:@"socket() successful"];
-
+        if(logLevel <= UMLOG_DEBUG)
+        {
+            [self logDebug:@"socket() successful"];
+        }
         /**********************/
         /* OPTIONS            */
         /**********************/
