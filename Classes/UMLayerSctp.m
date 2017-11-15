@@ -610,7 +610,7 @@
                                  };
             NSMutableDictionary *report = [task.ackRequest mutableCopy];
             [report setObject:ui forKey:@"sctp_data"];
-            report[@"backtrace"] = UMBacktrace(NULL,0);
+            //report[@"backtrace"] = UMBacktrace(NULL,0);
             [user sentAckConfirmFrom:self
                             userInfo:report];
         }
