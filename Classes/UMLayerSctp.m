@@ -668,6 +668,17 @@
                                                    reason:@"socket is not connected."
                                                  userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
                     break;
+                case EPIPE:
+                    @throw([NSException exceptionWithName:@"EPIPE"
+                                                   reason:@"pipe is broken."
+                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
+                    break;
+                case ECONNRESET:
+                    @throw([NSException exceptionWithName:@"ECONNRESET"
+                                                   reason:@"connection is reset by peer."
+                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
+                    break;
+
                 default:
                     @throw([NSException exceptionWithName:[NSString stringWithFormat:@"ERROR %d",errno]
                                                    reason:[NSString stringWithFormat:@"unknown error %d",errno]
@@ -701,6 +712,7 @@
                               reason:exception.reason
                            errorInfo:errDict];
         }
+        [self powerdown];
     }
 }
 
