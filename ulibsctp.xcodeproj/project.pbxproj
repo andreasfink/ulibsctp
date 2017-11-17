@@ -53,6 +53,7 @@
 		A6C78DC71A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.h in Headers */ = {isa = PBXBuildFile; fileRef = A6C78DC51A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A6C78DC81A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m in Sources */ = {isa = PBXBuildFile; fileRef = A6C78DC61A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m */; };
 		A6C78DC91A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m in Sources */ = {isa = PBXBuildFile; fileRef = A6C78DC61A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m */; };
+		A6E7BF531FBECF5C00C53765 /* rfc-4960.txt in Resources */ = {isa = PBXBuildFile; fileRef = A6E7BF521FBECF5C00C53765 /* rfc-4960.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -103,6 +104,7 @@
 		A6C78DC11A29466D006C66A2 /* UMSctpTask_Manual_InService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMSctpTask_Manual_InService.m; sourceTree = "<group>"; };
 		A6C78DC51A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMSctpTask_Manual_ForceOutOfService.h; sourceTree = "<group>"; };
 		A6C78DC61A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMSctpTask_Manual_ForceOutOfService.m; sourceTree = "<group>"; };
+		A6E7BF521FBECF5C00C53765 /* rfc-4960.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "rfc-4960.txt"; sourceTree = "<group>"; };
 		A6F693F31B4E83AC0090FC94 /* configure.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.in; sourceTree = "<group>"; };
 		A6F693F41B4E83AC0090FC94 /* VERSION */ = {isa = PBXFileReference; lastKnownFileType = text; path = VERSION; sourceTree = "<group>"; };
 		A6F6942A1B4E85FA0090FC94 /* Makefile.linux.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.linux.in; sourceTree = "<group>"; };
@@ -146,6 +148,7 @@
 				A6C78D1C1A29271D006C66A2 /* ulibsctpTests */,
 				A6C78D0E1A29271D006C66A2 /* Products */,
 				A6C78D721A2942D0006C66A2 /* Frameworks */,
+				A6E7BF511FBECE5400C53765 /* doc */,
 			);
 			sourceTree = "<group>";
 		};
@@ -228,6 +231,14 @@
 				A6C78D731A2942EC006C66A2 /* ulib.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		A6E7BF511FBECE5400C53765 /* doc */ = {
+			isa = PBXGroup;
+			children = (
+				A6E7BF521FBECF5C00C53765 /* rfc-4960.txt */,
+			);
+			path = doc;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -338,6 +349,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A6E7BF531FBECF5C00C53765 /* rfc-4960.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
