@@ -1079,7 +1079,12 @@
             if( [u.profile wantsProtocolId:protocolId]
                || [u.profile wantsStreamId:streamId])
             {
-                [self logDebug:[NSString stringWithFormat:@"passing data '%@' to USER[%@]",data.description,u.user.layerName]];
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+                if(logLevel <= UMLOG_DEBUG)
+                {
+                    [self logDebug:[NSString stringWithFormat:@"passing data '%@' to USER[%@]",data.description,u.user.layerName]];
+                }
+#endif
                 [u.user sctpDataIndication:self
                                     userId:u.userId
                                   streamId:streamId
