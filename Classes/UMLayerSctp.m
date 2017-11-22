@@ -584,10 +584,10 @@
 
 - (void)_closeTask:(UMSctpTask_Close *)task
 {
-    id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
 #if defined(ULIB_SCCTP_CAN_DEBUG)
     if(logLevel <=UMLOG_DEBUG)
     {
+        id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
         [self logDebug:[NSString stringWithFormat:@"closing for %@",user.layerName]];
     }
 #endif
