@@ -34,6 +34,9 @@
 
 #include <arpa/inet.h>
 
+//#define ULIB_SCCTP_CAN_DEBUG
+
+
 #ifdef __APPLE__
 #include <sys/utsname.h>
 
@@ -66,6 +69,10 @@
 - (void)setLogLevel:(UMLogLevel )newLevel
 {
     logLevel = newLevel;
+    if(newLevel <= UMLOG_DEBUG)
+    {
+        NSLog(@"SCTP LogLevel is now DEBUG");
+    }
 }
 - (UMLogLevel)logLevel
 {
@@ -191,18 +198,22 @@
 /* LAYER API. The following methods are called by queued tasks */
 - (void)_adminInitTask:(UMSctpTask_AdminInit *)task
 {
+#if defined(ULIB_SCCTP_CAN_DEBUG)
     if(logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"adminInit"]];
     }
+#endif
 }
 
 - (void)_adminSetConfigTask:(UMSctpTask_AdminSetConfig *)task
 {
+#if defined(ULIB_SCCTP_CAN_DEBUG)
     if(logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"setConfig %@",task.config]];
     }
+#endif
     [self setConfig:task.config applicationContext:task.appContext];
 }
 
@@ -221,11 +232,13 @@
         defaultUser = u;
     }
 
+#if defined(ULIB_SCCTP_CAN_DEBUG)
     if(logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"attached %@",
                         user.layerName]];
     }
+#endif
     [user adminAttachConfirm:self
                       userId:u.userId];
 }
@@ -270,37 +283,46 @@
         }
         if(self.fd >= 0)
         {
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:@"old open socket detected. closing it first"];
             }
+#endif
             [self powerdown];
         }
+#if defined(ULIB_SCCTP_CAN_DEBUG)
         if(logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"socket()"]];
         }
-
+#endif
         /**********************/
         /* SOCKET             */
         /**********************/
+#if defined(ULIB_SCCTP_CAN_DEBUG)
         if(logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:@"calling socket()"];
         }
+#endif
         self.fd = socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP);
+#if defined(ULIB_SCCTP_CAN_DEBUG)
         if(logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@" socket() returned fd=%d errno=%d",self.fd,errno]];
         }
+#endif
         if(self.fd < 0)
         {
             @throw([NSException exceptionWithName:@"socket()" reason:@"calling socket failed" userInfo:@{@"errno":@(errno),@"backtrace": UMBacktrace(NULL,0)}]);
         }
+#if defined(ULIB_SCCTP_CAN_DEBUG)
         if(logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:@"socket() successful"];
         }
+#endif
         /**********************/
         /* OPTIONS            */
         /**********************/
@@ -313,10 +335,12 @@
 #endif
 
 
+#if defined(ULIB_SCCTP_CAN_DEBUG)
         if(logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:@"enabling linger"];
         }
+#endif
         struct linger linger;
         linger.l_onoff  = 1;
         linger.l_linger = 32;
@@ -347,15 +371,19 @@
                 if(usable_ips == -1)
                 {
                     /* FIRST IP */
+#if defined(ULIB_SCCTP_CAN_DEBUG)
                     if(logLevel <= UMLOG_DEBUG)
                     {
                         [self logDebug:[NSString stringWithFormat:@"bind(%@:%d)",address,self.configured_local_port]];
                     }
+#endif
                     err = bind(self.fd, (struct sockaddr *)&local_addr,sizeof(local_addr));
+#if defined(ULIB_SCCTP_CAN_DEBUG)
                     if(logLevel <= UMLOG_DEBUG)
                     {
                         [self logDebug:[NSString stringWithFormat:@"bind(%@:%d) returns %d (errno=%d)",address,self.configured_local_port,err,errno]];
                     }
+#endif
                     if(err!=0)
                     {
                         [self logMinorError:errno location:@"bind"];
@@ -369,15 +397,19 @@
                 else
                 {
                     /* Further IP */
+#if defined(ULIB_SCCTP_CAN_DEBUG)
                     if(logLevel <= UMLOG_DEBUG)
                     {
                         [self logDebug:[NSString stringWithFormat:@"sctp_bindx(%@)",address]];
                     }
+#endif
                     err = sctp_bindx(self.fd, (struct sockaddr *)&local_addr,1,SCTP_BINDX_ADD_ADDR);
+#if defined(ULIB_SCCTP_CAN_DEBUG)
                     if(logLevel <= UMLOG_DEBUG)
                     {
                         [self logDebug:[NSString stringWithFormat:@"sctp_bindx(%@) returns %d (errno=%d)",address,err,errno]];
                     }
+#endif
                     if(err!=0)
                     {
                         [self logMinorError:errno location:@"bind"];
@@ -413,11 +445,13 @@
 #ifndef LINUX
         event.sctp_stream_reset_events		= 1;
 #endif
-        
+
+#if defined(ULIB_SCCTP_CAN_DEBUG)
         if(logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"setsockopt() enabling events"]];
         }
+#endif
         if (setsockopt(self.fd, IPPROTO_SCTP, SCTP_EVENTS, &event, sizeof(event)) != 0)
         {
             @throw([NSException exceptionWithName:@"EVENTS" reason:@"setsockoption failed to enable events" userInfo:@{@"errno":@(errno),@"backtrace": UMBacktrace(NULL,0)}]);
@@ -428,10 +462,12 @@
             /**********************/
             /* LISTEN             */
             /**********************/
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"listen()"]];
             }
+#endif
             err =  listen(self.fd, 10);
             if(err !=0)
             {
@@ -466,10 +502,12 @@
             /**********************/
             /* CONNECTX           */
             /**********************/
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"connectx()"]];
             }
+#endif
             int remote_addresses_count = (int)self.configured_remote_addresses.count;
             struct sockaddr_in *remote_addresses = malloc(sizeof(struct sockaddr_in) * remote_addresses_count);
             sctp_assoc_t assoc;
@@ -488,6 +526,7 @@
             }
             err =  sctp_connectx(self.fd,(struct sockaddr *)&remote_addresses[0],remote_addresses_count,&assoc);
             free(remote_addresses);
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 if(errno == EINPROGRESS)
@@ -499,6 +538,7 @@
                     [self logDebug:[NSString stringWithFormat:@"connectx() returned %d (errno=%d)",err,errno]];
                 }
             }
+#endif
             if ((err < 0) && (err !=EINPROGRESS))
             {
                 if(errno != EINPROGRESS)
@@ -512,19 +552,23 @@
             self.receiverThread = [[UMLayerSctpReceiverThread alloc]initWithSctpLink:self];
             self.receiverThread.name =[NSString stringWithFormat:@"%@.sctpReceiverTread",layerName];
             [self.receiverThread startBackgroundTask];
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"started receiver thread"]];
             }
+#endif
             self.status = SCTP_STATUS_OOS; /* we are CONNECTING but not yet CONNECTED. We are once the SCTP event up is received */
         }
     }
     @catch (NSException *exception)
     {
+#if defined(ULIB_SCCTP_CAN_DEBUG)
         if(logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"%@ %@",exception.name,exception.reason]];
         }
+#endif
         if(exception.userInfo)
         {
             NSNumber *e = exception.userInfo[@"errno"];
@@ -541,10 +585,12 @@
 - (void)_closeTask:(UMSctpTask_Close *)task
 {
     id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
+#if defined(ULIB_SCCTP_CAN_DEBUG)
     if(logLevel <=UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"closing for %@",user.layerName]];
     }
+#endif
     [self powerdown];
     [self reportStatus];
 }
@@ -554,6 +600,7 @@
 {
     id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
 
+#if defined(ULIB_SCCTP_CAN_DEBUG)
     if(logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"DATA: %@",task.data]];
@@ -561,6 +608,7 @@
         [self logDebug:[NSString stringWithFormat:@" protocolId: %u",task.protocolId]];
         [self logDebug:[NSString stringWithFormat:@" ackRequest: %@",(task.ackRequest ? task.ackRequest.description  : @"(not present)")]];
     }
+#endif
 
     @try
     {
@@ -576,10 +624,12 @@
         {
             @throw([NSException exceptionWithName:@"NULL" reason:@"trying to send NULL data" userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
         }
+#if defined(ULIB_SCCTP_CAN_DEBUG)
         if(logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:@" Calling sctp_sendmsg"];
         }
+#endif
         ssize_t sent_packets = sctp_sendmsg(
                                             fd,                                 /* file descriptor */
                                             (const void *)task.data.bytes,      /* data pointer */
@@ -606,10 +656,12 @@
             }
         }
 
+#if defined(ULIB_SCCTP_CAN_DEBUG)
         if(logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@" sent_packets: %ld",sent_packets]];
         }
+#endif
         if(sent_packets >= 0)
         {
             NSDictionary *ui = @{
@@ -730,10 +782,12 @@
 {
     [self powerdown];
     self.status = SCTP_STATUS_M_FOOS;
+#if defined(ULIB_SCCTP_CAN_DEBUG)
     if(logLevel <=UMLOG_DEBUG)
     {
         [self logDebug:@"FOOS"];
     }
+#endif
     [self reportStatus];
 }
 
@@ -745,33 +799,41 @@
     switch(self.status)
     {
         case SCTP_STATUS_M_FOOS:
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <=UMLOG_DEBUG)
             {
                 [self logDebug:@"manual M-FOOS->IS requested"];
             }
+#endif
             self.status = SCTP_STATUS_OFF;
             [self reportStatus];
             [self openFor:user];
             break;
         case SCTP_STATUS_OFF:
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <=UMLOG_DEBUG)
             {
                 [self logDebug:@"manual OFF->IS requested"];
             }
+#endif
             [self openFor:user];
             break;
         case SCTP_STATUS_OOS:
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <=UMLOG_DEBUG)
             {
                 [self logDebug:@"manual OOS->IS requested"];
             }
+#endif
             [self reportStatus];
             break;
         case SCTP_STATUS_IS:
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <=UMLOG_DEBUG)
             {
                 [self logDebug:@"manual IS->IS requested"];
             }
+#endif
             [self reportStatus];
             break;
     }
@@ -783,11 +845,12 @@
 
 - (void) powerdown
 {
-
+#if defined(ULIB_SCCTP_CAN_DEBUG)
     if(logLevel <= UMLOG_DEBUG)
     {
         [logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
     }
+#endif
     [receiverThread shutdownBackgroundTask];
     self.status = SCTP_STATUS_OOS;
     if(fd >=0)
@@ -800,10 +863,12 @@
 
 - (void) powerdownInReceiverThread
 {
+#if defined(ULIB_SCCTP_CAN_DEBUG)
     if(logLevel <= UMLOG_DEBUG)
     {
         [logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
     }
+#endif
     self.status = SCTP_STATUS_OOS;
     if(fd >=0)
     {
@@ -956,23 +1021,27 @@
             return -1;
         }
     }
+#if defined(ULIB_SCCTP_CAN_DEBUG)
     if(logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"FLAGS: 0x%08x",flags]];
     }
-
+#endif
     NSData *data = [NSData dataWithBytes:&buffer length:bytes_read];
 
     if(flags & msg_notification_mask)
     {
+#if defined(ULIB_SCCTP_CAN_DEBUG)
         if(logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"RXT: got SCTP Notification of %u bytes", (unsigned int)bytes_read]];
         }
+#endif
         return [self handleEvent:data sinfo:&sinfo];
     }
     else
     {
+#if defined(ULIB_SCCTP_CAN_DEBUG)
         if(logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"RXT: got %u bytes on stream %hu protocol_id: %d",
@@ -980,6 +1049,8 @@
                             sinfo.sinfo_stream,
                             ntohl(sinfo.sinfo_ppid)]];
         }
+#endif
+
         if(defaultUser == NULL)
         {
             [self logDebug:@"RXT: USER instance not found. Maybe not bound yet?"];
@@ -989,10 +1060,12 @@
         /* if for whatever reason we have not realized we are in service yet, let us realize it now */
         if(self.status != SCTP_STATUS_IS)
         {
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"force change status to IS"]];
             }
+#endif
             self.status = SCTP_STATUS_IS;
             [self reportStatus];
         }
@@ -1043,15 +1116,18 @@
     switch(snp->sn_header.sn_type)
     {
         case SCTP_ASSOC_CHANGE:
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:@"SCTP_ASSOC_CHANGE"];
             }
+#endif
             if(len < sizeof (struct sctp_assoc_change))
             {
                 [logFeed majorErrorText:@" Size Mismatch in SCTP_ASSOC_CHANGE"];
                 return -1;
             }
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"  sac_type: %d",             (int)snp->sn_assoc_change.sac_type]];
@@ -1063,6 +1139,7 @@
                 [self logDebug:[NSString stringWithFormat:@"  sac_inbound_streams: %d",  (int)snp->sn_assoc_change.sac_inbound_streams]];
                 [self logDebug:[NSString stringWithFormat:@"  sac_assoc_id: %d",         (int)snp->sn_assoc_change.sac_assoc_id]];
             }
+#endif
             if((snp->sn_assoc_change.sac_state==SCTP_COMM_UP) && (snp->sn_assoc_change.sac_error== 0))
             {
                 [logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS"];
@@ -1096,21 +1173,25 @@
             break;
             
         case SCTP_PEER_ADDR_CHANGE:
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:@"SCTP_PEER_ADDR_CHANGE"];
             }
+#endif
             if(len < sizeof (struct sctp_paddr_change))
             {
                 [logFeed majorErrorText:@" Size Mismatch in SCTP_PEER_ADDR_CHANGE"];
                 return -1;
             }
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"  spc_type: %d",    (int)snp->sn_paddr_change.spc_type]];
                 [self logDebug:[NSString stringWithFormat:@"  spc_flags: %d",   (int)snp->sn_paddr_change.spc_flags]];
                 [self logDebug:[NSString stringWithFormat:@"  spc_length: %d",  (int)snp->sn_paddr_change.spc_length]];
             }
+#endif
             if (snp->sn_paddr_change.spc_aaddr.ss_family == AF_INET)
             {
                 //struct sockaddr_in *sin;
@@ -1130,6 +1211,7 @@
                     [self logDebug:[NSString stringWithFormat:@"  spc_aaddr: ipv6:%s", ap]];
                 }
             }
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"  spc_state: %d",   (int)snp->sn_paddr_change.spc_state]];
@@ -1143,18 +1225,22 @@
                     [self logDebug:[NSString stringWithFormat:@" SCTP_PEER_ADDR_CHANGE: ipv6:%s",ap]];
                 }
             }
+#endif
             break;
             
         case SCTP_REMOTE_ERROR:
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:@"SCTP_REMOTE_ERROR"];
             }
+#endif
             if(len < sizeof (struct sctp_remote_error))
             {
                 [logFeed majorErrorText:@" Size Mismatch in SCTP_REMOTE_ERROR"];
                 return -1;
             }
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"  sre_type: %d",             (int)snp->sn_remote_error.sre_type]];
@@ -1168,12 +1254,15 @@
                                 (int)snp->sn_remote_error.sre_data[2],
                                 (int)snp->sn_remote_error.sre_data[3]]];
             }
+#endif
             break;
         case SCTP_SEND_FAILED:
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:@"SCTP_SEND_FAILED"];
             }
+#endif
             if(len < sizeof (struct sctp_send_failed))
             {
                 [logFeed majorErrorText:@" Size Mismatch in SCTP_SEND_FAILED"];
@@ -1181,6 +1270,7 @@
                 return -1;
             }
             [logFeed majorErrorText:@"SCTP_SEND_FAILED"];
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"  ssf_type: %d",                (int)snp->sn_send_failed.ssf_type]];
@@ -1199,21 +1289,25 @@
                 [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_assoc_id: %d", (int)snp->sn_send_failed.ssf_info.sinfo_assoc_id]];
                 [self logDebug:[NSString stringWithFormat:@"  ssf_assoc_id: %d",    (int)snp->sn_send_failed.ssf_assoc_id]];
             }
+#endif
             [logFeed majorErrorText:[NSString stringWithFormat:@"SCTP sendfailed: len=%du err=%d\n", snp->sn_send_failed.ssf_length,snp->sn_send_failed.ssf_error]];
             [self powerdownInReceiverThread];
             return -1;
             break;
         case SCTP_SHUTDOWN_EVENT:
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:@"SCTP_SHUTDOWN_EVENT"];
             }
+#endif
             if(len < sizeof (struct sctp_shutdown_event))
             {
                 [logFeed majorErrorText:@" Size Mismatch in SCTP_SHUTDOWN_EVENT"];
                 [self powerdownInReceiverThread];
                 return -1;
             }
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"  sse_type: %d",     (int)snp->sn_shutdown_event.sse_type]];
@@ -1221,22 +1315,26 @@
                 [self logDebug:[NSString stringWithFormat:@"  sse_length: %d",   (int)snp->sn_shutdown_event.sse_length]];
                 [self logDebug:[NSString stringWithFormat:@"  sse_assoc_id: %d", (int)snp->sn_shutdown_event.sse_assoc_id]];
             }
+#endif
             [logFeed warningText:@"SCTP_SHUTDOWN_EVENT->POWERDOWN"];
             [self powerdownInReceiverThread];
             return -1;
             break;
 #ifdef	SCTP_ADAPTATION_INDICATION
         case SCTP_ADAPTATION_INDICATION:
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:@"SCTP_ADAPTATION_INDICATION"];
             }
+#endif
             if(len < sizeof(struct sctp_adaptation_event))
             {
                 [logFeed majorErrorText:@" Size Mismatch in SCTP_ADAPTATION_INDICATION"];
                 [self powerdownInReceiverThread];
                 return -1;
             }
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"  sai_type: %d",           (int)snp->sn_adaptation_event.sai_type]];
@@ -1245,20 +1343,24 @@
                 [self logDebug:[NSString stringWithFormat:@"  sai_adaptation_ind: %d", (int)snp->sn_adaptation_event.sai_adaptation_ind]];
                 [self logDebug:[NSString stringWithFormat:@"  sai_assoc_id: %d",       (int)snp->sn_adaptation_event.sai_assoc_id]];
             }
+#endif
             break;
 #endif
         case SCTP_PARTIAL_DELIVERY_EVENT:
             
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:@"SCTP_PARTIAL_DELIVERY_EVENT"];
             }
+#endif
             if(len < sizeof(struct sctp_pdapi_event))
             {
                 [logFeed majorErrorText:@" Size Mismatch in SCTP_PARTIAL_DELIVERY_EVENT"];
                 [self powerdownInReceiverThread];
                 return -1;
             }
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"  pdapi_type: %d",           (int)snp->sn_pdapi_event.pdapi_type]];
@@ -1271,20 +1373,24 @@
 #endif
                 [self logDebug:[NSString stringWithFormat:@"  pdapi_assoc_id: %d",       (int)snp->sn_pdapi_event.pdapi_assoc_id]];
             }
+#endif
             break;
             
 #ifdef SCTP_AUTHENTICATION_EVENT
         case SCTP_AUTHENTICATION_EVENT:
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:@"SCTP_AUTHENTICATION_EVENT"];
             }
+#endif
             if(len < sizeof(struct sctp_authkey_event))
             {
                 [logFeed majorErrorText:@" Size Mismatch in SCTP_AUTHENTICATION_EVENT"];
                 [self powerdownInReceiverThread];
                 return -1;
             }
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"  auth_type: %d",           (int)snp->sn_auth_event.auth_type]];
@@ -1295,20 +1401,24 @@
                 [self logDebug:[NSString stringWithFormat:@"  auth_indication: %d",     (int)snp->sn_auth_event.auth_indication]];
                 [self logDebug:[NSString stringWithFormat:@"  auth_assoc_id: %d",       (int)snp->sn_auth_event.auth_assoc_id]];
             }
+#endif
             break;
 #endif
 #ifdef SCTP_STREAM_RESET_EVENT
         case SCTP_STREAM_RESET_EVENT:
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:@"SCTP_STREAM_RESET_EVENT"];
             }
+#endif
             if(len < sizeof(struct sctp_stream_reset_event))
             {
                 [logFeed majorErrorText:@" Size Mismatch in SCTP_STREAM_RESET_EVENT"];
                 [self powerdownInReceiverThread];
                 return -1;
             }
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"  strreset_type: %d",     (int)snp->sn_strreset_event.strreset_type]];
@@ -1316,21 +1426,25 @@
                 [self logDebug:[NSString stringWithFormat:@"  strreset_length: %d",   (int)snp->sn_strreset_event.strreset_length]];
                 [self logDebug:[NSString stringWithFormat:@"  strreset_assoc_id: %d", (int)snp->sn_strreset_event.strreset_assoc_id]];
             }
+#endif
             break;
             
 #endif
 #ifdef SCTP_SENDER_DRY_EVENT
         case SCTP_SENDER_DRY_EVENT:
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:@"SCTP_SENDER_DRY_EVENT"];
             }
+#endif
             if(len < sizeof(struct sctp_sender_dry_event))
             {
                 [logFeed majorErrorText:@" Size Mismatch in SCTP_SENDER_DRY_EVENT"];
                 [self powerdownInReceiverThread];
                 return -1;
             }
+#if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"  sender_dry_type: %d",     (int)snp->sn_sender_dry_event.sender_dry_type]];
@@ -1338,6 +1452,7 @@
                 [self logDebug:[NSString stringWithFormat:@"  sender_dry_length: %d",   (int)snp->sn_sender_dry_event.sender_dry_length]];
                 [self logDebug:[NSString stringWithFormat:@"  sender_dry_assoc_id: %d", (int)snp->sn_sender_dry_event.sender_dry_assoc_id]];
             }
+#endif
             break;
 #endif
         default:
