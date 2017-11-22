@@ -63,6 +63,15 @@
 
 //-(int) handleEvent:(NSData *)event sinfo:(struct sctp_sndrcvinfo *)sinfo;
 
+- (void)setLogLevel:(UMLogLevel )newLevel
+{
+    logLevel = newLevel;
+}
+- (UMLogLevel)logLevel
+{
+    return logLevel;
+}
+
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq
 {
     self = [super initWithTaskQueueMulti:tq];
