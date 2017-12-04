@@ -429,7 +429,7 @@
         /**********************/
         /* ENABLING EVENTS    */
         /**********************/
-        
+
         self.status = SCTP_STATUS_OOS;
         
         bzero((void *)&event, sizeof(struct sctp_event_subscribe));
