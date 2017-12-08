@@ -492,7 +492,10 @@
             }
             else
             {
-                close(self.fd);
+                if(self.fd >=0)
+                {
+                    close(self.fd);
+                }
                 self.fd = newsock;
                 [self setNonBlocking];
             }
