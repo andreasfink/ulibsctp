@@ -13,12 +13,12 @@
 
 @interface UMLayerSctpUser : UMObject
 {
-    id<UMLayerSctpUserProtocol> __weak  user;
+    id<UMLayerSctpUserProtocol>         user;
     UMLayerSctpUserProfile              *profile;
     id                                  userId;
 }
 
-@property(readwrite,weak)   id<UMLayerSctpUserProtocol> user;
+@property(readwrite,strong)   id<UMLayerSctpUserProtocol> user;
 @property(readwrite,strong) UMLayerSctpUserProfile     *profile;
 @property(readwrite,strong) id                          userId;
 
