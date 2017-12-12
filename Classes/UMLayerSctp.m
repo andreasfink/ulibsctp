@@ -529,6 +529,7 @@
             }
             err =  sctp_connectx(self.fd,(struct sockaddr *)&remote_addresses[0],remote_addresses_count,&assoc);
             free(remote_addresses);
+            remote_addresses = NULL;
 #if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
             {
