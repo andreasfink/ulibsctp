@@ -681,6 +681,8 @@
         }
         else
         {
+            [self powerdown];
+            [self reportStatus];
             switch(errno)
             {
                 case 0:
@@ -751,6 +753,7 @@
                     break;
             }
             [self powerdown];
+            [self reportStatus];
         }
     }
     @catch (NSException *exception)
