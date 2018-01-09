@@ -34,7 +34,7 @@
 
 #include <arpa/inet.h>
 
-//#define ULIB_SCCTP_CAN_DEBUG
+#define ULIB_SCCTP_CAN_DEBUG 1
 
 
 #ifdef __APPLE__
@@ -303,19 +303,19 @@
 #if defined(ULIB_SCCTP_CAN_DEBUG)
         if(logLevel <= UMLOG_DEBUG)
         {
-            [self logDebug:@"calling socket()"];
+            [self logDebug:@"calling socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP)"];
         }
 #endif
         self.fd = socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP);
 #if defined(ULIB_SCCTP_CAN_DEBUG)
         if(logLevel <= UMLOG_DEBUG)
         {
-            [self logDebug:[NSString stringWithFormat:@" socket() returned fd=%d errno=%d",self.fd,errno]];
+            [self logDebug:[NSString stringWithFormat:@" socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP) returned fd=%d errno=%d",self.fd,errno]];
         }
 #endif
         if(self.fd < 0)
         {
-            @throw([NSException exceptionWithName:@"socket()" reason:@"calling socket failed" userInfo:@{@"errno":@(errno),@"backtrace": UMBacktrace(NULL,0)}]);
+            @throw([NSException exceptionWithName:@"socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP)" reason:@"calling socket failed" userInfo:@{@"errno":@(errno),@"backtrace": UMBacktrace(NULL,0)}]);
         }
 #if defined(ULIB_SCCTP_CAN_DEBUG)
         if(logLevel <= UMLOG_DEBUG)
@@ -338,7 +338,7 @@
 #if defined(ULIB_SCCTP_CAN_DEBUG)
         if(logLevel <= UMLOG_DEBUG)
         {
-            [self logDebug:@"enabling linger"];
+            [self logDebug:@"enabling linger using setsockopt(self.fd, SOL_SOCKET, SO_LINGER, &linger, sizeof (struct linger));"];
         }
 #endif
         struct linger linger;
@@ -351,8 +351,8 @@
         /**********************/
         /* BIND               */
         /**********************/
-        //if(self.isPassive)
-        //{
+        if(self.isPassive)
+        {
             usable_ips = -1;
             NSMutableArray *usable_addresses = [[NSMutableArray alloc]init];
             for(NSString *address in self.configured_local_addresses)
@@ -425,7 +425,7 @@
             {
                 @throw([NSException exceptionWithName:@"EADDRNOTAVAIL" reason:@"no configured IP is available" userInfo:@{@"errno":@(EADDRNOTAVAIL),@"backtrace": UMBacktrace(NULL,0)}]);
             }
-        //}
+        }
         /**********************/
         /* ENABLING EVENTS    */
         /**********************/
