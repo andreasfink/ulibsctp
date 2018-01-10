@@ -34,7 +34,7 @@
 
 #include <arpa/inet.h>
 
-#define ULIB_SCCTP_CAN_DEBUG 1
+//#define ULIB_SCCTP_CAN_DEBUG 1
 
 
 #ifdef __APPLE__
@@ -351,8 +351,8 @@
         /**********************/
         /* BIND               */
         /**********************/
-        if(self.isPassive)
-        {
+        //if(self.isPassive)
+        //{
             usable_ips = -1;
             NSMutableArray *usable_addresses = [[NSMutableArray alloc]init];
             for(NSString *address in self.configured_local_addresses)
@@ -425,7 +425,7 @@
             {
                 @throw([NSException exceptionWithName:@"EADDRNOTAVAIL" reason:@"no configured IP is available" userInfo:@{@"errno":@(EADDRNOTAVAIL),@"backtrace": UMBacktrace(NULL,0)}]);
             }
-        }
+        //}
         /**********************/
         /* ENABLING EVENTS    */
         /**********************/
