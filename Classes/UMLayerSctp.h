@@ -118,5 +118,6 @@
 #pragma mark Config Handling
 - (void)setConfig:(NSDictionary *)cfg applicationContext:(id<UMLayerSctpApplicationContextProtocol>)appContext;
 - (NSDictionary *)config;
+- (NSDictionary *)apiStatus;
 
 @end

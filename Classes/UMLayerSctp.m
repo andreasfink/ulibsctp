@@ -1528,4 +1528,55 @@
     return config;
 }
 
+- (NSDictionary *)apiStatus
+{
+    NSMutableDictionary *d = [[NSMutableDictionary alloc]init];
+    switch(_status)
+    {
+        case SCTP_STATUS_M_FOOS:
+            d[@"status"] = @"M-FOOS";
+            break;
+        case SCTP_STATUS_OFF:
+            d[@"status"] = @"OFF";
+            break;
+        case SCTP_STATUS_OOS:
+            d[@"status"] = @"OOS";
+            break;
+        case SCTP_STATUS_IS:
+            d[@"status"] = @"IS";
+            break;
+        default:
+            d[@"status"] = [NSString stringWithFormat:@"unknown(%d)",_status];
+            break;
+    }
+    d[@"name"] = self.layerName;
+    
+    d[@"configured-local-port"] = @(configured_local_port);
+    d[@"configured-remote-port"] = @(configured_remote_port);
+    d[@"active-local-port"] = @(active_local_port);
+    d[@"active-remote-port"] = @(active_remote_port);
+
+    if(configured_local_addresses.count > 0)
+    {
+        d[@"configured-local-addresses"] = [configured_local_addresses copy];
+    }
+    if(configured_remote_addresses.count>0)
+    {
+        d[@"configured-remote-addresses"] = [configured_remote_addresses copy];
+    }
+    if(active_local_addresses.count)
+    {
+        d[@"active-local-addresses"] = [active_local_addresses copy];
+    }
+    if(active_remote_addresses.count)
+    {
+        d[@"active-remote-addresses"] = [active_remote_addresses copy];
+    }
+    d[@"is-passive"] = isPassive ? @(YES) : @(NO);
+    d[@"poll-timeout-in-ms"] = @(timeoutInMs);
+    d[@"msg-notification-mask"] = @(msg_notification_mask);
+    d[@"heartbeat-in-ms"] = @(heartbeatMs);
+    return d;
+}
+
 @end
