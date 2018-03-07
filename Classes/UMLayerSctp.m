@@ -81,7 +81,12 @@
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq
 {
-    self = [super initWithTaskQueueMulti:tq];
+    return [self initWithTaskQueueMulti:tq name:@""];
+}
+
+- (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name
+{
+    self = [super initWithTaskQueueMulti:tq name:name];
     if(self)
     {
         fd = -1;

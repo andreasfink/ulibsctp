@@ -63,6 +63,7 @@
 @property(readwrite,assign) int             heartbeatMs;
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq;
+- (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name;
 
 /* LAYER API. The following methods queue a task */
 #pragma mark -
