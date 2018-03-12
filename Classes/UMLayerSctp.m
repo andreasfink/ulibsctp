@@ -1488,8 +1488,22 @@
     [self readLayerConfig:cfg];
     if (cfg[@"local-ip"])
     {
-        NSString *line = [cfg[@"local-ip"] stringValue];
-        self.configured_local_addresses = [line componentsSeparatedByString:@" "];
+        id local_ip_object = cfg[@"local-ip"];
+        if([local_ip_object isKindOfClass:[NSString class]])
+        {
+            NSString *line = (NSString *)local_ip_object;
+            self.configured_local_addresses = [line componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@" \t;"]];
+        }
+        else if([local_ip_object isKindOfClass:[UMSynchronizedArray class]])
+        {
+            UMSynchronizedArray *ua = (UMSynchronizedArray *)local_ip_object;
+            self.configured_local_addresses = [ua.array copy];
+        }
+        else if([local_ip_object isKindOfClass:[UMSynchronizedArray class]])
+        {
+            NSArray *arr = (NSArray *)local_ip_object;
+            self.configured_local_addresses = [arr copy];
+        }
     }
     if (cfg[@"local-port"])
     {
@@ -1497,8 +1511,22 @@
     }
     if (cfg[@"remote-ip"])
     {
-        NSString *line = [cfg[@"remote-ip"] stringValue];
-        self.configured_remote_addresses = [line componentsSeparatedByString:@" "];
+        id remote_ip_object = cfg[@"remote-ip"];
+        if([remote_ip_object isKindOfClass:[NSString class]])
+        {
+            NSString *line = (NSString *)remote_ip_object;
+            self.configured_remote_addresses = [line componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@" \t;"]];
+        }
+        else if([remote_ip_object isKindOfClass:[UMSynchronizedArray class]])
+        {
+            UMSynchronizedArray *ua = (UMSynchronizedArray *)remote_ip_object;
+            self.configured_remote_addresses = [ua.array copy];
+        }
+        else if([remote_ip_object isKindOfClass:[UMSynchronizedArray class]])
+        {
+            NSArray *arr = (NSArray *)remote_ip_object;
+            self.configured_remote_addresses = [arr copy];
+        }
     }
     if (cfg[@"remote-port"])
     {
