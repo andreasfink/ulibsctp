@@ -42,6 +42,10 @@
     int             timeoutInMs; /* poll timeout in receiver thread . Default 400ms */
     int             msg_notification_mask;
     int             heartbeatMs;
+    UMThroughputCounter *_inboundThroughputPackets;
+    UMThroughputCounter *_outboundThroughputPackets;
+    UMThroughputCounter *_inboundThroughputBytes;
+    UMThroughputCounter *_outboundThroughputBytes;
 }
 
 @property(readwrite,assign,atomic) SCTP_Status     status;
@@ -61,6 +65,11 @@
 @property(readwrite,assign) BOOL            isPassive;
 @property(readwrite,strong) UMLayerSctpUser *defaultUser;
 @property(readwrite,assign) int             heartbeatMs;
+
+@property(readwrite,strong,atomic)      UMThroughputCounter *inboundThroughputPackets;
+@property(readwrite,strong,atomic)      UMThroughputCounter *inboundThroughputBytes;
+@property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputPackets;
+@property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputBytes;
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq;
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name;

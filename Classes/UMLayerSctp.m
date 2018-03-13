@@ -94,6 +94,12 @@
         heartbeatMs = 30000;
         _users = [[UMSynchronizedArray alloc]init];
         self.status = SCTP_STATUS_OFF;
+
+        _inboundThroughputPackets   = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
+        _inboundThroughputBytes     = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
+        _outboundThroughputPackets  = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
+        _outboundThroughputBytes    = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
+
 #ifdef __APPLE__
         int major;
         int minor;
@@ -650,7 +656,10 @@
                                             task.streamId, //htons(streamId),	/* uint16_t stream_no */
                                             0,                                  /* uint32_t timetolive, */
                                             0);                                 /*	 uint32_t context */
-        
+
+        [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
+        [_outboundThroughputPackets increaseBy:(uint32_t)sent_packets];
+
         NSArray *usrs = [_users arrayCopy];
         for(UMLayerSctpUser *u in usrs)
         {
@@ -806,8 +815,7 @@
 - (void)_isTask:(UMSctpTask_Manual_InService *)task
 {
     id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
-    
-    
+
     switch(self.status)
     {
         case SCTP_STATUS_M_FOOS:
@@ -1033,6 +1041,7 @@
             return -1;
         }
     }
+
 #if defined(ULIB_SCCTP_CAN_DEBUG)
     if(logLevel <= UMLOG_DEBUG)
     {
@@ -1040,6 +1049,8 @@
     }
 #endif
     NSData *data = [NSData dataWithBytes:&buffer length:bytes_read];
+    [_inboundThroughputBytes increaseBy:(uint32_t)bytes_read];
+    [_inboundThroughputPackets increaseBy:1];
 
     if(flags & msg_notification_mask)
     {
