@@ -128,5 +128,6 @@
 - (void)setConfig:(NSDictionary *)cfg applicationContext:(id<UMLayerSctpApplicationContextProtocol>)appContext;
 - (NSDictionary *)config;
 - (NSDictionary *)apiStatus;
+- (void)stopDetachAndDestroy;
 
 @end
