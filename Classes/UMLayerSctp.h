@@ -46,7 +46,13 @@
     UMThroughputCounter *_outboundThroughputPackets;
     UMThroughputCounter *_inboundThroughputBytes;
     UMThroughputCounter *_outboundThroughputBytes;
+    /* these properties can be used by a gui to keep track of valid actions */
+    NSDate          *_startButtonPressed;
+    NSDate          *_stopButtonPressed;
 }
+
+@property(readwrite,strong) NSDate          *startButtonPressed;
+@property(readwrite,strong) NSDate          *stopButtonPressed;
 
 @property(readwrite,assign,atomic) SCTP_Status     status;
 @property(readwrite,strong) UMBackgrounder  *receiverThread;
