@@ -366,8 +366,13 @@
         //{
             usable_ips = -1;
             NSMutableArray *usable_addresses = [[NSMutableArray alloc]init];
+            if(self.configured_local_addresses.count==0)
+            {
+                NSLog(@"no local addesses in config".address);
+            }
             for(NSString *address in self.configured_local_addresses)
             {
+                NSLog(@"trying to bind to %@".address);
                 struct sockaddr_in        local_addr;
                 memset(&local_addr,0x00,sizeof(local_addr));
                 
@@ -1515,6 +1520,10 @@
             NSArray *arr = (NSArray *)local_ip_object;
             self.configured_local_addresses = [arr copy];
         }
+    }
+    else
+    {
+        NSLog(@"Warning: no local-ip defined for sctp %@",self.name)
     }
     if (cfg[@"local-port"])
     {
