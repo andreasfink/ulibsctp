@@ -1517,13 +1517,18 @@
         }
         else if([local_ip_object isKindOfClass:[UMSynchronizedArray class]])
         {
+            UMSynchronizedArray *arr = (UMSynchronizedArray *)local_ip_object;
+            self.configured_local_addresses = [arr arrayCopy];
+        }
+        else if([local_ip_object isKindOfClass:[NSArray class]])
+        {
             NSArray *arr = (NSArray *)local_ip_object;
             self.configured_local_addresses = [arr copy];
         }
     }
     else
     {
-        NSLog(@"Warning: no local-ip defined for sctp %@",self.name)
+        NSLog(@"Warning: no local-ip defined for sctp %@",self.layerName);
     }
     if (cfg[@"local-port"])
     {
@@ -1543,6 +1548,11 @@
             self.configured_remote_addresses = [ua.array copy];
         }
         else if([remote_ip_object isKindOfClass:[UMSynchronizedArray class]])
+        {
+            UMSynchronizedArray *arr = (UMSynchronizedArray *)remote_ip_object;
+            self.configured_remote_addresses = [arr arrayCopy];
+        }
+        else if([remote_ip_object isKindOfClass:[NSArray class]])
         {
             NSArray *arr = (NSArray *)remote_ip_object;
             self.configured_remote_addresses = [arr copy];
