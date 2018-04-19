@@ -135,5 +135,5 @@
 - (NSDictionary *)config;
 - (NSDictionary *)apiStatus;
 - (void)stopDetachAndDestroy;
-
+- (NSString *)statusString;
 @end

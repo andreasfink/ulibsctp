@@ -1636,4 +1636,21 @@
 {
     /* FIXME: do something here */
 }
+
+- (NSString *)statusString
+{
+    switch(_status)
+    {
+        case    SCTP_STATUS_M_FOOS:
+            return @"M-FOOS";
+        case  SCTP_STATUS_OFF:
+            return @"OFF";
+        case SCTP_STATUS_OOS:
+            return @"OOS";
+        case SCTP_STATUS_IS:
+            return @"IS";
+    }
+    return @"UNDEFINED";
+}
+
 @end
