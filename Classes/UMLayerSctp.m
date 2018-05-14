@@ -21,18 +21,23 @@
 #import "UMLayerSctpUser.h"
 #import "UMLayerSctpUserProfile.h"
 #import "UMLayerSctpApplicationContextProtocol.h"
-#include <fcntl.h>
-#include <unistd.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <sys/types.h>
+#include <sys/uio.h>
+#include <unistd.h>
+#include <poll.h>
+#include <fcntl.h>
 #include <sys/socket.h>
-#include <sys/poll.h>
+#include <netdb.h>
+#import "UMSocketSCTP.h"
+#include <arpa/inet.h>
+
 #ifdef __APPLE__
 #import <sctp/sctp.h>
 #else
 #include "netinet/sctp.h"
 #endif
-
-#include <arpa/inet.h>
 
 //#define ULIB_SCCTP_CAN_DEBUG 1
 
@@ -50,7 +55,6 @@
 
 //@synthesize status;
 @synthesize receiverThread;
-@synthesize fd;
 @synthesize configured_local_addresses;
 @synthesize configured_local_port;
 @synthesize configured_remote_addresses;
@@ -63,8 +67,6 @@
 @synthesize isPassive;
 @synthesize defaultUser;
 @synthesize heartbeatMs;
-
-//-(int) handleEvent:(NSData *)event sinfo:(struct sctp_sndrcvinfo *)sinfo;
 
 - (void)setLogLevel:(UMLogLevel )newLevel
 {
@@ -89,7 +91,7 @@
     self = [super initWithTaskQueueMulti:tq name:name];
     if(self)
     {
-        fd = -1;
+        _sctpSocket = NULL;
         timeoutInMs = 400;
         heartbeatMs = 30000;
         _users = [[UMSynchronizedArray alloc]init];
@@ -119,7 +121,6 @@
 #else
         msg_notification_mask = MSG_NOTIFICATION;
 #endif
-
     }
     return self;
 }
@@ -271,13 +272,6 @@
 
 - (void)_openTask:(UMSctpTask_Open *)task
 {
-    int err;
-    struct sctp_event_subscribe event;
-    int i;
-    int usable_ips;
-    
-    const int on = 1;
-    
     @try
     {
         if(self.status == SCTP_STATUS_M_FOOS)
@@ -292,7 +286,7 @@
         {
             @throw([NSException exceptionWithName:@"IS" reason:@"status is IS so already up." userInfo:@{@"errno":@(EAGAIN),@"backtrace": UMBacktrace(NULL,0)}]);
         }
-        if(self.fd >= 0)
+        if(_sctpSocket)
         {
 #if defined(ULIB_SCCTP_CAN_DEBUG)
             if(logLevel <= UMLOG_DEBUG)
@@ -311,163 +305,49 @@
         /**********************/
         /* SOCKET             */
         /**********************/
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-        if(logLevel <= UMLOG_DEBUG)
+        _sctpSocket = [[UMSocketSCTP alloc]initWithType:UMSOCKET_TYPE_SCTP name:self.layerName];
+        if(_sctpSocket == NULL)
         {
-            [self logDebug:@"calling socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP)"];
-        }
-#endif
-        self.fd = socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP);
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-        if(logLevel <= UMLOG_DEBUG)
-        {
-            [self logDebug:[NSString stringWithFormat:@" socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP) returned fd=%d errno=%d",self.fd,errno]];
-        }
-#endif
-        if(self.fd < 0)
-        {
-            @throw([NSException exceptionWithName:@"socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP)" reason:@"calling socket failed" userInfo:@{@"errno":@(errno),@"backtrace": UMBacktrace(NULL,0)}]);
+            @throw([NSException exceptionWithName:@"SCTP_SOCKET_CREATION_FAILURE" reason:@"calling socket() for SCTP failed" userInfo:@{@"errno":@(errno),@"backtrace": UMBacktrace(NULL,0)}]);
         }
 #if defined(ULIB_SCCTP_CAN_DEBUG)
         if(logLevel <= UMLOG_DEBUG)
         {
-            [self logDebug:@"socket() successful"];
+            [self logDebug:@"SCTP socket creation successful"];
         }
 #endif
         /**********************/
         /* OPTIONS            */
         /**********************/
-        
-        [self setNonBlocking];
-        
-        setsockopt(self.fd, IPPROTO_SCTP, SCTP_NODELAY, (char *)&on, sizeof(on));
-#ifdef	__APPLE__
-        setsockopt(self.fd, IPPROTO_SCTP, SCTP_REUSE_PORT, (char *)&on, sizeof(on));
-#endif
 
-
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-        if(logLevel <= UMLOG_DEBUG)
+        [_sctpSocket switchToNonBlocking];
+        
+        if([_sctpSocket setSctpOptionNoDelay] != UMSocketError_no_error)
         {
-            [self logDebug:@"enabling linger using setsockopt(self.fd, SOL_SOCKET, SO_LINGER, &linger, sizeof (struct linger));"];
+            [self logMinorError:[NSString stringWithFormat:@"can not set NODELAY option on sctp %@",self.layerName]];
         }
-#endif
-        struct linger linger;
-        linger.l_onoff  = 1;
-        linger.l_linger = 32;
-        setsockopt(self.fd, SOL_SOCKET, SO_LINGER, &linger, sizeof (struct linger));
 
-
-        /* FIXME: we should not bind/bindx if we use CONNECTX  with a nailed down destination port otherwise a incoming port becomes unique to one connection */
-        /**********************/
-        /* BIND               */
-        /**********************/
-        //if(self.isPassive)
-        //{
-            usable_ips = -1;
-            NSMutableArray *usable_addresses = [[NSMutableArray alloc]init];
-            for(NSString *address in self.configured_local_addresses)
-            {
-                struct sockaddr_in        local_addr;
-                memset(&local_addr,0x00,sizeof(local_addr));
-                
-                local_addr.sin_family = AF_INET;
-#ifdef __APPLE__
-                local_addr.sin_len         = sizeof(struct sockaddr_in);
-#endif
-                
-                inet_aton(address.UTF8String, &local_addr.sin_addr);
-                local_addr.sin_port = htons(self.configured_local_port);
-                
-                if(usable_ips == -1)
-                {
-                    /* FIRST IP */
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-                    if(logLevel <= UMLOG_DEBUG)
-                    {
-                        [self logDebug:[NSString stringWithFormat:@"bind(%@:%d)",address,self.configured_local_port]];
-                    }
-#endif
-                    err = bind(self.fd, (struct sockaddr *)&local_addr,sizeof(local_addr));
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-                    if(logLevel <= UMLOG_DEBUG)
-                    {
-                        [self logDebug:[NSString stringWithFormat:@"bind(%@:%d) returns %d (errno=%d)",address,self.configured_local_port,err,errno]];
-                    }
-#endif
-                    if(err!=0)
-                    {
-                        [self logMinorError:errno location:@"bind"];
-                    }
-                    else
-                    {
-                        usable_ips = 1;
-                        [usable_addresses addObject:address];
-                    }
-                }
-                else
-                {
-                    /* Further IP */
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-                    if(logLevel <= UMLOG_DEBUG)
-                    {
-                        [self logDebug:[NSString stringWithFormat:@"sctp_bindx(%@:%d)",address,configured_local_port]];
-                    }
-#endif
-                    err = sctp_bindx(self.fd, (struct sockaddr *)&local_addr,1,SCTP_BINDX_ADD_ADDR);
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-                    if(logLevel <= UMLOG_DEBUG)
-                    {
-                        [self logDebug:[NSString stringWithFormat:@"sctp_bindx(%@) returns %d (errno=%d)",address,err,errno]];
-                    }
-#endif
-                    if(err!=0)
-                    {
-                        [self logMinorError:errno location:@"bind"];
-                    }
-                    else
-                    {
-                        usable_ips++;
-                        [usable_addresses addObject:address];
-                    }
-                }
-            }
-            if(usable_ips <= 0)
-            {
-                @throw([NSException exceptionWithName:@"EADDRNOTAVAIL" reason:@"no configured IP is available" userInfo:@{@"errno":@(EADDRNOTAVAIL),@"backtrace": UMBacktrace(NULL,0)}]);
-            }
-        //}
-        /**********************/
-        /* ENABLING EVENTS    */
-        /**********************/
-
-        self.status = SCTP_STATUS_OOS;
-        
-        bzero((void *)&event, sizeof(struct sctp_event_subscribe));
-        event.sctp_data_io_event			= 1;
-        event.sctp_association_event		= 1;
-        event.sctp_address_event			= 1;
-        event.sctp_send_failure_event		= 1;
-        event.sctp_peer_error_event			= 1;
-        event.sctp_shutdown_event			= 1;
-        event.sctp_partial_delivery_event	= 1;
-        event.sctp_adaptation_layer_event	= 1;
-        event.sctp_authentication_event		= 1;
-#ifndef LINUX
-        event.sctp_stream_reset_events		= 1;
-#endif
-
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-        if(logLevel <= UMLOG_DEBUG)
+         if([_sctpSocket setSctpOptionReusePort] != UMSocketError_no_error)
         {
-            [self logDebug:[NSString stringWithFormat:@"setsockopt() enabling events"]];
+            [self logMinorError:[NSString stringWithFormat:@"can not set REUSEPORT option on sctp %@",self.layerName]];
         }
-#endif
-        if (setsockopt(self.fd, IPPROTO_SCTP, SCTP_EVENTS, &event, sizeof(event)) != 0)
+         if([_sctpSocket setOptionLinger] != UMSocketError_no_error)
         {
-            @throw([NSException exceptionWithName:@"EVENTS" reason:@"setsockoption failed to enable events" userInfo:@{@"errno":@(errno),@"backtrace": UMBacktrace(NULL,0)}]);
+            [self logMinorError:[NSString stringWithFormat:@"can not set LINGR option on sctp %@",self.layerName]];
         }
-        
+
+        if([_sctpSocket bind] != UMSocketError_no_error)
+        {
+            [self logMajorError:[NSString stringWithFormat:@"can not bind sctp connection %@",self.layerName]];
+            return;
+        }
+
+        if([_sctpSocket enableEvents] != UMSocketError_no_error)
+        {
+            [self logMinorError:[NSString stringWithFormat:@"can not enable sctp events on %@",self.layerName]];
+            return;
+        }
+
         if(self.isPassive)
         {
             /**********************/
@@ -479,10 +359,10 @@
                 [self logDebug:[NSString stringWithFormat:@"listen()"]];
             }
 #endif
-            err =  listen(self.fd, 10);
-            if(err !=0)
+            UMSocketError err = [_sctpSocket listen];
+            if(err != UMSocketError_no_error)
             {
-                [self logMinorError:errno location:@"listen"];
+                [self logMinorError:[NSString stringWithFormat:@"listen() failed on %@ due to %@",self.layerName,[UMSocket getSocketErrorString:err]]];
             }
             
             /* accorindg to the draft, there is no need to call accept (if we call connect) */
@@ -493,87 +373,44 @@
             memset(&saddr,0x00,saddr_len);
             
             /* we need to block on this accept call */
-            [self setBlocking];
-            
-            int newsock = accept(self.fd, &saddr, &saddr_len);
-            [self setNonBlocking];
-            if (newsock<0)
+            [_sctpSocket switchToBlocking];
+            UMSocketSCTP *newsock = [_sctpSocket acceptSCTP:&err];
+            [_sctpSocket switchToNonBlocking];
+            if (err != UMSocketError_no_error)
             {
-                [self logMajorError:errno location:@"accept"];
+                [self logMajorError:errno location:@"accept() failed"];
             }
             else
             {
-                if(self.fd >=0)
-                {
-                    close(self.fd);
-                }
-                self.fd = newsock;
-                [self setNonBlocking];
+                [_sctpSocket close];
+                _sctpSocket = newsock;
+                [_sctpSocket switchToNonBlocking];
+                _sctpSocket.notificationDelegate = self;
+                _sctpSocket.dataDelegate = self;
             }
         }
         else /* not passive */
         {
-            /**********************/
-            /* CONNECTX           */
-            /**********************/
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-            if(logLevel <= UMLOG_DEBUG)
+            _sctpSocket.notificationDelegate = self;
+            _sctpSocket.dataDelegate = self;
+            UMSocketError err = [ _sctpSocket connectSCTP];
+            if(err == UMSocketError_no_error)
             {
-                [self logDebug:[NSString stringWithFormat:@"connectx()"]];
-            }
-#endif
-            int remote_addresses_count = (int)self.configured_remote_addresses.count;
-            struct sockaddr_in *remote_addresses = malloc(sizeof(struct sockaddr_in) * remote_addresses_count);
-            sctp_assoc_t assoc;
-            memset(&assoc,0x00,sizeof(assoc));
-            
-            memset(remote_addresses,0x00,sizeof(struct sockaddr_in) * remote_addresses_count);
-            for(i=0;i<remote_addresses_count;i++)
-            {
-                remote_addresses[i].sin_family = AF_INET;
-#ifdef __APPLE__
-                remote_addresses[i].sin_len = sizeof(struct sockaddr_in);
-#endif
-                NSString *address = [self.configured_remote_addresses objectAtIndex:i];
-                inet_aton(address.UTF8String, &remote_addresses[i].sin_addr);
-                remote_addresses[i].sin_port = htons(self.configured_remote_port);
-            }
-            err =  sctp_connectx(self.fd,(struct sockaddr *)&remote_addresses[0],remote_addresses_count,&assoc);
-            free(remote_addresses);
-            remote_addresses = NULL;
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                if(errno == EINPROGRESS)
+                self.status = SCTP_STATUS_OOS; /* we are CONNECTING but not yet CONNECTED. We are once the SCTP event up is received */
+                self.receiverThread = [[UMLayerSctpReceiverThread alloc]initWithSctpLink:self];
+                self.receiverThread.name =[NSString stringWithFormat:@"%@.sctpReceiverTread",layerName];
+                [self.receiverThread startBackgroundTask];
+    #if defined(ULIB_SCCTP_CAN_DEBUG)
+                if(logLevel <= UMLOG_DEBUG)
                 {
-                    [self logDebug:[NSString stringWithFormat:@"connectx() returned %d (errno=EINPROGRESS)",err]];
+                    [self logDebug:[NSString stringWithFormat:@"started receiver thread"]];
                 }
-                else
-                {
-                    [self logDebug:[NSString stringWithFormat:@"connectx() returned %d (errno=%d)",err,errno]];
-                }
-            }
 #endif
-            if ((err < 0) && (err !=EINPROGRESS))
-            {
-                if(errno != EINPROGRESS)
-                {
-                    @throw([NSException exceptionWithName:@"CONNECTX" reason:@"sctp_connectx returns error" userInfo:@{@"errno":@(errno),@"backtrace": UMBacktrace(NULL,0)}]);
-                }
             }
-        }
-        if(self.fd>=0)
-        {
-            self.receiverThread = [[UMLayerSctpReceiverThread alloc]initWithSctpLink:self];
-            self.receiverThread.name =[NSString stringWithFormat:@"%@.sctpReceiverTread",layerName];
-            [self.receiverThread startBackgroundTask];
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-            if(logLevel <= UMLOG_DEBUG)
+            else
             {
-                [self logDebug:[NSString stringWithFormat:@"started receiver thread"]];
+                self.status = SCTP_STATUS_OFF;
             }
-#endif
-            self.status = SCTP_STATUS_OOS; /* we are CONNECTING but not yet CONNECTED. We are once the SCTP event up is received */
         }
     }
     @catch (NSException *exception)
@@ -645,18 +482,11 @@
             [self logDebug:@" Calling sctp_sendmsg"];
         }
 #endif
-        ssize_t sent_packets = sctp_sendmsg(
-                                            fd,                                 /* file descriptor */
-                                            (const void *)task.data.bytes,      /* data pointer */
-                                            (size_t) task.data.length,          /* data length */
-                                            NULL,                               /* const struct sockaddr *to */
-                                            0,                                  /* socklen_t tolen */
-                                            (u_int32_t)	htonl(task.protocolId), /* protocol Id */
-                                            (u_int32_t)	0,                      /* uint32_t flags */
-                                            task.streamId, //htons(streamId),	/* uint16_t stream_no */
-                                            0,                                  /* uint32_t timetolive, */
-                                            0);                                 /*	 uint32_t context */
-
+        UMSocketError err = UMSocketError_no_error;
+        ssize_t sent_packets = [_sctpSocket sendSCTP:task.data
+                                              stream:task.streamId
+                                            protocol:task.protocolId
+                                               error:&err];
         [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
         [_outboundThroughputPackets increaseBy:(uint32_t)sent_packets];
 
@@ -873,11 +703,8 @@
 #endif
     [receiverThread shutdownBackgroundTask];
     self.status = SCTP_STATUS_OOS;
-    if(fd >=0)
-    {
-        close(fd);
-        fd = -1;
-    }
+    [_sctpSocket close];
+    _sctpSocket = NULL;
     self.status = SCTP_STATUS_OFF;
 }
 
@@ -890,11 +717,8 @@
     }
 #endif
     self.status = SCTP_STATUS_OOS;
-    if(fd >=0)
-    {
-        close(fd);
-        fd = -1;
-    }
+    [_sctpSocket close];
+    _sctpSocket = NULL;
     self.status = SCTP_STATUS_OFF;
 }
 
@@ -916,64 +740,48 @@
 - (void)setNonBlocking
 {
     [self logDebug:@"setting socket to non blocking"];
-    int flags = fcntl(fd, F_GETFL, 0);
-    fcntl(fd, F_SETFL, flags  | O_NONBLOCK);
+    [_sctpSocket switchToNonBlocking];
 }
 
 - (void)setBlocking
 {
     [self logDebug:@"setting socket to blocking"];
-    int flags = fcntl(fd, F_GETFL, 0);
-    fcntl(fd, F_SETFL, flags  & ~O_NONBLOCK);
+    [_sctpSocket switchToBlocking];
 }
 
 #define SCTP_RXBUF 10240
 
 - (int)receiveData /* returns number of packets processed */
 {
-    char					buffer[SCTP_RXBUF+1];
     int						flags;
     struct sockaddr			source_address;
     struct sctp_sndrcvinfo	sinfo;
     socklen_t				fromlen;
     ssize_t					bytes_read = 0;
     
-    flags = 0;
-    fromlen = sizeof(source_address);
-    memset(&source_address,0,sizeof(source_address));
-    memset(&sinfo,0,sizeof(sinfo));
-    memset(&buffer[0],0xFA,sizeof(buffer));
-
-    //	[self logDebug:[NSString stringWithFormat:@"RXT: calling sctp_recvmsg(fd=%d)",link->fd);
-    //	debug("sctp",0,"RXT: calling sctp_recvmsg. link=%08lX",(unsigned long)link);
-    bytes_read = sctp_recvmsg (fd, buffer, SCTP_RXBUF, &source_address,&fromlen,&sinfo,&flags);
-    //	debug("sctp",0,"RXT: returned from sctp_recvmsg. link=%08lX",(unsigned long)link);
-    //	[self logDebug:[NSString stringWithFormat:@"RXT: sctp_recvmsg: bytes read =%ld, errno=%d",(long)bytes_read,(int)errno);
-    if(bytes_read == 0)
+    _sctpSocket.dataDelegate = self;
+    _sctpSocket.notificationDelegate = self;
+    
+   UMSocketError err = [_sctpSocket receiveSCTP];
+    if(err==UMSocketError_connection_reset)
     {
-        if(errno==ECONNRESET)
-        {
-            [self powerdown];
-            [self reportStatus];
-            return 0;
-        }
+        [self powerdown];
+        [self reportStatus];
+        return 0;
     }
-    if(bytes_read <= 0)
+    if(err==UMSocketError_try_again)
     {
-        /* we are having a non blocking read here */
-        
-        if(errno==EAGAIN)
-        {
-            return 0;
-        }
-        
-        [self logMajorError:errno  location:@"sctp_recvmsg"];
-        if(errno==ECONNRESET)
-        {
-            [self logDebug:@"ECONNRESET"];
-            [self powerdownInReceiverThread];
-            return -1;
-        }
+        return 0;
+    }
+
+    if(err==UMSocketError_connection_reset)
+    {
+        [self logDebug:@"ECONNRESET"];
+        [self powerdownInReceiverThread];
+        return -1;
+    }
+    if(err==UMSocketError_connection_aborted)
+
         else if(errno==ECONNABORTED)
         {
             [self logDebug:@"ECONNABORTED"];
@@ -1604,4 +1412,22 @@
     return @"UNDEFINED";
 }
 
-@end
+- (UMSocketError) dataIsAvailable
+{
+    return [self dataIsAvailable:timeoutInMs];
+}
+
+- (UMSocketError) dataIsAvailable:(int)timeout
+{
+    return [_sctpSocket dataIsAvailable:timeout];
+}
+
+
+- (void) sctpReceivedData:(NSData *)data
+                 streamId:(uint32_t)streamId
+               protocolId:(uint16_t)protocolId
+{
+    
+}
+
+    @end

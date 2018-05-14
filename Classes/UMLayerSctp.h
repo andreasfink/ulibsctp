@@ -10,6 +10,7 @@
 #import "UMLayerSctpStatus.h"
 #import "UMLayerSctpUserProtocol.h"
 #import "UMLayerSctpApplicationContextProtocol.h"
+#import "UMSocketSCTP.h"
 
 @class UMSctpTask_AdminInit;
 @class UMSctpTask_AdminSetConfig;
@@ -23,13 +24,13 @@
 @class UMLayerSctpUser;
 @class UMLayerSctpUserProfile;
 
-@interface UMLayerSctp : UMLayer
+@interface UMLayerSctp : UMLayer<UMSocketSCTP_notificationDelegate,UMSocketSCTP_dataDelegate>
 {
+    UMSocketSCTP    *_sctpSocket;
     UMSynchronizedArray *_users;
     
     SCTP_Status     _status;
     UMBackgrounder  *receiverThread;
-    int             fd;
     NSArray         *configured_local_addresses;
     int             configured_local_port;
     NSArray         *configured_remote_addresses;
@@ -56,12 +57,11 @@
 
 @property(readwrite,assign,atomic) SCTP_Status     status;
 @property(readwrite,strong) UMBackgrounder  *receiverThread;
-@property(readwrite,assign) int fd;
 
-@property(readwrite,strong  )NSArray         *configured_local_addresses;
-@property(readwrite,assign) int             configured_local_port;
-@property(readwrite,strong) NSArray         *configured_remote_addresses;
-@property(readwrite,assign) int             configured_remote_port;
+@property(readwrite,strong  )NSArray    *configured_local_addresses;
+@property(readwrite,assign) int         configured_local_port;
+@property(readwrite,strong) NSArray     *configured_remote_addresses;
+@property(readwrite,assign) int         configured_remote_port;
 
 @property(readwrite,strong) NSArray         *active_local_addresses;
 @property(readwrite,assign) int             active_local_port;
@@ -127,6 +127,8 @@
 - (void)setNonBlocking;
 - (void)setBlocking;
 - (int)receiveData; /* returns number of packets processed */
+- (UMSocketError)  dataIsAvailable;
+- (UMSocketError)  dataIsAvailable:(int)timeoutInMs;
 
 #pragma mark -
 #pragma mark Config Handling
@@ -135,4 +137,7 @@
 - (NSDictionary *)apiStatus;
 - (void)stopDetachAndDestroy;
 - (NSString *)statusString;
+
+-(int) handleEvent:(NSData *)event
+             sinfo:(struct sctp_sndrcvinfo *)sinfo; /* return 1 for processed data, 0 for no data, -1 for terminate */
 @end
