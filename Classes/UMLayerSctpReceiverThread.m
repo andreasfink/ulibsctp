@@ -95,23 +95,23 @@
     [self backgroundInit];
     while((UMBackgrounder_running == self.runningStatus) && (mustQuit==NO))
     {
-        e= [link dataIsAvailable];
+        e = [link dataIsAvailable];
         switch(e)
         {
             case UMSocketError_no_error:
-                continue;
-
+                break;
             case UMSocketError_has_data_and_hup:
                 mustQuit=YES;
                 [link receiveData];
-                continue;
+                break;
             case UMSocketError_has_data:
                 [link receiveData];
-                continue;
+                break;
             default:
             {
                 NSString *s = [NSString stringWithFormat:@"Error %d %@",e, [UMSocket getSocketErrorString:e]];
                 [link logMinorError:s];
+                mustQuit=YES;
                 break;
             }
         }
