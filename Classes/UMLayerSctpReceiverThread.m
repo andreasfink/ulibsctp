@@ -95,18 +95,25 @@
     [self backgroundInit];
     while((UMBackgrounder_running == self.runningStatus) && (mustQuit==NO))
     {
-         e= [link dataIsAvailable];
-        if((e==UMSocketError_has_data) || (e==UMSocketError_has_data_and_hup))
+        e= [link dataIsAvailable];
+        switch(e)
         {
-            [link receiveData];
-        }
-        if(e==UMSocketError_has_data_and_hup)
-        {
-            break;
-        }
-        if((e != UMSocketError_no_error) && (e!=UMSocketError_no_data) && (e!=UMSocketError_has_data))
-        {
-            break;
+            case UMSocketError_no_error:
+                continue;
+
+            case UMSocketError_has_data_and_hup:
+                mustQuit=YES;
+                [link receiveData];
+                continue;
+            case UMSocketError_has_data:
+                [link receiveData];
+                continue;
+            default:
+            {
+                NSString *s = [NSString stringWithFormat:@"Error %d %@",e, [UMSocket getSocketErrorString:e]];
+                [link logMinorError:s];
+                break;
+            }
         }
     }
     if(enableLogging)
