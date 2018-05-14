@@ -749,16 +749,9 @@
     [_sctpSocket switchToBlocking];
 }
 
-#define SCTP_RXBUF 10240
 
 - (int)receiveData /* returns number of packets processed */
 {
-    int						flags;
-    struct sockaddr			source_address;
-    struct sctp_sndrcvinfo	sinfo;
-    socklen_t				fromlen;
-    ssize_t					bytes_read = 0;
-    
     _sctpSocket.dataDelegate = self;
     _sctpSocket.notificationDelegate = self;
     
@@ -781,108 +774,22 @@
         return -1;
     }
     if(err==UMSocketError_connection_aborted)
-
-        else if(errno==ECONNABORTED)
-        {
-            [self logDebug:@"ECONNABORTED"];
-            [self powerdownInReceiverThread];
-            return -1;
-        }
-        else if(errno==ECONNREFUSED)
-        {
-            [self logDebug:@"ECONNREFUSED"];
-            [self powerdownInReceiverThread];
-            return -1;
-        }
-        else
-        {
-            [self powerdownInReceiverThread];
-            return -1;
-        }
+    {
+        [self logDebug:@"ECONNABORTED"];
+        [self powerdownInReceiverThread];
+        return -1;
     }
 
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(err==UMSocketError_connection_refused)
     {
-        [self logDebug:[NSString stringWithFormat:@"FLAGS: 0x%08x",flags]];
+        [self logDebug:@"ECONNREFUSED"];
+        [self powerdownInReceiverThread];
+        return -1;
     }
-#endif
-    NSData *data = [NSData dataWithBytes:&buffer length:bytes_read];
-    [_inboundThroughputBytes increaseBy:(uint32_t)bytes_read];
-    [_inboundThroughputPackets increaseBy:1];
-
-    if(flags & msg_notification_mask)
+    if(err != UMSocketError_no_error)
     {
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-        if(logLevel <= UMLOG_DEBUG)
-        {
-            [self logDebug:[NSString stringWithFormat:@"RXT: got SCTP Notification of %u bytes", (unsigned int)bytes_read]];
-        }
-#endif
-        return [self handleEvent:data sinfo:&sinfo];
-    }
-    else
-    {
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-        if(logLevel <= UMLOG_DEBUG)
-        {
-            [self logDebug:[NSString stringWithFormat:@"RXT: got %u bytes on stream %hu protocol_id: %d",
-                            (unsigned int)bytes_read,
-                            sinfo.sinfo_stream,
-                            ntohl(sinfo.sinfo_ppid)]];
-        }
-#endif
-
-        if(defaultUser == NULL)
-        {
-            [self logDebug:@"RXT: USER instance not found. Maybe not bound yet?"];
-            [self powerdownInReceiverThread];
-            return -1;
-        }
-        /* if for whatever reason we have not realized we are in service yet, let us realize it now */
-        if(self.status != SCTP_STATUS_IS)
-        {
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:[NSString stringWithFormat:@"force change status to IS"]];
-            }
-#endif
-            self.status = SCTP_STATUS_IS;
-            [self reportStatus];
-        }
-        
-        uint16_t streamId = sinfo.sinfo_stream;
-        uint32_t protocolId = ntohl(sinfo.sinfo_ppid);
-
-        NSArray *usrs = [_users arrayCopy];
-        for(UMLayerSctpUser *u in usrs)
-        {
-            if( [u.profile wantsProtocolId:protocolId]
-               || [u.profile wantsStreamId:streamId])
-            {
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-                if(logLevel <= UMLOG_DEBUG)
-                {
-                    [self logDebug:[NSString stringWithFormat:@"passing data '%@' to USER[%@]",data.description,u.user.layerName]];
-                }
-#endif
-                [u.user sctpDataIndication:self
-                                    userId:u.userId
-                                  streamId:streamId
-                                protocolId:protocolId
-                                      data:data];
-            }
-            if([u.profile wantsMonitor])
-            {
-                [u.user sctpMonitorIndication:self
-                                       userId:u.userId
-                                     streamId:streamId
-                                   protocolId:protocolId
-                                         data:data
-                                     incoming:YES];
-            }
-        }
+        [self powerdownInReceiverThread];
+        return -1;
     }
     return 1;
 }
@@ -1251,6 +1158,83 @@
     return 0;
 }
 
+- (UMSocketError) dataIsAvailable
+{
+    return [self dataIsAvailable:timeoutInMs];
+}
+
+- (UMSocketError) dataIsAvailable:(int)timeout
+{
+    return [_sctpSocket dataIsAvailable:timeout];
+}
+
+- (UMSocketError) sctpReceivedData:(NSData *)data
+                          streamId:(uint32_t)streamId
+                        protocolId:(uint16_t)protocolId
+{
+    [_inboundThroughputBytes increaseBy:(int)data.length];
+    [_inboundThroughputPackets increaseBy:1];
+
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:[NSString stringWithFormat:@"RXT: got %u bytes on stream %hu protocol_id: %d",
+                        (unsigned int)bytes_read,
+                        streamId,
+                        protocolId]];
+    }
+#endif
+    if(defaultUser == NULL)
+    {
+        [self logDebug:@"RXT: USER instance not found. Maybe not bound yet?"];
+        [self powerdownInReceiverThread];
+        return UMSocketError_no_buffers;
+    }
+
+    /* if for whatever reason we have not realized we are in service yet, let us realize it now */
+    if(self.status != SCTP_STATUS_IS)
+    {
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+        if(logLevel <= UMLOG_DEBUG)
+        {
+            [self logDebug:[NSString stringWithFormat:@"force change status to IS"]];
+        }
+#endif
+        self.status = SCTP_STATUS_IS;
+        [self reportStatus];
+    }
+
+    NSArray *usrs = [_users arrayCopy];
+    for(UMLayerSctpUser *u in usrs)
+    {
+        if( [u.profile wantsProtocolId:protocolId]
+           || [u.profile wantsStreamId:streamId])
+        {
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+            if(logLevel <= UMLOG_DEBUG)
+            {
+                [self logDebug:[NSString stringWithFormat:@"passing data '%@' to USER[%@]",data.description,u.user.layerName]];
+            }
+#endif
+            [u.user sctpDataIndication:self
+                                userId:u.userId
+                              streamId:streamId
+                            protocolId:protocolId
+                                  data:data];
+        }
+        if([u.profile wantsMonitor])
+        {
+            [u.user sctpMonitorIndication:self
+                                   userId:u.userId
+                                 streamId:streamId
+                               protocolId:protocolId
+                                     data:data
+                                 incoming:YES];
+        }
+    }
+    return UMSocketError_no_error;
+
+}
 #pragma mark -
 #pragma mark Config Handling
 - (void)setConfig:(NSDictionary *)cfg applicationContext:(id<UMLayerSctpApplicationContextProtocol>)appContext
@@ -1412,22 +1396,6 @@
     return @"UNDEFINED";
 }
 
-- (UMSocketError) dataIsAvailable
-{
-    return [self dataIsAvailable:timeoutInMs];
-}
 
-- (UMSocketError) dataIsAvailable:(int)timeout
-{
-    return [_sctpSocket dataIsAvailable:timeout];
-}
-
-
-- (void) sctpReceivedData:(NSData *)data
-                 streamId:(uint32_t)streamId
-               protocolId:(uint16_t)protocolId
-{
-    
-}
 
     @end

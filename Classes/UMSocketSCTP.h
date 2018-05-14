@@ -13,13 +13,14 @@
 struct sctp_sndrcvinfo;
 
 @protocol UMSocketSCTP_notificationDelegate
-- (void) handleEvent:(NSString *)data sinfo:(struct sctp_sndrcvinfo *)sinfo;
+- (UMSocketError) handleEvent:(NSData *)data
+                        sinfo:(struct sctp_sndrcvinfo *)sinfo;
 @end
 
 @protocol UMSocketSCTP_dataDelegate
-- (void) sctpReceivedData:(NSData *)data
-                 streamId:(uint32_t)streamId
-               protocolId:(uint16_t)protocolId;
+- (UMSocketError) sctpReceivedData:(NSData *)data
+                          streamId:(uint32_t)streamId
+                        protocolId:(uint16_t)protocolId;
 @end
 
 

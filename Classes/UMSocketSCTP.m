@@ -20,6 +20,16 @@
 #include "netinet/sctp.h"
 #endif
 
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <unistd.h>
+#include <poll.h>
+#include <fcntl.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
 @implementation UMSocketSCTP
 
 - (void)initNetworkSocket
@@ -326,14 +336,14 @@
                                         streamId, //htons(streamId),        /* uint16_t stream_no */
                                         0,                                  /* uint32_t timetolive, */
                                         0);                                 /* uint32_t context */
-    if(sp==)
+    if(err)
     {
-        *sent_packets = sp;
+        *err = [UMSocket umerrFromErrno:errno];
     }
-    return [UMSocket umerrFromErrno:errno];
     return sp;
 }
 
+#define SCTP_RXBUF 2048
 
 - (UMSocketError)receiveSCTP /* returns number of packets processed and calls the notification and or data delegate */
 {
@@ -352,7 +362,7 @@
     
     //    [self logDebug:[NSString stringWithFormat:@"RXT: calling sctp_recvmsg(fd=%d)",link->fd);
     //    debug("sctp",0,"RXT: calling sctp_recvmsg. link=%08lX",(unsigned long)link);
-    bytes_read = sctp_recvmsg (fd, buffer, SCTP_RXBUF, &source_address,&fromlen,&sinfo,&flags);
+    bytes_read = sctp_recvmsg (_sock, buffer, SCTP_RXBUF, &source_address,&fromlen,&sinfo,&flags);
     //    debug("sctp",0,"RXT: returned from sctp_recvmsg. link=%08lX",(unsigned long)link);
     //    [self logDebug:[NSString stringWithFormat:@"RXT: sctp_recvmsg: bytes read =%ld, errno=%d",(long)bytes_read,(int)errno);
     if(bytes_read == 0)
@@ -369,9 +379,9 @@
     }
     
     NSData *data = [NSData dataWithBytes:&buffer length:bytes_read];
-    if(flags & msg_notification_mask)
+    if(flags & _msg_notification_mask)
     {
-        return [notificationDelegate handleEvent:data
+        return [_notificationDelegate handleEvent:data
                                            sinfo:&sinfo];
     }
     else
@@ -379,9 +389,9 @@
         uint16_t streamId = sinfo.sinfo_stream;
         uint32_t protocolId = ntohl(sinfo.sinfo_ppid);
         
-        [dataDelegate sctpReceivedData:data
-                              streamId:streamId
-                            protocolId:protocolId];
+        return [_dataDelegate sctpReceivedData:data
+                                      streamId:streamId
+                                    protocolId:protocolId];
     }
     return 1;
 }
