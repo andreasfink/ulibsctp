@@ -935,7 +935,7 @@
     memset(pollfds,0,sizeof(pollfds));
     pollfds[0].fd = fd;
     pollfds[0].events = POLLIN;
-    UMAssert(timeoutInMs>0,@"timeout should be larger than 0");
+    UMAssert(timeoutInMs>=100,@"timeout should be larger than 100ms");
     UMAssert(timeoutInMs<1000,@"timeout should be smaller than 1000ms");
     ret1 = poll(pollfds, 1, timeoutInMs);
     if (ret1 < 0)

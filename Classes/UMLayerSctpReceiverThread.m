@@ -100,6 +100,8 @@
         {
             case UMSocketError_no_error:
                 break;
+            case UMSocketError_no_data:
+                break;
             case UMSocketError_has_data_and_hup:
                 mustQuit=YES;
                 [link receiveData];
