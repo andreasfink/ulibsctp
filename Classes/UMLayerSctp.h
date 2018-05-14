@@ -126,7 +126,6 @@
 - (void)reportStatus;
 - (void)setNonBlocking;
 - (void)setBlocking;
-- (UMSocketError)dataIsAvailable;
 - (int)receiveData; /* returns number of packets processed */
 
 #pragma mark -

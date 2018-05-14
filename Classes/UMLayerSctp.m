@@ -411,7 +411,7 @@
 #if defined(ULIB_SCCTP_CAN_DEBUG)
                     if(logLevel <= UMLOG_DEBUG)
                     {
-                        [self logDebug:[NSString stringWithFormat:@"sctp_bindx(%@:%d)",address,]];
+                        [self logDebug:[NSString stringWithFormat:@"sctp_bindx(%@:%d)",address,configured_local_port]];
                     }
 #endif
                     err = sctp_bindx(self.fd, (struct sockaddr *)&local_addr,1,SCTP_BINDX_ADD_ADDR);
