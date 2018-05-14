@@ -411,7 +411,7 @@
 #if defined(ULIB_SCCTP_CAN_DEBUG)
                     if(logLevel <= UMLOG_DEBUG)
                     {
-                        [self logDebug:[NSString stringWithFormat:@"sctp_bindx(%@)",address]];
+                        [self logDebug:[NSString stringWithFormat:@"sctp_bindx(%@:%d)",address,]];
                     }
 #endif
                     err = sctp_bindx(self.fd, (struct sockaddr *)&local_addr,1,SCTP_BINDX_ADD_ADDR);
@@ -925,55 +925,6 @@
     [self logDebug:@"setting socket to blocking"];
     int flags = fcntl(fd, F_GETFL, 0);
     fcntl(fd, F_SETFL, flags  & ~O_NONBLOCK);
-}
-
-- (UMSocketError) dataIsAvailable
-{
-    struct pollfd pollfds[1];
-    int ret1, ret2;
-    
-    memset(pollfds,0,sizeof(pollfds));
-    pollfds[0].fd = fd;
-    pollfds[0].events = POLLIN;
-    UMAssert(timeoutInMs>=100,@"timeout should be larger than 100ms");
-    UMAssert(timeoutInMs<1000,@"timeout should be smaller than 1000ms");
-    ret1 = poll(pollfds, 1, timeoutInMs);
-    if (ret1 < 0)
-    {
-        if (errno != EINTR)
-        {
-            ret2 = [UMSocket umerrFromErrno:EBADF];
-            return ret2;
-        }
-        else
-        {
-            return [UMSocket umerrFromErrno:errno];
-        }
-    }
-    else if (ret1 == 0)
-    {
-        ret2 = UMSocketError_no_data;
-        return ret2;
-    }
-    
-    ret2 = pollfds[0].revents;
-    if(ret2 & POLLERR)
-    {
-        return [UMSocket umerrFromErrno:errno];
-    }
-    else if(ret2 & POLLHUP)
-    {
-        return UMSocketError_has_data_and_hup;
-    }
-    else if(ret2 & POLLNVAL)
-    {
-        return [UMSocket umerrFromErrno:EBADF];
-    }
-    if((ret2 & POLLIN) || (ret2 & POLLPRI))
-    {
-        return UMSocketError_has_data;
-    }
-    return UMSocketError_no_data;
 }
 
 #define SCTP_RXBUF 10240
