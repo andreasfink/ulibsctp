@@ -145,19 +145,23 @@ static int _global_msg_notification_mask = 0;
     return UMSocketError_no_error;
 }
 
-- (UMSocketError)    bind;
+- (UMSocketError) bind;
 {
     int usable_ips = -1;
     NSMutableArray *usable_addresses = [[NSMutableArray alloc]init];
 
-#if defined(UMLIB_SCTP_CAN_DEBUG)
-requestedLocalAddresses
+#if (ULIBSCTP_CONFIG==Debug)
+    NSLog(@"bind (SCTP): _requestedLocalAddresses = %@",_requestedLocalAddresses);
 #endif
     
-    for(NSString *a in self.requestedLocalAddresses)
+    for(NSString *a in _requestedLocalAddresses)
     {
+#if (ULIBSCTP_CONFIG==Debug)
+        NSLog(@"bind (SCTP): parsing %@",a);
+#endif
+
         NSString *address = [UMSocket deunifyIp:a];
-        if(address.length>0)
+        if(address.length==0)
         {
             address = a;
         }
@@ -326,7 +330,7 @@ requestedLocalAddresses
     {
         return UMSocketError_address_not_available;
     }
-#if (ULIB_SCTP_CONFIG==Debug)
+#if (ULIBSCTP_CONFIG==Debug)
     NSLog(@"ConnectSCTP: _requestedRemoteAddresses = %@",_requestedRemoteAddresses);
 #endif
     sctp_assoc_t assoc;
@@ -591,7 +595,7 @@ requestedLocalAddresses
     //    debug("sctp",0,"RXT: returned from sctp_recvmsg. link=%08lX",(unsigned long)link);
     //    [self logDebug:[NSString stringWithFormat:@"RXT: sctp_recvmsg: bytes read =%ld, errno=%d",(long)bytes_read,(int)errno);
     
-#if (ULIB_SCTP_CONFIG==Debug)
+#if (ULIBSCTP_CONFIG==Debug)
     NSLog(@"sctp_recvmsg returns bytes_read=%d",(int)bytes_read);
 #endif
 
@@ -599,7 +603,7 @@ requestedLocalAddresses
     {
         if(errno==ECONNRESET)
         {
-#if (ULIB_SCTP_CONFIG==Debug)
+#if (ULIBSCTP_CONFIG==Debug)
             NSLog(@"receiveAndProcessSCTP returning UMSocketError_connection_reset");
 #endif
             
@@ -609,14 +613,14 @@ requestedLocalAddresses
     if(bytes_read <= 0)
     {
         /* we are having a non blocking read here */
-#if (ULIB_SCTP_CONFIG==Debug)
+#if (ULIBSCTP_CONFIG==Debug)
         NSLog(@"errno=%d %s",errno,strerror(errno));
 #endif
         return [UMSocket umerrFromErrno:errno];
     }
 
     NSData *data = [NSData dataWithBytes:&buffer length:bytes_read];
-#if (ULIB_SCTP_CONFIG==Debug)
+#if (ULIBSCTP_CONFIG==Debug)
     NSLog(@"Read DATA=%@",[data hexString]);
 #endif
     NSLog(@"flags=%u",flags);
@@ -631,7 +635,7 @@ requestedLocalAddresses
         uint16_t streamId = sinfo.sinfo_stream;
         uint32_t protocolId = ntohl(sinfo.sinfo_ppid);
         
-#if (ULIB_SCTP_CONFIG==Debug)
+#if (ULIBSCTP_CONFIG==Debug)
         NSLog(@"streamId=%u",streamId);
         NSLog(@"protocolId=%u",protocolId);
         NSLog(@"dataDelegate=%@",self.dataDelegate);
