@@ -287,8 +287,10 @@
             newcon.status=status;
             newcon.localHost = localHost;
             newcon.remoteHost = remoteHost;
+            newcon.requestedLocalAddresses = _requestedLocalAddresses;
             newcon.requestedLocalPort=requestedLocalPort;
-            newcon.requestedRemotePort=requestedRemotePort;
+            newcon.requestedRemoteAddresses = _requestedRemoteAddresses;
+            newcon.requestedRemotePort=requestedRemotePort;            
             newcon.cryptoStream = [[UMCrypto alloc]initWithRelatedSocket:newcon];
             newcon.isBound=NO;
             newcon.isListening=NO;

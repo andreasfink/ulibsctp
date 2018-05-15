@@ -306,6 +306,11 @@
         /* SOCKET             */
         /**********************/
         _sctpSocket = [[UMSocketSCTP alloc]initWithType:UMSOCKET_TYPE_SCTP name:self.layerName];
+        _sctpSocket.requestedRemoteAddresses = configured_remote_addresses;
+        _sctpSocket.requestedRemotePort = configured_remote_port;
+        _sctpSocket.requestedLocalAddresses = configured_local_addresses;
+        _sctpSocket.requestedLocalPort = configured_local_port;
+
         if(_sctpSocket == NULL)
         {
             @throw([NSException exceptionWithName:@"SCTP_SOCKET_CREATION_FAILURE" reason:@"calling socket() for SCTP failed" userInfo:@{@"errno":@(errno),@"backtrace": UMBacktrace(NULL,0)}]);
