@@ -320,6 +320,9 @@ static int _global_msg_notification_mask = 0;
         
     if(usable_ips <= 0)
     {
+#if (ULIBSCTP_CONFIG==Debug)
+        NSLog(@"bind(SCTP): usable_ips=%d",usable_ips);
+#endif
         return UMSocketError_address_not_available;
     }
     _connectedLocalAddresses = useAddresses;
@@ -730,6 +733,10 @@ static int _global_msg_notification_mask = 0;
     if (ret1 < 0)
     {
         eno = errno;
+#if (ULIBSCTP_CONFIG==Debug)
+        NSLog(@"poll: %d %s",errno,strerror(errno));
+#endif
+
         /* error condition */
         if (eno != EINTR)
         {
