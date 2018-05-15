@@ -230,34 +230,118 @@ static int _global_msg_notification_mask = 0;
     /* CONNECTX           */
     /**********************/
     int i;
-    
     int remote_addresses_count = (int)_requestedRemoteAddresses.count;
-    struct sockaddr_in *remote_addresses = malloc(sizeof(struct sockaddr_in) * remote_addresses_count);
+    if(remote_addresses_count == 0)
+    {
+        return UMSocketError_address_not_available;
+    }
+
     sctp_assoc_t assoc;
     memset(&assoc,0x00,sizeof(assoc));
     
-    memset(remote_addresses,0x00,sizeof(struct sockaddr_in) * remote_addresses_count);
-    for(i=0;i<remote_addresses_count;i++)
+    if(_socketFamily==AF_INET6)
     {
-        remote_addresses[i].sin_family = AF_INET;
-#ifdef __APPLE__
-        remote_addresses[i].sin_len = sizeof(struct sockaddr_in);
-#endif
-        NSString *address = [_requestedRemoteAddresses objectAtIndex:i];
-        inet_aton(address.UTF8String, &remote_addresses[i].sin_addr);
-        remote_addresses[i].sin_port = htons(requestedRemotePort);
-    }
-    int err =  sctp_connectx(_sock,(struct sockaddr *)&remote_addresses[0],remote_addresses_count,&assoc);
-    free(remote_addresses);
-    remote_addresses = NULL;
-    if ((err < 0) && (err !=EINPROGRESS))
-    {
-        if(errno != EINPROGRESS)
+        struct sockaddr_in6 *remote_addresses6 = malloc(sizeof(struct sockaddr_in6) * remote_addresses_count);
+        memset(remote_addresses6,0x00,sizeof(struct sockaddr_in6) * remote_addresses_count);
+        int j=0;
+        for(i=0;i<remote_addresses_count;i++)
         {
-            return [UMSocket umerrFromErrno:(UMSocketError)errno];
+            struct sockaddr_in6 sa6;
+            memset(&sa6,0x00,sizeof(sa6));
+            char addressCString[64];
+            memset(&addressCString,0x00,sizeof(addressCString));
+
+            NSString *address = [_requestedRemoteAddresses objectAtIndex:i];
+            address = [UMSocket deunifyIp:address];
+            [address getCString:addressCString maxLength:sizeof(addressCString) encoding:NSUTF8StringEncoding];
+            
+
+            struct in6_addr addr6;
+            int result = inet_pton(AF_INET6,address.UTF8String, &addr6);
+            if(result==1)
+            {
+#ifdef __APPLE__
+                remote_addresses6[i].sin6_len = sizeof(struct sockaddr_in6);
+#endif
+                remote_addresses6[j].sin6_family = AF_INET6;
+                remote_addresses6[j].sin6_addr = addr6;
+                j++;
+            }
+            else
+            {
+                NSLog(@"%@ is not a valid IP address. skipped ",address);
+            }
         }
+        if(j==0)
+        {
+            NSLog(@"no valid IPs specified");
+            return UMSocketError_address_not_available;
+        }
+        int err =  sctp_connectx(_sock,(struct sockaddr *)&remote_addresses6[0],j,&assoc);
+        free(remote_addresses6);
+        if ((err < 0) && (err !=EINPROGRESS))
+        {
+            if(errno != EINPROGRESS)
+            {
+                return [UMSocket umerrFromErrno:(UMSocketError)errno];
+            }
+        }
+        return UMSocketError_no_error;
     }
-    return UMSocketError_no_error;
+    else if(_socketFamily==AF_INET)
+    {
+        struct sockaddr_in *remote_addresses4 = malloc(sizeof(struct sockaddr_in) * remote_addresses_count);
+        memset(remote_addresses4,0x00,sizeof(struct sockaddr_in) * remote_addresses_count);
+        int j=0;
+        for(i=0;i<remote_addresses_count;i++)
+        {
+            struct sockaddr_in sa4;
+            memset(&sa4,0x00,sizeof(sa4));
+            char addressCString[64];
+            memset(&addressCString,0x00,sizeof(addressCString));
+            
+            NSString *address = [_requestedRemoteAddresses objectAtIndex:i];
+            address = [UMSocket deunifyIp:address];
+            [address getCString:addressCString maxLength:sizeof(addressCString) encoding:NSUTF8StringEncoding];
+            
+            
+            struct in_addr addr4;
+            int result = inet_pton(AF_INET,address.UTF8String, &addr4);
+            if(result==1)
+            {
+#ifdef __APPLE__
+                remote_addresses4[i].sin_len = sizeof(struct sockaddr_in);
+#endif
+                remote_addresses4[j].sin_family = AF_INET;
+                remote_addresses4[j].sin_addr = addr4;
+                j++;
+            }
+            else
+            {
+                NSLog(@"%@ is not a valid IP address. skipped ",address);
+            }
+        }
+        if(j==0)
+        {
+            NSLog(@"no valid IPs specified");
+            return UMSocketError_address_not_available;
+        }
+        int err =  sctp_connectx(_sock,(struct sockaddr *)&remote_addresses4[0],j,&assoc);
+        free(remote_addresses4);
+        if ((err < 0) && (err !=EINPROGRESS))
+        {
+            if(errno != EINPROGRESS)
+            {
+                return [UMSocket umerrFromErrno:(UMSocketError)errno];
+            }
+        }
+        return UMSocketError_no_error;
+    }
+
+    else
+    {
+        return UMSocketError_address_not_valid_for_socket_family;
+    }
 }
 
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret
