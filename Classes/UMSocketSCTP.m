@@ -235,7 +235,9 @@ static int _global_msg_notification_mask = 0;
     {
         return UMSocketError_address_not_available;
     }
-
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+    NSLog(@"ConnectSCTP: _requestedRemoteAddresses = %@",_requestedRemoteAddresses);
+#endif
     sctp_assoc_t assoc;
     memset(&assoc,0x00,sizeof(assoc));
     
