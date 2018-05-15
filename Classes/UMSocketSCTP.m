@@ -255,9 +255,12 @@ static int _global_msg_notification_mask = 0;
 
             NSString *address = [_requestedRemoteAddresses objectAtIndex:i];
             address = [UMSocket deunifyIp:address];
+            if([address isIPv4])
+            {
+                /* we have a IPV6 socket but the remote addres is in IPV4 format so we must use the IPv6 representation of it */
+                address =[NSString stringWithFormat:@"::ffff:%@",address];
+            }
             [address getCString:addressCString maxLength:sizeof(addressCString) encoding:NSUTF8StringEncoding];
-            
-
             struct in6_addr addr6;
             int result = inet_pton(AF_INET6,address.UTF8String, &addr6);
             if(result==1)
