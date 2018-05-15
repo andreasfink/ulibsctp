@@ -88,6 +88,8 @@
     self.runningStatus = UMBackgrounder_running;
     [control_sleeper wakeUp:UMSleeper_StartupCompletedSignal];
     
+    sleep(1);
+    /* we sleep here for a second to give connectx a chance to establish */
     if(enableLogging)
     {
         NSLog(@"%@: started up successfully",self.name);
@@ -99,6 +101,9 @@
 
         switch(e)
         {
+            case UMSocketError_address_not_available:
+                sleep(2);
+                break;
             case UMSocketError_has_data:
                 [link receiveData];
                 break;
@@ -109,7 +114,6 @@
             case UMSocketError_no_error:
             case UMSocketError_no_data:
             case UMSocketError_try_again:
-            case UMSocketError_address_not_available:
                 break;
             default:
             {
