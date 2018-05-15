@@ -199,7 +199,6 @@ static int _global_msg_notification_mask = 0;
     NSMutableArray *useAddresses = [[NSMutableArray alloc]init];
     if(_socketFamily==AF_INET6)
     {
-        int usable_ips = -1;
         for(NSString *address in usable_addresses)
         {
             struct sockaddr_in6        local_addr6;
@@ -285,6 +284,14 @@ static int _global_msg_notification_mask = 0;
                     {
                         usable_ips = 1;
                         [useAddresses addObject:address];
+#if (ULIBSCTP_CONFIG==Debug)
+                        NSLog(@" bind succeeds");
+#endif
+
+                    }
+                    else
+                    {
+                        NSLog(@" bind returns error %d %s",errno,strerror(errno));
                     }
                 }
                 else
@@ -294,6 +301,13 @@ static int _global_msg_notification_mask = 0;
                     {
                         usable_ips++;
                         [useAddresses addObject:address];
+#if (ULIBSCTP_CONFIG==Debug)
+                        NSLog(@" sctp_bindx succeeds");
+#endif
+                    }
+                    else
+                    {
+                        NSLog(@" sctp_bindx returns error %d %s",errno,strerror(errno));
                     }
                 }
             }
