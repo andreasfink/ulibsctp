@@ -149,46 +149,133 @@ static int _global_msg_notification_mask = 0;
 {
     int usable_ips = -1;
     NSMutableArray *usable_addresses = [[NSMutableArray alloc]init];
-    for(NSString *address in self.requestedLocalAddresses)
+
+    for(NSString *a in self.requestedLocalAddresses)
     {
-        struct sockaddr_in        local_addr;
-        memset(&local_addr,0x00,sizeof(local_addr));
-        
-        local_addr.sin_family = AF_INET;
-    #ifdef __APPLE__
-        local_addr.sin_len         = sizeof(struct sockaddr_in);
-    #endif
-        
-        inet_aton(address.UTF8String, &local_addr.sin_addr);
-        local_addr.sin_port = htons(self.requestedLocalPort);
-        
-        if(usable_ips == -1)
+        NSString *address = [UMSocket deunifyIp:a];
+        if(address.length>0)
         {
-            int err = bind(_sock, (struct sockaddr *)&local_addr,sizeof(local_addr));
-            if(err == 0)
+            address = a;
+        }
+        if([address isIPv4])
+        {
+            if(_socketFamily==AF_INET6)
             {
-                usable_ips = 1;
+                address = [NSString stringWithFormat:@"::ffff:%@",address];
+            }
+            [usable_addresses addObject:address];
+        }
+        else if([address isIPv6])
+        {
+            if(_socketFamily==AF_INET6)
+            {
                 [usable_addresses addObject:address];
+            }
+            else
+            {
+                NSLog(@"IPv4 only socket doesnt support IPv6 address %@",address);
             }
         }
         else
         {
-            int err = sctp_bindx(_sock, (struct sockaddr *)&local_addr,1,SCTP_BINDX_ADD_ADDR);
-            if(err==0)
+            NSLog(@"Can not interpret address '%@'. Skipping it",address);
+        }
+    }
+    /* at this point usable_addresses contains strings which are in _socketFamily specific formats */
+    /* invalid IP's have been remvoed */
+    NSMutableArray *useAddresses = [[NSMutableArray alloc]init];
+    if(_socketFamily==AF_INET6)
+    {
+        int usable_ips = -1;
+        for(NSString *address in usable_addresses)
+        {
+            struct sockaddr_in6        local_addr6;
+            memset(&local_addr6,0x00,sizeof(local_addr6));
+            
+            local_addr6.sin6_family = AF_INET6;
+#ifdef __APPLE__
+            local_addr6.sin6_len         = sizeof(struct sockaddr_in6);
+#endif
+            local_addr6.sin6_port = htons(self.requestedLocalPort);
+            
+            int result = inet_pton(AF_INET6,address.UTF8String, &local_addr6.sin6_addr);
+            if(result==1)
             {
-                usable_ips++;
-                [usable_addresses addObject:address];
+                if(usable_ips == -1)
+                {
+                    /* first IP */
+                    
+                    int err = bind(_sock, (struct sockaddr *)&local_addr6,sizeof(local_addr6));
+                    if(err==0)
+                    {
+                        usable_ips = 1;
+                        [useAddresses addObject:address];
+                    }
+                }
+                else
+                {
+                    int err = sctp_bindx(_sock, (struct sockaddr *)&local_addr6,1,SCTP_BINDX_ADD_ADDR);
+                    if(err==0)
+                    {
+                        usable_ips++;
+                        [useAddresses addObject:address];
+                    }
+                }
             }
         }
     }
+    else if(_socketFamily==AF_INET)
+    {
+        /* IPv4 only socket */
+        int usable_ips = -1;
+        for(NSString *address in usable_addresses)
+        {
+            struct sockaddr_in  local_addr4;
+            memset(&local_addr4,0x00,sizeof(local_addr4));
+            
+            local_addr4.sin_family = AF_INET;
+#ifdef __APPLE__
+            local_addr4.sin_len         = sizeof(struct sockaddr_in);
+#endif
+            local_addr4.sin_port = htons(self.requestedLocalPort);
+            
+            int result = inet_pton(AF_INET,address.UTF8String, &local_addr4.sin_addr);
+            if(result==1)
+            {
+                if(usable_ips == -1)
+                {
+                    /* first IP */
+                    
+                    int err = bind(_sock, (struct sockaddr *)&local_addr4,sizeof(local_addr4));
+                    if(err==0)
+                    {
+                        usable_ips = 1;
+                        [useAddresses addObject:address];
+                    }
+                }
+                else
+                {
+                    int err = sctp_bindx(_sock, (struct sockaddr *)&local_addr4,1,SCTP_BINDX_ADD_ADDR);
+                    if(err==0)
+                    {
+                        usable_ips++;
+                        [useAddresses addObject:address];
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        return UMSocketError_address_not_valid_for_socket_family;
+    }
+        
     if(usable_ips <= 0)
     {
         return UMSocketError_address_not_available;
     }
-    else
-    {
-        return UMSocketError_no_error;
-    }
+    _connectedLocalAddresses = useAddresses;
+    return UMSocketError_no_error;
 }
 
 - (UMSocketError) enableEvents
@@ -252,27 +339,16 @@ static int _global_msg_notification_mask = 0;
             memset(&sa6,0x00,sizeof(sa6));
 
             NSString *address = [_requestedRemoteAddresses objectAtIndex:i];
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-            NSLog(@"address1: %@",address);
-#endif
             NSString *address2 = [UMSocket deunifyIp:address];
             if(address2.length>0)
             {
                 address = address2;
             }
-
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-            NSLog(@"address2: %@",address);
-#endif
-
             if([address isIPv4])
             {
                 /* we have a IPV6 socket but the remote addres is in IPV4 format so we must use the IPv6 representation of it */
                 address =[NSString stringWithFormat:@"::ffff:%@",address];
             }
-#if defined(ULIB_SCCTP_CAN_DEBUG)
-            NSLog(@"address3: %@",address);
-#endif
             struct in6_addr addr6;
             int result = inet_pton(AF_INET6,address.UTF8String, &addr6);
             if(result==1)
