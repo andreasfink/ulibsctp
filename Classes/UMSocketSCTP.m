@@ -354,12 +354,12 @@
     return sp;
 }
 
-#define SCTP_RXBUF 2048
+#define SCTP_RXBUF 10240
 
-- (UMSocketError)receiveSCTP /* returns number of packets processed and calls the notification and or data delegate */
+- (UMSocketError)receiveAndProcessSCTP /* returns number of packets processed and calls the notification and or data delegate */
 {
     char                    buffer[SCTP_RXBUF+1];
-    int                     flags;
+    int                     flags=0;
     struct sockaddr         source_address;
     struct sctp_sndrcvinfo  sinfo;
     socklen_t               fromlen;
@@ -376,20 +376,37 @@
     bytes_read = sctp_recvmsg (_sock, buffer, SCTP_RXBUF, &source_address,&fromlen,&sinfo,&flags);
     //    debug("sctp",0,"RXT: returned from sctp_recvmsg. link=%08lX",(unsigned long)link);
     //    [self logDebug:[NSString stringWithFormat:@"RXT: sctp_recvmsg: bytes read =%ld, errno=%d",(long)bytes_read,(int)errno);
+    
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+    NSLog(@"sctp_recvmsg returns bytes_read=%d",sctp_recvmsg);
+#endif
+
     if(bytes_read == 0)
     {
         if(errno==ECONNRESET)
         {
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+            NSLog(@"receiveAndProcessSCTP returning UMSocketError_connection_reset");
+#endif
+            
             return UMSocketError_connection_reset;
         }
     }
     if(bytes_read <= 0)
     {
         /* we are having a non blocking read here */
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+        NSLog(@"errno=%d %s",errno,strerror(errno));
+#endif
         return [UMSocket umerrFromErrno:errno];
     }
-    
+
     NSData *data = [NSData dataWithBytes:&buffer length:bytes_read];
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+    NSLog(@"Read DATA=%@",[data hexString]);
+#endif
+    NSLog(@"flags=%u",flags);
+
     if(flags & _msg_notification_mask)
     {
         return [_notificationDelegate handleEvent:data
@@ -400,6 +417,12 @@
         uint16_t streamId = sinfo.sinfo_stream;
         uint32_t protocolId = ntohl(sinfo.sinfo_ppid);
         
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+        NSLog(@"streamId=%u",streamId);
+        NSLog(@"protocolId=%lu",protocolId);
+        NSLog(@"dataDelegate=%@",_dataDelegate);
+        NSLog(@"data=%@",[data hexString]);
+#endif
         return [_dataDelegate sctpReceivedData:data
                                       streamId:streamId
                                     protocolId:protocolId];

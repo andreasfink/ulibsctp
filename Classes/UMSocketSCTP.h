@@ -55,6 +55,6 @@ struct sctp_sndrcvinfo;
              stream:(uint16_t)streamId
            protocol:(u_int32_t)protocolId
               error:(UMSocketError *)err;
-- (UMSocketError)receiveSCTP; /* returns number of packets processed */
+- (UMSocketError)receiveAndProcessSCTP; /* returns number of packets processed amd calls the notification and data delegates */
 
 @end

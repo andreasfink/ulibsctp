@@ -98,20 +98,20 @@
         e = [link dataIsAvailable];
         switch(e)
         {
-            case UMSocketError_no_error:
-                break;
-            case UMSocketError_no_data:
-                break;
-            case UMSocketError_has_data_and_hup:
-                mustQuit=YES;
-                [link receiveData];
-                break;
             case UMSocketError_has_data:
                 [link receiveData];
                 break;
+            case UMSocketError_has_data_and_hup:
+                [link receiveData];
+                mustQuit=YES;
+                break;
+            case UMSocketError_no_error:
+            case UMSocketError_no_data:
+            case UMSocketError_try_again:
+                break;
             default:
             {
-                NSString *s = [NSString stringWithFormat:@"Error %d %@",e, [UMSocket getSocketErrorString:e]];
+                NSString *s = [NSString stringWithFormat:@"link dataIsAvailable returns error %d %@",e, [UMSocket getSocketErrorString:e]];
                 [link logMinorError:s];
                 mustQuit=YES;
                 break;

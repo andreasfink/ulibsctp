@@ -773,40 +773,52 @@
     _sctpSocket.dataDelegate = self;
     _sctpSocket.notificationDelegate = self;
     
-   UMSocketError err = [_sctpSocket receiveSCTP];
-    if(err==UMSocketError_connection_reset)
-    {
-        [self powerdown];
-        [self reportStatus];
-        return 0;
-    }
+   UMSocketError err = [_sctpSocket receiveAndProcessSCTP];
+    
     if(err==UMSocketError_try_again)
     {
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+        NSLog(@"receiveData: UMSocketError_try_again returned by receiveAndProcessSCTP");
+#endif
         return 0;
     }
 
     if(err==UMSocketError_connection_reset)
     {
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+        NSLog(@"receiveData: UMSocketError_connection_reset returned by receiveAndProcessSCTP");
+#endif
         [self logDebug:@"ECONNRESET"];
         [self powerdownInReceiverThread];
+        [self reportStatus];
         return -1;
     }
     if(err==UMSocketError_connection_aborted)
     {
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+        NSLog(@"receiveData: UMSocketError_connection_aborted returned by receiveAndProcessSCTP");
+#endif
         [self logDebug:@"ECONNABORTED"];
         [self powerdownInReceiverThread];
+        [self reportStatus];
         return -1;
     }
-
+    
     if(err==UMSocketError_connection_refused)
     {
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+        NSLog(@"receiveData: UMSocketError_connection_refused returned by receiveAndProcessSCTP");
+#endif
         [self logDebug:@"ECONNREFUSED"];
         [self powerdownInReceiverThread];
+        [self reportStatus];
         return -1;
     }
     if(err != UMSocketError_no_error)
     {
+        [self logMinorError:[NSString stringWithFormat:@"receiveData: Error %d %@ returned by receiveAndProcessSCTP",err,[UMSocket getSocketErrorString:err]]];
         [self powerdownInReceiverThread];
+        [self reportStatus];
         return -1;
     }
     return 1;
