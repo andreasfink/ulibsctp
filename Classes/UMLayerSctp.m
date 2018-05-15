@@ -1310,6 +1310,10 @@
     {
         heartbeatMs = [cfg[@"heartbeat"] intValue];
     }
+#ifdef ULIB_SCCTP_CAN_DEBUG
+    NSLog(@"configured_local_addresses=%@",configured_local_addresses);
+    NSLog(@"configured_remote_addresses=%@",configured_remote_addresses);
+#endif
 }
 
 

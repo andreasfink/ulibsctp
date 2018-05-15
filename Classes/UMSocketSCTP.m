@@ -318,7 +318,7 @@ static int _global_msg_notification_mask = 0;
             }
             else
             {
-                NSLog(@"%@ is not a valid IP address. skipped ",address);
+                NSLog(@"'%@' is not a valid IP address. skipped ",address);
             }
         }
         if(j==0)
