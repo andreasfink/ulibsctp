@@ -6,7 +6,7 @@
 //  Copyright © 2018 Andreas Fink (andreas@fink.org). All rights reserved.
 //
 #import "UMSocketSCTP.h"
-#include <fcntl.h>ULIB_SCCTP_CAN_DEBUG
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
