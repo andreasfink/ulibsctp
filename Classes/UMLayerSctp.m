@@ -322,29 +322,33 @@
 
         [_sctpSocket switchToNonBlocking];
         
-        if([_sctpSocket setSctpOptionNoDelay] != UMSocketError_no_error)
+        UMSocketError err = [_sctpSocket setSctpOptionNoDelay];
+        if(err!=UMSocketError_no_error)
         {
-            [self logMinorError:[NSString stringWithFormat:@"can not set NODELAY option on sctp %@",self.layerName]];
+            [self logMinorError:[NSString stringWithFormat:@"can not set NODELAY option on sctp %@: %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
         }
 
-         if([_sctpSocket setSctpOptionReusePort] != UMSocketError_no_error)
+        err = [_sctpSocket setSctpOptionReusePort];
+        if(err!=UMSocketError_no_error)
         {
-            [self logMinorError:[NSString stringWithFormat:@"can not set REUSEPORT option on sctp %@",self.layerName]];
+            [self logMinorError:[NSString stringWithFormat:@"can not set REUSEPORT option on sctp %@ %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
         }
-         if([_sctpSocket setOptionLinger] != UMSocketError_no_error)
+        err = [_sctpSocket setOptionLinger];
+        if(err!=UMSocketError_no_error)
         {
-            [self logMinorError:[NSString stringWithFormat:@"can not set LINGR option on sctp %@",self.layerName]];
+            [self logMinorError:[NSString stringWithFormat:@"can not set LINGR option on sctp %@ %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
         }
 
-        if([_sctpSocket bind] != UMSocketError_no_error)
+        err = [_sctpSocket bind];
+        if(err!=UMSocketError_no_error)
         {
-            [self logMajorError:[NSString stringWithFormat:@"can not bind sctp connection %@",self.layerName]];
+            [self logMajorError:[NSString stringWithFormat:@"can not bind sctp connection %@ %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
             return;
         }
-
-        if([_sctpSocket enableEvents] != UMSocketError_no_error)
+        err = [_sctpSocket enableEvents];
+        if(err!=UMSocketError_no_error)
         {
-            [self logMinorError:[NSString stringWithFormat:@"can not enable sctp events on %@",self.layerName]];
+            [self logMinorError:[NSString stringWithFormat:@"can not enable sctp events on %@ %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
             return;
         }
 
