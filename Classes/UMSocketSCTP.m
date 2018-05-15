@@ -34,6 +34,7 @@
 
 - (void)initNetworkSocket
 {
+    _sock = -1;
     switch(type)
     {
         case UMSOCKET_TYPE_SCTP4ONLY:
@@ -74,6 +75,14 @@
         default:
             [super initNetworkSocket];
             break;
+    }
+    if(_sock > -1)
+    {
+        _hasSocket = YES;
+    }
+    else
+    {
+        _hasSocket = NO;
     }
 }
 
@@ -290,7 +299,7 @@
             newcon.requestedLocalAddresses = _requestedLocalAddresses;
             newcon.requestedLocalPort=requestedLocalPort;
             newcon.requestedRemoteAddresses = _requestedRemoteAddresses;
-            newcon.requestedRemotePort=requestedRemotePort;            
+            newcon.requestedRemotePort=requestedRemotePort;
             newcon.cryptoStream = [[UMCrypto alloc]initWithRelatedSocket:newcon];
             newcon.isBound=NO;
             newcon.isListening=NO;
