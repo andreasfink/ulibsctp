@@ -727,9 +727,19 @@ static int _global_msg_notification_mask = 0;
     UMAssert(timeoutInMs<200000,@"timeout should be smaller than 20seconds");
     
     errno = 99;
+
+#if (ULIBSCTP_CONFIG==Debug)
+    NSLog(@"calling poll (timeout =%dms",timeoutInMs);
+#endif
+
     ret1 = poll(pollfds, 1, timeoutInMs);
+
+#if (ULIBSCTP_CONFIG==Debug)
+    NSLog(@" poll returns %d (%d:%s",ret1,errno,strerror(errno));
+#endif
+
     [_controlLock unlock];
-    
+
     if (ret1 < 0)
     {
         eno = errno;
@@ -795,5 +805,6 @@ static int _global_msg_notification_mask = 0;
          so we either jump out of the timeout or something bad happened which we are not catching */
         return [UMSocket umerrFromErrno:eno];
     }
+    return -999;
 }
 @end
