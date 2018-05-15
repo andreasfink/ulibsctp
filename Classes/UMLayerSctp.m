@@ -310,7 +310,9 @@
         _sctpSocket.requestedRemotePort = configured_remote_port;
         _sctpSocket.requestedLocalAddresses = configured_local_addresses;
         _sctpSocket.requestedLocalPort = configured_local_port;
-
+        _sctpSocket.dataDelegate = self;
+        _sctpSocket.notificationDelegate = self;
+        
         if(_sctpSocket == NULL)
         {
             @throw([NSException exceptionWithName:@"SCTP_SOCKET_CREATION_FAILURE" reason:@"calling socket() for SCTP failed" userInfo:@{@"errno":@(errno),@"backtrace": UMBacktrace(NULL,0)}]);
@@ -382,9 +384,12 @@
             memset(&saddr,0x00,saddr_len);
             
             /* we need to block on this accept call */
+            err = UMSocketError_no_error;
             [_sctpSocket switchToBlocking];
             UMSocketSCTP *newsock = [_sctpSocket acceptSCTP:&err];
             [_sctpSocket switchToNonBlocking];
+
+
             if (err != UMSocketError_no_error)
             {
                 [self logMajorError:errno location:@"accept() failed"];
@@ -396,6 +401,10 @@
                 [_sctpSocket switchToNonBlocking];
                 _sctpSocket.notificationDelegate = self;
                 _sctpSocket.dataDelegate = self;
+                /* we should restart receiver thread on this new socket */
+                self.receiverThread = [[UMLayerSctpReceiverThread alloc]initWithSctpLink:self];
+                self.receiverThread.name =[NSString stringWithFormat:@"%@.sctpReceiverTread",layerName];
+                [self.receiverThread startBackgroundTask];
             }
         }
         else /* not passive */
@@ -409,7 +418,7 @@
                 self.receiverThread = [[UMLayerSctpReceiverThread alloc]initWithSctpLink:self];
                 self.receiverThread.name =[NSString stringWithFormat:@"%@.sctpReceiverTread",layerName];
                 [self.receiverThread startBackgroundTask];
-    #if defined(ULIB_SCCTP_CAN_DEBUG)
+#if defined(ULIB_SCCTP_CAN_DEBUG)
                 if(logLevel <= UMLOG_DEBUG)
                 {
                     [self logDebug:[NSString stringWithFormat:@"started receiver thread"]];
