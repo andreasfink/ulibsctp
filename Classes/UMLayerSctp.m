@@ -1162,12 +1162,12 @@
 
 - (UMSocketError) dataIsAvailable
 {
-    return [self dataIsAvailable:timeoutInMs];
+    return [_sctpSocket dataIsAvailableSCTP:timeoutInMs];
 }
 
 - (UMSocketError) dataIsAvailable:(int)timeout
 {
-    return [_sctpSocket dataIsAvailable:timeout];
+    return [_sctpSocket dataIsAvailableSCTP:timeout];
 }
 
 - (UMSocketError) sctpReceivedData:(NSData *)data

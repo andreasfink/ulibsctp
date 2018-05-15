@@ -700,7 +700,7 @@ static int _global_msg_notification_mask = 0;
 }
 
 
-- (UMSocketError) dataIsAvailable:(int)timeoutInMs
+- (UMSocketError) dataIsAvailableSCTP:(int)timeoutInMs
 {
     struct pollfd pollfds[1];
     int ret1;
