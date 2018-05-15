@@ -191,6 +191,11 @@ static int _global_msg_notification_mask = 0;
     }
     /* at this point usable_addresses contains strings which are in _socketFamily specific formats */
     /* invalid IP's have been remvoed */
+    
+#if (ULIBSCTP_CONFIG==Debug)
+    NSLog(@"bind (SCTP): usable_addresses = %@",usable_addresses);
+#endif
+    
     NSMutableArray *useAddresses = [[NSMutableArray alloc]init];
     if(_socketFamily==AF_INET6)
     {
@@ -212,21 +217,42 @@ static int _global_msg_notification_mask = 0;
                 if(usable_ips == -1)
                 {
                     /* first IP */
-                    
+#if (ULIBSCTP_CONFIG==Debug)
+                    NSLog(@"calling bind for '%@'",address);
+#endif
                     int err = bind(_sock, (struct sockaddr *)&local_addr6,sizeof(local_addr6));
                     if(err==0)
                     {
+#if (ULIBSCTP_CONFIG==Debug)
+                        NSLog(@" bind succeeds");
+#endif
                         usable_ips = 1;
                         [useAddresses addObject:address];
+                    }
+                    else
+                    {
+                        NSLog(@" bind returns error %d %s",errno,strerror(errno));
                     }
                 }
                 else
                 {
+#if (ULIBSCTP_CONFIG==Debug)
+                    NSLog(@"calling sctp_bindx for '%@'",address);
+#endif
+
                     int err = sctp_bindx(_sock, (struct sockaddr *)&local_addr6,1,SCTP_BINDX_ADD_ADDR);
                     if(err==0)
                     {
+#if (ULIBSCTP_CONFIG==Debug)
+                        NSLog(@" sctp_bindx succeeds");
+#endif
+
                         usable_ips++;
                         [useAddresses addObject:address];
+                    }
+                    else
+                    {
+                        NSLog(@" sctp_bindx returns error %d %s",errno,strerror(errno));
                     }
                 }
             }
