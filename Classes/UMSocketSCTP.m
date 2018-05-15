@@ -255,7 +255,12 @@ static int _global_msg_notification_mask = 0;
 #if defined(ULIB_SCCTP_CAN_DEBUG)
             NSLog(@"address1: %@",address);
 #endif
-            address = [UMSocket deunifyIp:address];
+            NSString *address2 = [UMSocket deunifyIp:address];
+            if(address2.length>0)
+            {
+                address = address2;
+            }
+
 #if defined(ULIB_SCCTP_CAN_DEBUG)
             NSLog(@"address2: %@",address);
 #endif
@@ -311,8 +316,12 @@ static int _global_msg_notification_mask = 0;
             memset(&sa4,0x00,sizeof(sa4));
             
             NSString *address = [_requestedRemoteAddresses objectAtIndex:i];
-            address = [UMSocket deunifyIp:address];            
-            
+            NSString *address2 = [UMSocket deunifyIp:address];
+            if(address2.length>0)
+            {
+                address = address2;
+            }
+
             struct in_addr addr4;
             int result = inet_pton(AF_INET,address.UTF8String, &addr4);
             if(result==1)
