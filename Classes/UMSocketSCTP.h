@@ -33,8 +33,8 @@ struct sctp_sndrcvinfo;
     NSArray         *_connectedRemoteAddresses;
     int             _msg_notification_mask;
     int             _heartbeatMs;
-    id<UMSocketSCTP_notificationDelegate> __weak _notificationDelegate;
-    id<UMSocketSCTP_dataDelegate>         __weak _dataDelegate;
+    id<UMSocketSCTP_notificationDelegate> _notificationDelegate;
+    id<UMSocketSCTP_dataDelegate>         _dataDelegate;
 }
 
 @property(readwrite,strong) NSArray        *requestedLocalAddresses;
@@ -43,8 +43,8 @@ struct sctp_sndrcvinfo;
 @property(readwrite,strong) NSArray        *connectedRemoteAddresses;
 @property(readwrite,assign) int            msg_notification_mask;
 @property(readwrite,assign) int            heartbeatMs;
-@property(readwrite,weak) id<UMSocketSCTP_notificationDelegate>   notificationDelegate;
-@property(readwrite,weak) id<UMSocketSCTP_dataDelegate>           dataDelegate;
+@property(readwrite,strong) id<UMSocketSCTP_notificationDelegate>   notificationDelegate;
+@property(readwrite,strong) id<UMSocketSCTP_dataDelegate>           dataDelegate;
 
 - (UMSocketError) setSctpOptionNoDelay;
 - (UMSocketError) setSctpOptionReusePort;

@@ -408,8 +408,8 @@
 
     if(flags & _msg_notification_mask)
     {
-        return [_notificationDelegate handleEvent:data
-                                           sinfo:&sinfo];
+        return [self.notificationDelegate handleEvent:data
+                                                sinfo:&sinfo];
     }
     else
     {
@@ -419,13 +419,21 @@
 #if defined(ULIB_SCCTP_CAN_DEBUG)
         NSLog(@"streamId=%u",streamId);
         NSLog(@"protocolId=%u",protocolId);
-        NSLog(@"dataDelegate=%@",_dataDelegate);
+        NSLog(@"dataDelegate=%@",self.dataDelegate);
         NSLog(@"data=%@",[data hexString]);
 #endif
-        return [_dataDelegate sctpReceivedData:data
-                                      streamId:streamId
-                                    protocolId:protocolId];
+        return [self.dataDelegate sctpReceivedData:data
+                                          streamId:streamId
+                                        protocolId:protocolId];
     }
     return 1;
 }
+
+- (UMSocketError)close
+{
+    _dataDelegate = NULL;
+    _notificationDelegate = NULL;
+    return [super close];
+}
+
 @end
