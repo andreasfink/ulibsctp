@@ -250,17 +250,24 @@ static int _global_msg_notification_mask = 0;
         {
             struct sockaddr_in6 sa6;
             memset(&sa6,0x00,sizeof(sa6));
-            char addressCString[64];
-            memset(&addressCString,0x00,sizeof(addressCString));
 
             NSString *address = [_requestedRemoteAddresses objectAtIndex:i];
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+            NSLog(@"address1: %@",address);
+#endif
             address = [UMSocket deunifyIp:address];
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+            NSLog(@"address2: %@",address);
+#endif
+
             if([address isIPv4])
             {
                 /* we have a IPV6 socket but the remote addres is in IPV4 format so we must use the IPv6 representation of it */
                 address =[NSString stringWithFormat:@"::ffff:%@",address];
             }
-            [address getCString:addressCString maxLength:sizeof(addressCString) encoding:NSUTF8StringEncoding];
+#if defined(ULIB_SCCTP_CAN_DEBUG)
+            NSLog(@"address3: %@",address);
+#endif
             struct in6_addr addr6;
             int result = inet_pton(AF_INET6,address.UTF8String, &addr6);
             if(result==1)
@@ -302,13 +309,9 @@ static int _global_msg_notification_mask = 0;
         {
             struct sockaddr_in sa4;
             memset(&sa4,0x00,sizeof(sa4));
-            char addressCString[64];
-            memset(&addressCString,0x00,sizeof(addressCString));
             
             NSString *address = [_requestedRemoteAddresses objectAtIndex:i];
-            address = [UMSocket deunifyIp:address];
-            [address getCString:addressCString maxLength:sizeof(addressCString) encoding:NSUTF8StringEncoding];
-            
+            address = [UMSocket deunifyIp:address];            
             
             struct in_addr addr4;
             int result = inet_pton(AF_INET,address.UTF8String, &addr4);
