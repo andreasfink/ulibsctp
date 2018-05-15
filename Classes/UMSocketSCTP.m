@@ -5,9 +5,8 @@
 //  Created by Andreas Fink on 14.05.18.
 //  Copyright © 2018 Andreas Fink (andreas@fink.org). All rights reserved.
 //
-
 #import "UMSocketSCTP.h"
-#include <fcntl.h>
+#include <fcntl.h>ULIB_SCCTP_CAN_DEBUG
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -378,7 +377,7 @@
     //    [self logDebug:[NSString stringWithFormat:@"RXT: sctp_recvmsg: bytes read =%ld, errno=%d",(long)bytes_read,(int)errno);
     
 #if defined(ULIB_SCCTP_CAN_DEBUG)
-    NSLog(@"sctp_recvmsg returns bytes_read=%d",sctp_recvmsg);
+    NSLog(@"sctp_recvmsg returns bytes_read=%d",(int)bytes_read);
 #endif
 
     if(bytes_read == 0)
@@ -419,7 +418,7 @@
         
 #if defined(ULIB_SCCTP_CAN_DEBUG)
         NSLog(@"streamId=%u",streamId);
-        NSLog(@"protocolId=%lu",protocolId);
+        NSLog(@"protocolId=%u",protocolId);
         NSLog(@"dataDelegate=%@",_dataDelegate);
         NSLog(@"data=%@",[data hexString]);
 #endif

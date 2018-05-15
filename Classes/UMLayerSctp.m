@@ -1209,7 +1209,7 @@
     if(logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"RXT: got %u bytes on stream %hu protocol_id: %d",
-                        (unsigned int)bytes_read,
+                        (unsigned int)data.length,
                         streamId,
                         protocolId]];
     }
