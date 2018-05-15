@@ -121,7 +121,6 @@
 
 - (void)powerdown;
 - (void) powerdownInReceiverThread;
-
 - (void)reportStatus;
 - (void)setNonBlocking;
 - (void)setBlocking;

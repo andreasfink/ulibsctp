@@ -96,6 +96,7 @@
     while((UMBackgrounder_running == self.runningStatus) && (mustQuit==NO))
     {
         e = [link dataIsAvailable];
+
         switch(e)
         {
             case UMSocketError_has_data:
@@ -108,6 +109,7 @@
             case UMSocketError_no_error:
             case UMSocketError_no_data:
             case UMSocketError_try_again:
+            case UMSocketError_address_not_available:
                 break;
             default:
             {
