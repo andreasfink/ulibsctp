@@ -15,6 +15,10 @@
 
 #ifdef __APPLE__
 #import <sctp/sctp.h>
+#include <sys/utsname.h>
+
+#define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
+#define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
 #else
 #include "netinet/sctp.h"
 #endif
@@ -28,6 +32,9 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <sys/utsname.h>
+
+static int _global_msg_notification_mask = 0;
 
 @implementation UMSocketSCTP
 
@@ -82,6 +89,33 @@
     else
     {
         _hasSocket = NO;
+    }
+    
+    if(_global_msg_notification_mask==0)
+    {
+#ifdef __APPLE__
+        int major;
+        int minor;
+        int sub;
+        
+        struct utsname ut;
+        uname(&ut);
+        sscanf(ut.release,"%d.%d.%d",&major,&minor,&sub);
+        if(major >= 14)
+        {
+            _global_msg_notification_mask = MSG_NOTIFICATION_YOSEMITE;
+        }
+        else
+        {
+            _global_msg_notification_mask = MSG_NOTIFICATION_MAVERICKS;
+        }
+#else
+        _global_msg_notification_mask = MSG_NOTIFICATION;
+#endif
+    }
+    else
+    {
+        _msg_notification_mask = _global_msg_notification_mask;
     }
 }
 
@@ -422,6 +456,7 @@
         NSLog(@"dataDelegate=%@",self.dataDelegate);
         NSLog(@"data=%@",[data hexString]);
 #endif
+        
         return [self.dataDelegate sctpReceivedData:data
                                           streamId:streamId
                                         protocolId:protocolId];

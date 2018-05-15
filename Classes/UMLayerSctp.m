@@ -39,16 +39,7 @@
 #include "netinet/sctp.h"
 #endif
 
-//#define ULIB_SCCTP_CAN_DEBUG 1
 
-
-#ifdef __APPLE__
-#include <sys/utsname.h>
-
-#define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
-#define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
-
-#endif
 #import "UMLayerSctpUser.h"
 
 @implementation UMLayerSctp
@@ -102,25 +93,6 @@
         _outboundThroughputPackets  = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
         _outboundThroughputBytes    = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
 
-#ifdef __APPLE__
-        int major;
-        int minor;
-        int sub;
-        
-        struct utsname ut;
-        uname(&ut);
-        sscanf(ut.release,"%d.%d.%d",&major,&minor,&sub);
-        if(major >= 14)
-        {
-            msg_notification_mask = MSG_NOTIFICATION_YOSEMITE;
-        }
-        else
-        {
-            msg_notification_mask = MSG_NOTIFICATION_MAVERICKS;
-        }
-#else
-        msg_notification_mask = MSG_NOTIFICATION;
-#endif
     }
     return self;
 }
@@ -1400,7 +1372,6 @@
     }
     d[@"is-passive"] = isPassive ? @(YES) : @(NO);
     d[@"poll-timeout-in-ms"] = @(timeoutInMs);
-    d[@"msg-notification-mask"] = @(msg_notification_mask);
     d[@"heartbeat-in-ms"] = @(heartbeatMs);
     return d;
 }
