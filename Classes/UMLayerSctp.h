@@ -41,7 +41,6 @@
     int             active_remote_port;
     BOOL            isPassive;
     int             timeoutInMs; /* poll timeout in receiver thread . Default 400ms */
-    int             msg_notification_mask;
     int             heartbeatMs;
     UMThroughputCounter *_inboundThroughputPackets;
     UMThroughputCounter *_outboundThroughputPackets;
