@@ -383,9 +383,7 @@
         {
             _sctpSocket.notificationDelegate = self;
             _sctpSocket.dataDelegate = self;
-            [_sctpSocket switchToBlocking];
             UMSocketError err = [ _sctpSocket connectSCTP];
-            [_sctpSocket switchToNonBlocking];
             if(err == UMSocketError_no_error)
             {
                 self.status = SCTP_STATUS_OOS; /* we are CONNECTING but not yet CONNECTED. We are once the SCTP event up is received */

@@ -696,4 +696,97 @@ static int _global_msg_notification_mask = 0;
     return [super close];
 }
 
+
+- (UMSocketError) dataIsAvailable:(int)timeoutInMs
+{
+    struct pollfd pollfds[1];
+    int ret1;
+    int ret2;
+    int eno = 0;
+    
+    int events = POLLIN | POLLPRI | POLLERR | POLLHUP | POLLNVAL;
+    
+#ifdef POLLRDBAND
+    events |= POLLRDBAND;
+#endif
+    
+#ifdef POLLRDHUP
+    events |= POLLRDHUP;
+#endif
+    
+    [_controlLock lock];
+    memset(pollfds,0,sizeof(pollfds));
+    pollfds[0].fd = _sock;
+    pollfds[0].events = events;
+    
+    
+    //    UMAssert(timeoutInMs>0,@"timeout should be larger than 0");
+    UMAssert(timeoutInMs<200000,@"timeout should be smaller than 20seconds");
+    
+    errno = 99;
+    ret1 = poll(pollfds, 1, timeoutInMs);
+    [_controlLock unlock];
+    
+    if (ret1 < 0)
+    {
+        eno = errno;
+        /* error condition */
+        if (eno != EINTR)
+        {
+            ret2 = [UMSocket umerrFromErrno:EBADF];
+            return ret2;
+        }
+        else
+        {
+            return [UMSocket umerrFromErrno:eno];
+        }
+    }
+    else if (ret1 == 0)
+    {
+        ret2 = UMSocketError_no_data;
+        return ret2;
+    }
+    else
+    {
+        eno = errno;
+        /* we have some event to handle. */
+        ret2 = pollfds[0].revents;
+        if(ret2 & POLLERR)
+        {
+            return [UMSocket umerrFromErrno:eno];
+        }
+        else if(ret2 & POLLHUP)
+        {
+            return UMSocketError_has_data_and_hup;
+        }
+        
+#ifdef POLLRDHUP
+        else if(ret2 & POLLRDHUP)
+        {
+            return UMSocketError_has_data_and_hup;
+        }
+#endif
+        else if(ret2 & POLLNVAL)
+        {
+            return [UMSocket umerrFromErrno:eno];
+        }
+#ifdef POLLRDBAND
+        else if(ret2 & POLLRDBAND)
+        {
+            return UMSocketError_has_data;
+        }
+#endif
+        else if(ret2 & POLLIN)
+        {
+            return UMSocketError_has_data;
+        }
+        else if(ret2 & POLLPRI)
+        {
+            return UMSocketError_has_data;
+        }
+        /* we get alerted by poll that something happened but no data to read.
+         so we either jump out of the timeout or something bad happened which we are not catching */
+        return [UMSocket umerrFromErrno:eno];
+    }
+}
 @end
