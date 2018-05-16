@@ -423,6 +423,7 @@ static int _global_msg_notification_mask = 0;
         }
         int err =  sctp_connectx(_sock,(struct sockaddr *)&remote_addresses6[0],j,&assoc);
         free(remote_addresses6);
+        
         if ((err < 0) && (err !=EINPROGRESS))
         {
             if(errno != EINPROGRESS)
