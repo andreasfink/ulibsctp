@@ -797,7 +797,7 @@ static int _global_msg_notification_mask = 0;
     }
     return    UMSocketError_no_error;
 #else
-    return UMSocketError_not_supported_operation
+    return UMSocketError_not_supported_operation;
 #endif
 }
 
