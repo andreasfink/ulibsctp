@@ -46,7 +46,11 @@
     UMSocketError e = UMSocketError_no_error;
     int count = 0;
 
-    e = [link dataIsAvailable];
+    e = [link dataIsAvailableSCTP];
+#ifdef  (ULIBSCTP_CONFIG==Debug)
+    NSLog(@"[link dataIsAvailableSCTP] returns %d",e);
+#endif
+    
     if((e==UMSocketError_has_data) || (e==UMSocketError_has_data_and_hup))
     {
         count = [link receiveData];

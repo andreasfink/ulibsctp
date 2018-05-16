@@ -125,8 +125,8 @@
 - (void)setNonBlocking;
 - (void)setBlocking;
 - (int)receiveData; /* returns number of packets processed */
-- (UMSocketError)  dataIsAvailable;
-- (UMSocketError)  dataIsAvailable:(int)timeoutInMs;
+- (UMSocketError)  dataIsAvailableSCTP;
+- (UMSocketError)  dataIsAvailableSCTP:(int)timeoutInMs;
 
 #pragma mark -
 #pragma mark Config Handling

@@ -704,7 +704,7 @@ static int _global_msg_notification_mask = 0;
     UMAssert(timeoutInMs<200000,@"timeout should be smaller than 20seconds");
     
 #if (ULIBSCTP_CONFIG==Debug)
-    NSLog(@"calling poll (timeout =%dms)",timeoutInMs);
+    NSLog(@"calling poll (timeout =%dms,socket=%d)",timeoutInMs,_sock);
 #endif
 
     ret1 = poll(pollfds, 1, timeoutInMs);
@@ -732,6 +732,11 @@ static int _global_msg_notification_mask = 0;
         eno = errno;
         /* we have some event to handle. */
         ret2 = pollfds[0].revents;
+        
+#if (ULIBSCTP_CONFIG==Debug)
+        NSLog(@"pollfds[0].revents = %d",ret2);
+#endif
+
         if(ret2 & POLLERR)
         {
             return [UMSocket umerrFromErrno:eno];
@@ -751,6 +756,9 @@ static int _global_msg_notification_mask = 0;
         {
             if(eno==EINPROGRESS)
             {
+#if (ULIBSCTP_CONFIG==Debug)
+                NSLog(@" EINPROGRESS is set");
+#endif
                 return UMSocketError_no_data;
             }
             return [UMSocket umerrFromErrno:eno];
@@ -771,6 +779,9 @@ static int _global_msg_notification_mask = 0;
         }
         /* we get alerted by poll that something happened but no data to read.
          so we either jump out of the timeout or something bad happened which we are not catching */
+#if (ULIBSCTP_CONFIG==Debug)
+        NSLog(@" a case we don't catch");
+#endif
         return [UMSocket umerrFromErrno:eno];
     }
     return UMSocketError_no_data;

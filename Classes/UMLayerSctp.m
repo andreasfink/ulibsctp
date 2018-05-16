@@ -83,7 +83,7 @@
     if(self)
     {
         _sctpSocket = NULL;
-        timeoutInMs = 400;
+        timeoutInMs = 2400;
         heartbeatMs = 30000;
         _users = [[UMSynchronizedArray alloc]init];
         self.status = SCTP_STATUS_OFF;
@@ -1171,12 +1171,12 @@
     return 0;
 }
 
-- (UMSocketError) dataIsAvailable
+- (UMSocketError) dataIsAvailableSCTP
 {
     return [_sctpSocket dataIsAvailableSCTP:timeoutInMs];
 }
 
-- (UMSocketError) dataIsAvailable:(int)timeout
+- (UMSocketError) dataIsAvailableSCTP:(int)timeout
 {
     return [_sctpSocket dataIsAvailableSCTP:timeout];
 }
