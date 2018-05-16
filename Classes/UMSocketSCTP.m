@@ -637,7 +637,8 @@ static int _global_msg_notification_mask = 0;
 #endif
         return [UMSocket umerrFromErrno:errno];
     }
-
+    
+    /* bytes_read is > 0 here */
     NSData *data = [NSData dataWithBytes:&buffer length:bytes_read];
 #if (ULIBSCTP_CONFIG==Debug)
     NSLog(@"Read DATA=%@",[data hexString]);
@@ -702,10 +703,8 @@ static int _global_msg_notification_mask = 0;
     //    UMAssert(timeoutInMs>0,@"timeout should be larger than 0");
     UMAssert(timeoutInMs<200000,@"timeout should be smaller than 20seconds");
     
-    errno = 99;
-
 #if (ULIBSCTP_CONFIG==Debug)
-    NSLog(@"calling poll (timeout =%dms",timeoutInMs);
+    NSLog(@"calling poll (timeout =%dms)",timeoutInMs);
 #endif
 
     ret1 = poll(pollfds, 1, timeoutInMs);
@@ -719,27 +718,16 @@ static int _global_msg_notification_mask = 0;
     if (ret1 < 0)
     {
         eno = errno;
+        if((eno==EINPROGRESS) || (eno == EINTR))
+        {
+            return UMSocketError_no_data;
+        }
 #if (ULIBSCTP_CONFIG==Debug)
         NSLog(@"poll: %d %s",errno,strerror(errno));
 #endif
-
-        /* error condition */
-        if (eno != EINTR)
-        {
-            ret2 = [UMSocket umerrFromErrno:EBADF];
-            return ret2;
-        }
-        else
-        {
-            return [UMSocket umerrFromErrno:eno];
-        }
+        return [UMSocket umerrFromErrno:eno];
     }
-    else if (ret1 == 0)
-    {
-        ret2 = UMSocketError_no_data;
-        return ret2;
-    }
-    else
+    else if (ret1 > 0)
     {
         eno = errno;
         /* we have some event to handle. */
@@ -761,6 +749,10 @@ static int _global_msg_notification_mask = 0;
 #endif
         else if(ret2 & POLLNVAL)
         {
+            if(eno==EINPROGRESS)
+            {
+                return UMSocketError_no_data;
+            }
             return [UMSocket umerrFromErrno:eno];
         }
 #ifdef POLLRDBAND
@@ -781,7 +773,7 @@ static int _global_msg_notification_mask = 0;
          so we either jump out of the timeout or something bad happened which we are not catching */
         return [UMSocket umerrFromErrno:eno];
     }
-    return -999;
+    return UMSocketError_no_data;
 }
 
 
