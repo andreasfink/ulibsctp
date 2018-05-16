@@ -792,9 +792,10 @@
 #if (ULIBSCTP_CONFIG==Debug)
         NSLog(@"receiveData: UMSocketError_connection_refused returned by receiveAndProcessSCTP");
 #endif
-        [self logDebug:@"ECONNREFUSED"];
+  /*      [self logDebug:@"ECONNREFUSED"];
         [self powerdownInReceiverThread];
         [self reportStatus];
+   */
         return -1;
     }
     if(err != UMSocketError_no_error)

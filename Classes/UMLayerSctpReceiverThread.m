@@ -41,38 +41,6 @@
     [link logDebug:s];
 }
 
-- (int)backgroundTaskOld
-{
-    UMSocketError e = UMSocketError_no_error;
-    int count = 0;
-
-    int hasData = 0;
-    int hasHup = 0;
-    e = [link dataIsAvailableSCTP:&hasData
-                           hangup:&hasHup];
-#if  (ULIBSCTP_CONFIG==Debug)
-    NSLog(@"[link dataIsAvailableSCTP] returns %d",e);
-#endif
-    
-    if((e==UMSocketError_has_data) || (e==UMSocketError_has_data_and_hup) || (hasData))
-    {
-        count = [link receiveData];
-    }
-    else
-    {
-        count = 0;
-    }
-    if(e == UMSocketError_has_data)
-    {
-        return count;
-    }
-    else if(e==UMSocketError_has_data_and_hup)
-    {
-        return -1;
-    }
-    return 0;
-}
-
 
 - (void)backgroundTask
 {
@@ -116,7 +84,6 @@
         {
             mustQuit = YES;
         }
-
 #if  (ULIBSCTP_CONFIG==Debug)
         NSLog(@"[link dataIsAvailableSCTP] returns %d",e);
 #endif
@@ -126,6 +93,7 @@
             case UMSocketError_no_error:
             case UMSocketError_no_data:
             case UMSocketError_try_again:
+            case UMSocketError_in_progress:
                 break;
             default:
             {
