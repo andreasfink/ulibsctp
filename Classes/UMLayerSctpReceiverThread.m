@@ -47,7 +47,7 @@
     int count = 0;
 
     e = [link dataIsAvailableSCTP];
-#ifdef  (ULIBSCTP_CONFIG==Debug)
+#if  (ULIBSCTP_CONFIG==Debug)
     NSLog(@"[link dataIsAvailableSCTP] returns %d",e);
 #endif
     
@@ -101,7 +101,10 @@
     [self backgroundInit];
     while((UMBackgrounder_running == self.runningStatus) && (mustQuit==NO))
     {
-        e = [link dataIsAvailable];
+        e = [link dataIsAvailableSCTP];
+#if  (ULIBSCTP_CONFIG==Debug)
+        NSLog(@"[link dataIsAvailableSCTP] returns %d",e);
+#endif
 
         switch(e)
         {
