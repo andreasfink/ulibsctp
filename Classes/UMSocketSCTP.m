@@ -113,10 +113,7 @@ static int _global_msg_notification_mask = 0;
         _global_msg_notification_mask = MSG_NOTIFICATION;
 #endif
     }
-    else
-    {
-        _msg_notification_mask = _global_msg_notification_mask;
-    }
+    _msg_notification_mask = _global_msg_notification_mask;
 }
 
 
