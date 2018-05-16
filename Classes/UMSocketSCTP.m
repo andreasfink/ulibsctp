@@ -712,15 +712,14 @@ static int _global_msg_notification_mask = 0;
 
     if (ret1 < 0)
     {
+#if (ULIBSCTP_CONFIG==Debug)
+        NSLog(@"poll: %d %s",errno,strerror(errno));
+#endif
         eno = errno;
         if((eno==EINPROGRESS) || (eno == EINTR))
         {
             return UMSocketError_no_data;
         }
-#if (ULIBSCTP_CONFIG==Debug)
-        NSLog(@"poll: %d %s",errno,strerror(errno));
-#endif
-        /* error condition */
         returnValue = [UMSocket umerrFromErrno:eno];
     }
     else if (ret1 == 0)
@@ -742,32 +741,37 @@ static int _global_msg_notification_mask = 0;
 
         if(ret2 & POLLHUP)
         {
-            *hasHup = YES;
+            *hasHup = 1;
         }
         
 #ifdef POLLRDHUP
         if(ret2 & POLLRDHUP)
         {
-            *hasHup = YES;
+            *hasHup = 1;
         }
 #endif
         if(ret2 & POLLNVAL)
         {
-            returnValue = [self getSocketError];
+            returnValue = UMSocketError_invalid_file_descriptor;
         }
 #ifdef POLLRDBAND
         if(ret2 & POLLRDBAND)
         {
-            *hasData = YES;
+            *hasData = 1;
         }
 #endif
-        if(ret2 & POLLIN)
+        /* There is data to read.*/
+        if(ret2 & (POLLIN | POLLPRI))
         {
-            *hasData = YES;
-        }
-        if(ret2 & POLLPRI)
-        {
-            *hasData = YES;
+            *hasData = 1;
+            if(returnValue == UMSocketError_no_data)
+            {
+                returnValue = UMSocketError_has_data;
+                if(*hasHup)
+                {
+                    returnValue = UMSocketError_has_data_and_hup;
+                }
+            }
         }
     }
     return returnValue;

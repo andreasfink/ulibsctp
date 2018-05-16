@@ -54,7 +54,7 @@
     NSLog(@"[link dataIsAvailableSCTP] returns %d",e);
 #endif
     
-    if((e==UMSocketError_has_data) || (e==UMSocketError_has_data_and_hup))
+    if((e==UMSocketError_has_data) || (e==UMSocketError_has_data_and_hup) || (hasData))
     {
         count = [link receiveData];
     }
@@ -108,7 +108,7 @@
         int hasHup = 0;
         e = [link dataIsAvailableSCTP:&hasData
                                hangup:&hasHup];
-        if(hasData)
+        if((e==UMSocketError_has_data) || (e==UMSocketError_has_data_and_hup) || (hasData))
         {
             [link receiveData];
         }
