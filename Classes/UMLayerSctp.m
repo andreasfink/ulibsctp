@@ -865,11 +865,11 @@
             }
             else if (snp->sn_assoc_change.sac_state == SCTP_CANT_STR_ASSOC)
             {
-                [logFeed infoText:@" SCTP_CANT_STR_ASSOC: SCTP_COMM_LOST->OFF"];
+                [logFeed infoText:@" SCTP_CANT_STR_ASSOC: *ignored *"];
                 //self.status=SCTP_STATUS_OFF;
                 //[self reportStatus];
                 //[self powerdownInReceiverThread];
-                return -1;
+                return 0;
             }
             else if(snp->sn_assoc_change.sac_error!=0)
             {
