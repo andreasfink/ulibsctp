@@ -301,21 +301,32 @@
 
         [_sctpSocket switchToNonBlocking];
         
-        UMSocketError err = [_sctpSocket setSctpOptionNoDelay];
+        UMSocketError err = [_sctpSocket setNoDelay];
         if(err!=UMSocketError_no_error)
         {
             [self logMinorError:[NSString stringWithFormat:@"can not set NODELAY option on sctp %@: %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
         }
 
-        err = [_sctpSocket setSctpOptionReusePort];
+        err = [_sctpSocket setIPDualStack];
         if(err!=UMSocketError_no_error)
         {
-            [self logMinorError:[NSString stringWithFormat:@"can not set REUSEPORT option on sctp %@ %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
+            [self logMinorError:[NSString stringWithFormat:@"can not disable IPV6_V6ONLY option on sctp %@ %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
         }
-        err = [_sctpSocket setOptionLinger];
+
+        err = [_sctpSocket setLinger];
         if(err!=UMSocketError_no_error)
         {
-            [self logMinorError:[NSString stringWithFormat:@"can not set LINGR option on sctp %@ %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
+            [self logMinorError:[NSString stringWithFormat:@"can not set SO_LINGER option on sctp %@ %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
+        }
+        err = [_sctpSocket setReuseAddr];
+        if(err!=UMSocketError_no_error)
+        {
+            [self logMinorError:[NSString stringWithFormat:@"can not set SO_REUSEADDR option on sctp %@ %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
+        }
+        err = [_sctpSocket setReusePort];
+        if(err!=UMSocketError_no_error)
+        {
+            [self logMinorError:[NSString stringWithFormat:@"can not set SCTP_REUSE_PORT option on sctp %@ %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
         }
 
         err = [_sctpSocket bind];

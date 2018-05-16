@@ -46,8 +46,7 @@ struct sctp_sndrcvinfo;
 @property(readwrite,strong) id<UMSocketSCTP_notificationDelegate>   notificationDelegate;
 @property(readwrite,strong) id<UMSocketSCTP_dataDelegate>           dataDelegate;
 
-- (UMSocketError) setSctpOptionNoDelay;
-- (UMSocketError) setSctpOptionReusePort;
+
 - (UMSocketError) enableEvents;
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret;
 - (UMSocketError) connectSCTP;
@@ -57,5 +56,7 @@ struct sctp_sndrcvinfo;
               error:(UMSocketError *)err;
 - (UMSocketError)receiveAndProcessSCTP; /* returns number of packets processed amd calls the notification and data delegates */
 - (UMSocketError) dataIsAvailableSCTP:(int)timeoutInMs;
+- (UMSocketError) setReusePort;
+- (UMSocketError) setNoDelay;
 
 @end

@@ -119,31 +119,6 @@ static int _global_msg_notification_mask = 0;
     }
 }
 
-- (UMSocketError) setSctpOptionNoDelay
-{
-#ifdef SCTP_NODELAY
-    char on = 1;
-    if(setsockopt(_sock, IPPROTO_SCTP, SCTP_NODELAY, (char *)&on, sizeof(on)))
-    {
-        /* FIXME: use errno for proper return */
-        return UMSocketError_not_supported_operation;
-    }
-#endif
-    return UMSocketError_no_error;
-}
-
-- (UMSocketError) setSctpOptionReusePort
-{
-#ifdef SCTP_REUSE_PORT
-    char on = 1;
-    if(setsockopt(_sock, IPPROTO_SCTP, SCTP_REUSE_PORT, (char *)&on, sizeof(on)))
-    {
-        /* FIXME: use errno for proper return */
-        return UMSocketError_not_supported_operation;
-    }
-#endif
-    return UMSocketError_no_error;
-}
 
 - (UMSocketError) bind;
 {
@@ -205,7 +180,7 @@ static int _global_msg_notification_mask = 0;
             memset(&local_addr6,0x00,sizeof(local_addr6));
             
             local_addr6.sin6_family = AF_INET6;
-#ifdef __APPLE__
+#ifdef HAVE_SOCKLEN_T
             local_addr6.sin6_len         = sizeof(struct sockaddr_in6);
 #endif
             local_addr6.sin6_port = htons(self.requestedLocalPort);
@@ -267,7 +242,7 @@ static int _global_msg_notification_mask = 0;
             memset(&local_addr4,0x00,sizeof(local_addr4));
             
             local_addr4.sin_family = AF_INET;
-#ifdef __APPLE__
+#ifdef HAVE_SOCKLEN_T
             local_addr4.sin_len         = sizeof(struct sockaddr_in);
 #endif
             local_addr4.sin_port = htons(self.requestedLocalPort);
@@ -404,7 +379,7 @@ static int _global_msg_notification_mask = 0;
             int result = inet_pton(AF_INET6,address.UTF8String, &addr6);
             if(result==1)
             {
-#ifdef __APPLE__
+#ifdef HAVE_SOCKLEN_T
                 remote_addresses6[i].sin6_len = sizeof(struct sockaddr_in6);
 #endif
                 remote_addresses6[j].sin6_family = AF_INET6;
@@ -454,7 +429,7 @@ static int _global_msg_notification_mask = 0;
             int result = inet_pton(AF_INET,address.UTF8String, &addr4);
             if(result==1)
             {
-#ifdef __APPLE__
+#ifdef HAVE_SOCKLEN_T
                 remote_addresses4[i].sin_len = sizeof(struct sockaddr_in);
 #endif
                 remote_addresses4[j].sin_family = AF_INET;
@@ -808,4 +783,37 @@ static int _global_msg_notification_mask = 0;
     }
     return -999;
 }
+
+
+- (UMSocketError) setReusePort
+{
+#if defined(SCTP_REUSE_PORT)
+
+    int flags = 1;
+    int err = setsockopt(_sock, IPPROTO_SCTP, SCTP_REUSE_PORT, (char *)&flags, sizeof(flags));
+    if(err !=0)
+    {
+        return [UMSocket umerrFromErrno:errno];
+    }
+    return    UMSocketError_no_error;
+#else
+    return UMSocketError_not_supported_operation
+#endif
+}
+
+- (UMSocketError) setNoDelay
+{
+#if defined(SCTP_NODELAY)
+    int flags = 1;
+    int err = setsockopt(_sock, IPPROTO_SCTP, SCTP_NODELAY, (char *)&flags, sizeof(flags));
+    if(err !=0)
+    {
+        return [UMSocket umerrFromErrno:errno];
+    }
+    return    UMSocketError_no_error;
+#else
+    return UMSocketError_not_supported_operation
+#endif
+}
+
 @end
