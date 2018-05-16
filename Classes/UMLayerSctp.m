@@ -808,369 +808,456 @@
     return 1;
 }
 
--(int) handleEvent:(NSData *)event sinfo:(struct sctp_sndrcvinfo *)sinfo /* return 1 for processed data, 0 for no data, -1 for terminate */
+-(void) handleEvent:(NSData *)event sinfo:(struct sctp_sndrcvinfo *)sinfo
 {
     
     const union sctp_notification *snp;
-    
-    char addrbuf[INET6_ADDRSTRLEN];
-    const char *ap;
-    struct sockaddr_in *sin;
-    struct sockaddr_in6 *sin6;
-    
     snp = event.bytes;
-    NSUInteger len = event.length;
-    
     switch(snp->sn_header.sn_type)
     {
         case SCTP_ASSOC_CHANGE:
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:@"SCTP_ASSOC_CHANGE"];
-            }
-#endif
-            if(len < sizeof (struct sctp_assoc_change))
-            {
-                [logFeed majorErrorText:@" Size Mismatch in SCTP_ASSOC_CHANGE"];
-                return -1;
-            }
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:[NSString stringWithFormat:@"  sac_type: %d",             (int)snp->sn_assoc_change.sac_type]];
-                [self logDebug:[NSString stringWithFormat:@"  sac_flags: %d",            (int)snp->sn_assoc_change.sac_flags]];
-                [self logDebug:[NSString stringWithFormat:@"  sac_length: %d",           (int)snp->sn_assoc_change.sac_length]];
-                [self logDebug:[NSString stringWithFormat:@"  sac_state: %d",            (int)snp->sn_assoc_change.sac_state]];
-                [self logDebug:[NSString stringWithFormat:@"  sac_error: %d",            (int)snp->sn_assoc_change.sac_error]];
-                [self logDebug:[NSString stringWithFormat:@"  sac_outbound_streams: %d", (int)snp->sn_assoc_change.sac_outbound_streams]];
-                [self logDebug:[NSString stringWithFormat:@"  sac_inbound_streams: %d",  (int)snp->sn_assoc_change.sac_inbound_streams]];
-                [self logDebug:[NSString stringWithFormat:@"  sac_assoc_id: %d",         (int)snp->sn_assoc_change.sac_assoc_id]];
-            }
-#endif
-            if((snp->sn_assoc_change.sac_state==SCTP_COMM_UP) && (snp->sn_assoc_change.sac_error== 0))
-            {
-                [logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS"];
-                self.status=SCTP_STATUS_IS;
-                [self reportStatus];
-                return 0;
-            }
-            else if(snp->sn_assoc_change.sac_state==SCTP_COMM_LOST)
-            {
-                [logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF"];
-                self.status=SCTP_STATUS_OFF;
-                [self reportStatus];
-                [self powerdownInReceiverThread];
-                return -1;
-            }
-            else if (snp->sn_assoc_change.sac_state == SCTP_CANT_STR_ASSOC)
-            {
-                [logFeed infoText:@" SCTP_CANT_STR_ASSOC: *ignored *"];
-                //self.status=SCTP_STATUS_OFF;
-                //[self reportStatus];
-                //[self powerdownInReceiverThread];
-                return 0;
-            }
-            else if(snp->sn_assoc_change.sac_error!=0)
-            {
-                [logFeed majorError:snp->sn_assoc_change.sac_error withText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)->OFF"];
-                self.status=SCTP_STATUS_OFF;
-                [self powerdownInReceiverThread];
-                return -1;
-            }
+            [self handleAssocChange:event sinfo:sinfo];
             break;
-            
         case SCTP_PEER_ADDR_CHANGE:
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:@"SCTP_PEER_ADDR_CHANGE"];
-            }
-#endif
-            if(len < sizeof (struct sctp_paddr_change))
-            {
-                [logFeed majorErrorText:@" Size Mismatch in SCTP_PEER_ADDR_CHANGE"];
-                return -1;
-            }
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:[NSString stringWithFormat:@"  spc_type: %d",    (int)snp->sn_paddr_change.spc_type]];
-                [self logDebug:[NSString stringWithFormat:@"  spc_flags: %d",   (int)snp->sn_paddr_change.spc_flags]];
-                [self logDebug:[NSString stringWithFormat:@"  spc_length: %d",  (int)snp->sn_paddr_change.spc_length]];
-            }
-#endif
-            if (snp->sn_paddr_change.spc_aaddr.ss_family == AF_INET)
-            {
-                //struct sockaddr_in *sin;
-                sin = (struct sockaddr_in *)&snp->sn_paddr_change.spc_aaddr;
-                ap = inet_ntop(AF_INET, &sin->sin_addr, addrbuf, INET6_ADDRSTRLEN);
-                if(logLevel <= UMLOG_DEBUG)
-                {
-                    [self logDebug:[NSString stringWithFormat:@"  spc_aaddr: ipv4:%s", ap]];
-                }
-            }
-            else
-            {
-                sin6 = (struct sockaddr_in6 *)&snp->sn_paddr_change.spc_aaddr;
-                ap = inet_ntop(AF_INET6, &sin6->sin6_addr, addrbuf, INET6_ADDRSTRLEN);
-                if(logLevel <= UMLOG_DEBUG)
-                {
-                    [self logDebug:[NSString stringWithFormat:@"  spc_aaddr: ipv6:%s", ap]];
-                }
-            }
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:[NSString stringWithFormat:@"  spc_state: %d",   (int)snp->sn_paddr_change.spc_state]];
-                [self logDebug:[NSString stringWithFormat:@"  spc_error: %d",   (int)snp->sn_paddr_change.spc_error]];
-                if (snp->sn_paddr_change.spc_aaddr.ss_family == AF_INET)
-                {
-                    [self logDebug:[NSString stringWithFormat:@" SCTP_PEER_ADDR_CHANGE: ipv4:%s",ap]];
-                }
-                else
-                {
-                    [self logDebug:[NSString stringWithFormat:@" SCTP_PEER_ADDR_CHANGE: ipv6:%s",ap]];
-                }
-            }
-#endif
+            [self handlePeerAddrChange:event sinfo:sinfo];
             break;
-            
         case SCTP_REMOTE_ERROR:
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:@"SCTP_REMOTE_ERROR"];
-            }
-#endif
-            if(len < sizeof (struct sctp_remote_error))
-            {
-                [logFeed majorErrorText:@" Size Mismatch in SCTP_REMOTE_ERROR"];
-                return -1;
-            }
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:[NSString stringWithFormat:@"  sre_type: %d",             (int)snp->sn_remote_error.sre_type]];
-                [self logDebug:[NSString stringWithFormat:@"  sre_flags: %d",            (int)snp->sn_remote_error.sre_flags]];
-                [self logDebug:[NSString stringWithFormat:@"  sre_length: %d",           (int)snp->sn_remote_error.sre_length]];
-                [self logDebug:[NSString stringWithFormat:@"  sre_length: %d",           (int)snp->sn_remote_error.sre_error]];
-                [self logDebug:[NSString stringWithFormat:@"  sre_assoc_id: %d",         (int)snp->sn_remote_error.sre_assoc_id]];
-                [self logDebug:[NSString stringWithFormat:@"  sre_data: %02X %02X %02X %02x",
-                                (int)snp->sn_remote_error.sre_data[0],
-                                (int)snp->sn_remote_error.sre_data[1],
-                                (int)snp->sn_remote_error.sre_data[2],
-                                (int)snp->sn_remote_error.sre_data[3]]];
-            }
-#endif
+            [self handleRemoteError:event sinfo:sinfo];
             break;
         case SCTP_SEND_FAILED:
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:@"SCTP_SEND_FAILED"];
-            }
-#endif
-            if(len < sizeof (struct sctp_send_failed))
-            {
-                [logFeed majorErrorText:@" Size Mismatch in SCTP_SEND_FAILED"];
-                [self powerdownInReceiverThread];
-                return -1;
-            }
-            [logFeed majorErrorText:@"SCTP_SEND_FAILED"];
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:[NSString stringWithFormat:@"  ssf_type: %d",                (int)snp->sn_send_failed.ssf_type]];
-                [self logDebug:[NSString stringWithFormat:@"  ssf_flags: %d",               (int)snp->sn_send_failed.ssf_flags]];
-                [self logDebug:[NSString stringWithFormat:@"  ssf_length: %d",              (int)snp->sn_send_failed.ssf_length]];
-                [self logDebug:[NSString stringWithFormat:@"  ssf_error: %d",               (int)snp->sn_send_failed.ssf_error]];
-                [self logDebug:[NSString stringWithFormat:@"  ssf_assoc_id: %d",            (int)snp->sn_send_failed.ssf_assoc_id]];
-                [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_stream: %d",   (int)snp->sn_send_failed.ssf_info.sinfo_stream]];
-                [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_ssn: %d",      (int)snp->sn_send_failed.ssf_info.sinfo_ssn]];
-                [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_flags: %d",    (int)snp->sn_send_failed.ssf_info.sinfo_flags]];
-                [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_stream: %d",   (int)snp->sn_send_failed.ssf_info.sinfo_stream]];
-                [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_context: %d",  (int)snp->sn_send_failed.ssf_info.sinfo_context]];
-                [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_timetolive: %d",(int)snp->sn_send_failed.ssf_info.sinfo_timetolive]];
-                [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_tsn: %d",      (int)snp->sn_send_failed.ssf_info.sinfo_tsn]];
-                [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_cumtsn: %d",   (int)snp->sn_send_failed.ssf_info.sinfo_cumtsn]];
-                [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_assoc_id: %d", (int)snp->sn_send_failed.ssf_info.sinfo_assoc_id]];
-                [self logDebug:[NSString stringWithFormat:@"  ssf_assoc_id: %d",    (int)snp->sn_send_failed.ssf_assoc_id]];
-            }
-#endif
-            [logFeed majorErrorText:[NSString stringWithFormat:@"SCTP sendfailed: len=%du err=%d\n", snp->sn_send_failed.ssf_length,snp->sn_send_failed.ssf_error]];
-            [self powerdownInReceiverThread];
-            return -1;
+            [self handleSendFailed:event sinfo:sinfo];
             break;
         case SCTP_SHUTDOWN_EVENT:
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:@"SCTP_SHUTDOWN_EVENT"];
-            }
-#endif
-            if(len < sizeof (struct sctp_shutdown_event))
-            {
-                [logFeed majorErrorText:@" Size Mismatch in SCTP_SHUTDOWN_EVENT"];
-                [self powerdownInReceiverThread];
-                return -1;
-            }
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:[NSString stringWithFormat:@"  sse_type: %d",     (int)snp->sn_shutdown_event.sse_type]];
-                [self logDebug:[NSString stringWithFormat:@"  sse_flags: %d",    (int)snp->sn_shutdown_event.sse_flags]];
-                [self logDebug:[NSString stringWithFormat:@"  sse_length: %d",   (int)snp->sn_shutdown_event.sse_length]];
-                [self logDebug:[NSString stringWithFormat:@"  sse_assoc_id: %d", (int)snp->sn_shutdown_event.sse_assoc_id]];
-            }
-#endif
-            [logFeed warningText:@"SCTP_SHUTDOWN_EVENT->POWERDOWN"];
-            [self powerdownInReceiverThread];
-            return -1;
+            [self handleShutdownEvent:event sinfo:sinfo];
             break;
-#ifdef	SCTP_ADAPTATION_INDICATION
         case SCTP_ADAPTATION_INDICATION:
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:@"SCTP_ADAPTATION_INDICATION"];
-            }
-#endif
-            if(len < sizeof(struct sctp_adaptation_event))
-            {
-                [logFeed majorErrorText:@" Size Mismatch in SCTP_ADAPTATION_INDICATION"];
-                [self powerdownInReceiverThread];
-                return -1;
-            }
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:[NSString stringWithFormat:@"  sai_type: %d",           (int)snp->sn_adaptation_event.sai_type]];
-                [self logDebug:[NSString stringWithFormat:@"  sai_flags: %d",          (int)snp->sn_adaptation_event.sai_flags]];
-                [self logDebug:[NSString stringWithFormat:@"  sai_length: %d",         (int)snp->sn_adaptation_event.sai_length]];
-                [self logDebug:[NSString stringWithFormat:@"  sai_adaptation_ind: %d", (int)snp->sn_adaptation_event.sai_adaptation_ind]];
-                [self logDebug:[NSString stringWithFormat:@"  sai_assoc_id: %d",       (int)snp->sn_adaptation_event.sai_assoc_id]];
-            }
-#endif
+            [self handleAdaptionIndication:event sinfo:sinfo];
             break;
-#endif
         case SCTP_PARTIAL_DELIVERY_EVENT:
-            
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:@"SCTP_PARTIAL_DELIVERY_EVENT"];
-            }
-#endif
-            if(len < sizeof(struct sctp_pdapi_event))
-            {
-                [logFeed majorErrorText:@" Size Mismatch in SCTP_PARTIAL_DELIVERY_EVENT"];
-                [self powerdownInReceiverThread];
-                return -1;
-            }
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:[NSString stringWithFormat:@"  pdapi_type: %d",           (int)snp->sn_pdapi_event.pdapi_type]];
-                [self logDebug:[NSString stringWithFormat:@"  pdapi_flags: %d",          (int)snp->sn_pdapi_event.pdapi_flags]];
-                [self logDebug:[NSString stringWithFormat:@"  pdapi_length: %d",         (int)snp->sn_pdapi_event.pdapi_length]];
-                [self logDebug:[NSString stringWithFormat:@"  pdapi_indication: %d",     (int)snp->sn_pdapi_event.pdapi_indication]];
-#ifndef LINUX
-                [self logDebug:[NSString stringWithFormat:@"  pdapi_stream: %d",         (int)snp->sn_pdapi_event.pdapi_stream]];
-                [self logDebug:[NSString stringWithFormat:@"  pdapi_seq: %d",            (int)snp->sn_pdapi_event.pdapi_seq]];
-#endif
-                [self logDebug:[NSString stringWithFormat:@"  pdapi_assoc_id: %d",       (int)snp->sn_pdapi_event.pdapi_assoc_id]];
-            }
-#endif
+            [self handleAdaptionIndication:event sinfo:sinfo];
             break;
-            
-#ifdef SCTP_AUTHENTICATION_EVENT
+
         case SCTP_AUTHENTICATION_EVENT:
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:@"SCTP_AUTHENTICATION_EVENT"];
-            }
-#endif
-            if(len < sizeof(struct sctp_authkey_event))
-            {
-                [logFeed majorErrorText:@" Size Mismatch in SCTP_AUTHENTICATION_EVENT"];
-                [self powerdownInReceiverThread];
-                return -1;
-            }
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:[NSString stringWithFormat:@"  auth_type: %d",           (int)snp->sn_auth_event.auth_type]];
-                [self logDebug:[NSString stringWithFormat:@"  auth_flags: %d",          (int)snp->sn_auth_event.auth_flags]];
-                [self logDebug:[NSString stringWithFormat:@"  auth_length: %d",         (int)snp->sn_auth_event.auth_length]];
-                [self logDebug:[NSString stringWithFormat:@"  auth_keynumber: %d",      (int)snp->sn_auth_event.auth_keynumber]];
-                [self logDebug:[NSString stringWithFormat:@"  auth_altkeynumber: %d",   (int)snp->sn_auth_event.auth_altkeynumber]];
-                [self logDebug:[NSString stringWithFormat:@"  auth_indication: %d",     (int)snp->sn_auth_event.auth_indication]];
-                [self logDebug:[NSString stringWithFormat:@"  auth_assoc_id: %d",       (int)snp->sn_auth_event.auth_assoc_id]];
-            }
-#endif
+            [self handleAdaptionIndication:event sinfo:sinfo];
             break;
-#endif
-#ifdef SCTP_STREAM_RESET_EVENT
-        case SCTP_STREAM_RESET_EVENT:
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:@"SCTP_STREAM_RESET_EVENT"];
-            }
-#endif
-            if(len < sizeof(struct sctp_stream_reset_event))
-            {
-                [logFeed majorErrorText:@" Size Mismatch in SCTP_STREAM_RESET_EVENT"];
-                [self powerdownInReceiverThread];
-                return -1;
-            }
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:[NSString stringWithFormat:@"  strreset_type: %d",     (int)snp->sn_strreset_event.strreset_type]];
-                [self logDebug:[NSString stringWithFormat:@"  strreset_flags: %d",    (int)snp->sn_strreset_event.strreset_flags]];
-                [self logDebug:[NSString stringWithFormat:@"  strreset_length: %d",   (int)snp->sn_strreset_event.strreset_length]];
-                [self logDebug:[NSString stringWithFormat:@"  strreset_assoc_id: %d", (int)snp->sn_strreset_event.strreset_assoc_id]];
-            }
-#endif
+
+        case  SCTP_STREAM_RESET_EVENT:
+            [self handleStreamResetEvent:event sinfo:sinfo];
             break;
-            
-#endif
-#ifdef SCTP_SENDER_DRY_EVENT
+
         case SCTP_SENDER_DRY_EVENT:
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:@"SCTP_SENDER_DRY_EVENT"];
-            }
-#endif
-            if(len < sizeof(struct sctp_sender_dry_event))
-            {
-                [logFeed majorErrorText:@" Size Mismatch in SCTP_SENDER_DRY_EVENT"];
-                [self powerdownInReceiverThread];
-                return -1;
-            }
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:[NSString stringWithFormat:@"  sender_dry_type: %d",     (int)snp->sn_sender_dry_event.sender_dry_type]];
-                [self logDebug:[NSString stringWithFormat:@"  sender_dry_flags: %d",    (int)snp->sn_sender_dry_event.sender_dry_flags]];
-                [self logDebug:[NSString stringWithFormat:@"  sender_dry_length: %d",   (int)snp->sn_sender_dry_event.sender_dry_length]];
-                [self logDebug:[NSString stringWithFormat:@"  sender_dry_assoc_id: %d", (int)snp->sn_sender_dry_event.sender_dry_assoc_id]];
-            }
-#endif
+            [self handleSenderDryEvent:event sinfo:sinfo];
             break;
-#endif
+
         default:
             [logFeed majorErrorText:[NSString stringWithFormat:@"SCTP unknown event type: %hu", snp->sn_header.sn_type]];
             [logFeed majorErrorText:[NSString stringWithFormat:@" RX-STREAM: %d",sinfo->sinfo_stream]];
             [logFeed majorErrorText:[NSString stringWithFormat:@" RX-PROTO: %d", ntohl(sinfo->sinfo_ppid)]];
             [logFeed majorErrorText:[NSString stringWithFormat:@" RX-DATA: %@",event.description]];
     }
+}
+
+
+-(void) handleAssocChange:(NSData *)event
+                   sinfo:(struct sctp_sndrcvinfo *)sinfo
+{
+    const union sctp_notification *snp;
+    snp = event.bytes;
+    NSUInteger len = event.length;
+
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:@"SCTP_ASSOC_CHANGE"];
+    }
+#endif
+    if(len < sizeof (struct sctp_assoc_change))
+    {
+        [logFeed majorErrorText:@" Size Mismatch in SCTP_ASSOC_CHANGE"];
+    }
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:[NSString stringWithFormat:@"  sac_type: %d",             (int)snp->sn_assoc_change.sac_type]];
+        [self logDebug:[NSString stringWithFormat:@"  sac_flags: %d",            (int)snp->sn_assoc_change.sac_flags]];
+        [self logDebug:[NSString stringWithFormat:@"  sac_length: %d",           (int)snp->sn_assoc_change.sac_length]];
+        [self logDebug:[NSString stringWithFormat:@"  sac_state: %d",            (int)snp->sn_assoc_change.sac_state]];
+        [self logDebug:[NSString stringWithFormat:@"  sac_error: %d",            (int)snp->sn_assoc_change.sac_error]];
+        [self logDebug:[NSString stringWithFormat:@"  sac_outbound_streams: %d", (int)snp->sn_assoc_change.sac_outbound_streams]];
+        [self logDebug:[NSString stringWithFormat:@"  sac_inbound_streams: %d",  (int)snp->sn_assoc_change.sac_inbound_streams]];
+        [self logDebug:[NSString stringWithFormat:@"  sac_assoc_id: %d",         (int)snp->sn_assoc_change.sac_assoc_id]];
+    }
+#endif
+    if((snp->sn_assoc_change.sac_state==SCTP_COMM_UP) && (snp->sn_assoc_change.sac_error== 0))
+    {
+        [logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS"];
+        self.status=SCTP_STATUS_IS;
+        [self reportStatus];
+    }
+    else if(snp->sn_assoc_change.sac_state==SCTP_COMM_LOST)
+    {
+        [logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF"];
+        self.status=SCTP_STATUS_OFF;
+        [self reportStatus];
+        [self powerdownInReceiverThread];
+    }
+    else if(snp->sn_assoc_change.sac_error!=0)
+    {
+        [logFeed majorError:snp->sn_assoc_change.sac_error withText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)->OFF"];
+        self.status=SCTP_STATUS_OFF;
+        [self powerdownInReceiverThread];
+    }
+}
+
+
+-(void) handlePeerAddrChange:(NSData *)event
+                   sinfo:(struct sctp_sndrcvinfo *)sinfo
+{
+    const union sctp_notification *snp;
+
+    char addrbuf[INET6_ADDRSTRLEN];
+    const char *ap;
+    struct sockaddr_in *sin;
+    struct sockaddr_in6 *sin6;
+
+    snp = event.bytes;
+    NSUInteger len = event.length;
+
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:@"SCTP_PEER_ADDR_CHANGE"];
+    }
+#endif
+    if(len < sizeof (struct sctp_paddr_change))
+    {
+        [logFeed majorErrorText:@" Size Mismatch in SCTP_PEER_ADDR_CHANGE"];
+    }
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:[NSString stringWithFormat:@"  spc_type: %d",    (int)snp->sn_paddr_change.spc_type]];
+        [self logDebug:[NSString stringWithFormat:@"  spc_flags: %d",   (int)snp->sn_paddr_change.spc_flags]];
+        [self logDebug:[NSString stringWithFormat:@"  spc_length: %d",  (int)snp->sn_paddr_change.spc_length]];
+    }
+#endif
+    if (snp->sn_paddr_change.spc_aaddr.ss_family == AF_INET)
+    {
+        //struct sockaddr_in *sin;
+        sin = (struct sockaddr_in *)&snp->sn_paddr_change.spc_aaddr;
+        ap = inet_ntop(AF_INET, &sin->sin_addr, addrbuf, INET6_ADDRSTRLEN);
+        if(logLevel <= UMLOG_DEBUG)
+        {
+            [self logDebug:[NSString stringWithFormat:@"  spc_aaddr: ipv4:%s", ap]];
+        }
+    }
+    else
+    {
+        sin6 = (struct sockaddr_in6 *)&snp->sn_paddr_change.spc_aaddr;
+        ap = inet_ntop(AF_INET6, &sin6->sin6_addr, addrbuf, INET6_ADDRSTRLEN);
+        if(logLevel <= UMLOG_DEBUG)
+        {
+            [self logDebug:[NSString stringWithFormat:@"  spc_aaddr: ipv6:%s", ap]];
+        }
+    }
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:[NSString stringWithFormat:@"  spc_state: %d",   (int)snp->sn_paddr_change.spc_state]];
+        [self logDebug:[NSString stringWithFormat:@"  spc_error: %d",   (int)snp->sn_paddr_change.spc_error]];
+        if (snp->sn_paddr_change.spc_aaddr.ss_family == AF_INET)
+        {
+            [self logDebug:[NSString stringWithFormat:@" SCTP_PEER_ADDR_CHANGE: ipv4:%s",ap]];
+        }
+        else
+        {
+            [self logDebug:[NSString stringWithFormat:@" SCTP_PEER_ADDR_CHANGE: ipv6:%s",ap]];
+        }
+    }
+#endif
+}
+
+-(void) handleRemoteError:(NSData *)event
+                   sinfo:(struct sctp_sndrcvinfo *)sinfo
+{
+    const union sctp_notification *snp;
+    snp = event.bytes;
+    NSUInteger len = event.length;
+
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:@"SCTP_REMOTE_ERROR"];
+    }
+#endif
+    if(len < sizeof (struct sctp_remote_error))
+    {
+        [logFeed majorErrorText:@" Size Mismatch in SCTP_REMOTE_ERROR"];
+    }
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:[NSString stringWithFormat:@"  sre_type: %d",             (int)snp->sn_remote_error.sre_type]];
+        [self logDebug:[NSString stringWithFormat:@"  sre_flags: %d",            (int)snp->sn_remote_error.sre_flags]];
+        [self logDebug:[NSString stringWithFormat:@"  sre_length: %d",           (int)snp->sn_remote_error.sre_length]];
+        [self logDebug:[NSString stringWithFormat:@"  sre_length: %d",           (int)snp->sn_remote_error.sre_error]];
+        [self logDebug:[NSString stringWithFormat:@"  sre_assoc_id: %d",         (int)snp->sn_remote_error.sre_assoc_id]];
+        [self logDebug:[NSString stringWithFormat:@"  sre_data: %02X %02X %02X %02x",
+                        (int)snp->sn_remote_error.sre_data[0],
+                        (int)snp->sn_remote_error.sre_data[1],
+                        (int)snp->sn_remote_error.sre_data[2],
+                        (int)snp->sn_remote_error.sre_data[3]]];
+    }
+#endif
+}
+
+
+-(int) handleSendFailed:(NSData *)event
+                   sinfo:(struct sctp_sndrcvinfo *)sinfo
+{
+    const union sctp_notification *snp;
+    snp = event.bytes;
+    NSUInteger len = event.length;
+
+
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:@"SCTP_SEND_FAILED"];
+    }
+#endif
+    if(len < sizeof (struct sctp_send_failed))
+    {
+        [logFeed majorErrorText:@" Size Mismatch in SCTP_SEND_FAILED"];
+        [self powerdownInReceiverThread];
+        return UMSocketError_not_supported_operation;
+    }
+    [logFeed majorErrorText:@"SCTP_SEND_FAILED"];
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:[NSString stringWithFormat:@"  ssf_type: %d",                (int)snp->sn_send_failed.ssf_type]];
+        [self logDebug:[NSString stringWithFormat:@"  ssf_flags: %d",               (int)snp->sn_send_failed.ssf_flags]];
+        [self logDebug:[NSString stringWithFormat:@"  ssf_length: %d",              (int)snp->sn_send_failed.ssf_length]];
+        [self logDebug:[NSString stringWithFormat:@"  ssf_error: %d",               (int)snp->sn_send_failed.ssf_error]];
+        [self logDebug:[NSString stringWithFormat:@"  ssf_assoc_id: %d",            (int)snp->sn_send_failed.ssf_assoc_id]];
+        [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_stream: %d",   (int)snp->sn_send_failed.ssf_info.sinfo_stream]];
+        [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_ssn: %d",      (int)snp->sn_send_failed.ssf_info.sinfo_ssn]];
+        [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_flags: %d",    (int)snp->sn_send_failed.ssf_info.sinfo_flags]];
+        [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_stream: %d",   (int)snp->sn_send_failed.ssf_info.sinfo_stream]];
+        [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_context: %d",  (int)snp->sn_send_failed.ssf_info.sinfo_context]];
+        [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_timetolive: %d",(int)snp->sn_send_failed.ssf_info.sinfo_timetolive]];
+        [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_tsn: %d",      (int)snp->sn_send_failed.ssf_info.sinfo_tsn]];
+        [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_cumtsn: %d",   (int)snp->sn_send_failed.ssf_info.sinfo_cumtsn]];
+        [self logDebug:[NSString stringWithFormat:@"  ssf_info.sinfo_assoc_id: %d", (int)snp->sn_send_failed.ssf_info.sinfo_assoc_id]];
+        [self logDebug:[NSString stringWithFormat:@"  ssf_assoc_id: %d",    (int)snp->sn_send_failed.ssf_assoc_id]];
+    }
+#endif
+    [logFeed majorErrorText:[NSString stringWithFormat:@"SCTP sendfailed: len=%du err=%d\n", snp->sn_send_failed.ssf_length,snp->sn_send_failed.ssf_error]];
+    [self powerdownInReceiverThread];
+    return -1;
+}
+
+
+-(int) handleShutdownEvent:(NSData *)event
+                     sinfo:(struct sctp_sndrcvinfo *)sinfo
+{
+    const union sctp_notification *snp;
+    snp = event.bytes;
+    NSUInteger len = event.length;
+
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:@"SCTP_SHUTDOWN_EVENT"];
+    }
+#endif
+    if(len < sizeof (struct sctp_shutdown_event))
+    {
+        [logFeed majorErrorText:@" Size Mismatch in SCTP_SHUTDOWN_EVENT"];
+        [self powerdownInReceiverThread];
+        return UMSocketError_not_supported_operation;
+    }
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:[NSString stringWithFormat:@"  sse_type: %d",     (int)snp->sn_shutdown_event.sse_type]];
+        [self logDebug:[NSString stringWithFormat:@"  sse_flags: %d",    (int)snp->sn_shutdown_event.sse_flags]];
+        [self logDebug:[NSString stringWithFormat:@"  sse_length: %d",   (int)snp->sn_shutdown_event.sse_length]];
+        [self logDebug:[NSString stringWithFormat:@"  sse_assoc_id: %d", (int)snp->sn_shutdown_event.sse_assoc_id]];
+    }
+#endif
+    [logFeed warningText:@"SCTP_SHUTDOWN_EVENT->POWERDOWN"];
+    [self powerdownInReceiverThread];
+    return -1;
+}
+
+
+-(int) handleAdaptionIndication:(NSData *)event
+                  sinfo:(struct sctp_sndrcvinfo *)sinfo
+{
+    const union sctp_notification *snp;
+    snp = event.bytes;
+    NSUInteger len = event.length;
+
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:@"SCTP_ADAPTATION_INDICATION"];
+    }
+#endif
+    if(len < sizeof(struct sctp_adaptation_event))
+    {
+        [logFeed majorErrorText:@" Size Mismatch in SCTP_ADAPTATION_INDICATION"];
+        [self powerdownInReceiverThread];
+        return UMSocketError_not_supported_operation;
+    }
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:[NSString stringWithFormat:@"  sai_type: %d",           (int)snp->sn_adaptation_event.sai_type]];
+        [self logDebug:[NSString stringWithFormat:@"  sai_flags: %d",          (int)snp->sn_adaptation_event.sai_flags]];
+        [self logDebug:[NSString stringWithFormat:@"  sai_length: %d",         (int)snp->sn_adaptation_event.sai_length]];
+        [self logDebug:[NSString stringWithFormat:@"  sai_adaptation_ind: %d", (int)snp->sn_adaptation_event.sai_adaptation_ind]];
+        [self logDebug:[NSString stringWithFormat:@"  sai_assoc_id: %d",       (int)snp->sn_adaptation_event.sai_assoc_id]];
+    }
+#endif
     return 0;
 }
+
+-(int) handlePartialDeliveryEvent:(NSData *)event
+                  sinfo:(struct sctp_sndrcvinfo *)sinfo
+{
+    const union sctp_notification *snp;
+    snp = event.bytes;
+    NSUInteger len = event.length;
+
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:@"SCTP_PARTIAL_DELIVERY_EVENT"];
+    }
+#endif
+    if(len < sizeof(struct sctp_pdapi_event))
+    {
+        [logFeed majorErrorText:@" Size Mismatch in SCTP_PARTIAL_DELIVERY_EVENT"];
+        [self powerdownInReceiverThread];
+        return UMSocketError_not_supported_operation;
+    }
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:[NSString stringWithFormat:@"  pdapi_type: %d",           (int)snp->sn_pdapi_event.pdapi_type]];
+        [self logDebug:[NSString stringWithFormat:@"  pdapi_flags: %d",          (int)snp->sn_pdapi_event.pdapi_flags]];
+        [self logDebug:[NSString stringWithFormat:@"  pdapi_length: %d",         (int)snp->sn_pdapi_event.pdapi_length]];
+        [self logDebug:[NSString stringWithFormat:@"  pdapi_indication: %d",     (int)snp->sn_pdapi_event.pdapi_indication]];
+#ifndef LINUX
+        [self logDebug:[NSString stringWithFormat:@"  pdapi_stream: %d",         (int)snp->sn_pdapi_event.pdapi_stream]];
+        [self logDebug:[NSString stringWithFormat:@"  pdapi_seq: %d",            (int)snp->sn_pdapi_event.pdapi_seq]];
+#endif
+        [self logDebug:[NSString stringWithFormat:@"  pdapi_assoc_id: %d",       (int)snp->sn_pdapi_event.pdapi_assoc_id]];
+    }
+#endif
+    return UMSocketError_no_error;
+}
+
+-(int) handleAuthenticationEvent:(NSData *)event
+                  sinfo:(struct sctp_sndrcvinfo *)sinfo
+{
+    const union sctp_notification *snp;
+    snp = event.bytes;
+    NSUInteger len = event.length;
+
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:@"SCTP_AUTHENTICATION_EVENT"];
+    }
+#endif
+    if(len < sizeof(struct sctp_authkey_event))
+    {
+        [logFeed majorErrorText:@" Size Mismatch in SCTP_AUTHENTICATION_EVENT"];
+        [self powerdownInReceiverThread];
+        return UMSocketError_not_supported_operation;
+    }
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:[NSString stringWithFormat:@"  auth_type: %d",           (int)snp->sn_auth_event.auth_type]];
+        [self logDebug:[NSString stringWithFormat:@"  auth_flags: %d",          (int)snp->sn_auth_event.auth_flags]];
+        [self logDebug:[NSString stringWithFormat:@"  auth_length: %d",         (int)snp->sn_auth_event.auth_length]];
+        [self logDebug:[NSString stringWithFormat:@"  auth_keynumber: %d",      (int)snp->sn_auth_event.auth_keynumber]];
+        [self logDebug:[NSString stringWithFormat:@"  auth_altkeynumber: %d",   (int)snp->sn_auth_event.auth_altkeynumber]];
+        [self logDebug:[NSString stringWithFormat:@"  auth_indication: %d",     (int)snp->sn_auth_event.auth_indication]];
+        [self logDebug:[NSString stringWithFormat:@"  auth_assoc_id: %d",       (int)snp->sn_auth_event.auth_assoc_id]];
+    }
+#endif
+    return UMSocketError_no_error;
+}
+
+
+-(int) handleStreamResetEvent:(NSData *)event
+                        sinfo:(struct sctp_sndrcvinfo *)sinfo
+{
+    const union sctp_notification *snp;
+    snp = event.bytes;
+    NSUInteger len = event.length;
+
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:@"SCTP_STREAM_RESET_EVENT"];
+    }
+#endif
+    if(len < sizeof(struct sctp_stream_reset_event))
+    {
+        [logFeed majorErrorText:@" Size Mismatch in SCTP_STREAM_RESET_EVENT"];
+        [self powerdownInReceiverThread];
+        return UMSocketError_not_supported_operation;
+    }
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:[NSString stringWithFormat:@"  strreset_type: %d",     (int)snp->sn_strreset_event.strreset_type]];
+        [self logDebug:[NSString stringWithFormat:@"  strreset_flags: %d",    (int)snp->sn_strreset_event.strreset_flags]];
+        [self logDebug:[NSString stringWithFormat:@"  strreset_length: %d",   (int)snp->sn_strreset_event.strreset_length]];
+        [self logDebug:[NSString stringWithFormat:@"  strreset_assoc_id: %d", (int)snp->sn_strreset_event.strreset_assoc_id]];
+    }
+#endif
+    return UMSocketError_no_error;
+}
+
+-(int) handleSenderDryEvent:(NSData *)event
+                      sinfo:(struct sctp_sndrcvinfo *)sinfo
+{
+    const union sctp_notification *snp;
+    snp = event.bytes;
+    NSUInteger len = event.length;
+
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:@"SCTP_SENDER_DRY_EVENT"];
+    }
+#endif
+    if(len < sizeof(struct sctp_sender_dry_event))
+    {
+        [logFeed majorErrorText:@" Size Mismatch in SCTP_SENDER_DRY_EVENT"];
+        [self powerdownInReceiverThread];
+        return UMSocketError_not_supported_operation;
+    }
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:[NSString stringWithFormat:@"  sender_dry_type: %d",     (int)snp->sn_sender_dry_event.sender_dry_type]];
+        [self logDebug:[NSString stringWithFormat:@"  sender_dry_flags: %d",    (int)snp->sn_sender_dry_event.sender_dry_flags]];
+        [self logDebug:[NSString stringWithFormat:@"  sender_dry_length: %d",   (int)snp->sn_sender_dry_event.sender_dry_length]];
+        [self logDebug:[NSString stringWithFormat:@"  sender_dry_assoc_id: %d", (int)snp->sn_sender_dry_event.sender_dry_assoc_id]];
+    }
+#endif
+    return UMSocketError_no_error;
+}
+
 
 - (UMSocketError) dataIsAvailableSCTP:(int *)hasData
                                hangup:(int *)hasHup

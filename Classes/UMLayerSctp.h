@@ -136,6 +136,6 @@
 - (void)stopDetachAndDestroy;
 - (NSString *)statusString;
 
--(int) handleEvent:(NSData *)event
-             sinfo:(struct sctp_sndrcvinfo *)sinfo; /* return 1 for processed data, 0 for no data, -1 for terminate */
+-(void) handleEvent:(NSData *)event
+              sinfo:(struct sctp_sndrcvinfo *)sinfo;
 @end

@@ -310,21 +310,21 @@ static int _global_msg_notification_mask = 0;
     /**********************/
     
     self.status = SCTP_STATUS_OOS;
-    
+
+
     bzero((void *)&event, sizeof(struct sctp_event_subscribe));
     event.sctp_data_io_event            = 1;
     event.sctp_association_event        = 1;
     event.sctp_address_event            = 1;
-    event.sctp_send_failure_event        = 1;
-    event.sctp_peer_error_event            = 1;
-    event.sctp_shutdown_event            = 1;
-    event.sctp_partial_delivery_event    = 1;
-    event.sctp_adaptation_layer_event    = 1;
-    event.sctp_authentication_event        = 1;
+    event.sctp_send_failure_event       = 1;
+    event.sctp_peer_error_event         = 1;
+    event.sctp_shutdown_event           = 1;
+    event.sctp_partial_delivery_event   = 1;
+    event.sctp_adaptation_layer_event   = 1;
+    event.sctp_authentication_event     = 1;
 #ifndef LINUX
-    event.sctp_stream_reset_events        = 1;
+    event.sctp_stream_reset_events      = 1;
 #endif
-
     if(setsockopt(_sock, IPPROTO_SCTP, SCTP_EVENTS, &event, sizeof(event)) != 0)
     {
         /* FIXME: use errno for proper return */
