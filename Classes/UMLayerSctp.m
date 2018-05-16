@@ -868,7 +868,7 @@
                 [logFeed infoText:@" SCTP_CANT_STR_ASSOC: SCTP_COMM_LOST->OFF"];
                 self.status=SCTP_STATUS_OFF;
                 [self reportStatus];
-                [self powerdownInReceiverThread];
+                //[self powerdownInReceiverThread];
                 return -1;
             }
             else if(snp->sn_assoc_change.sac_error!=0)
