@@ -46,8 +46,7 @@ struct sctp_sndrcvinfo;
 @property(readwrite,strong) id<UMSocketSCTP_notificationDelegate>   notificationDelegate;
 @property(readwrite,strong) id<UMSocketSCTP_dataDelegate>           dataDelegate;
 
-- (UMSocketError) setSctpOptionNoDelay;
-- (UMSocketError) setSctpOptionReusePort;
+
 - (UMSocketError) enableEvents;
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret;
 - (UMSocketError) connectSCTP;
@@ -60,4 +59,7 @@ struct sctp_sndrcvinfo;
                             dataAvail:(int *)hasData
                                hangup:(int *)hasHup;
 - (UMSocketError) getSocketError;
+- (UMSocketError) setReusePort;
+- (UMSocketError) setNoDelay;
+
 @end

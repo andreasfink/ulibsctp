@@ -15,7 +15,7 @@
 
 #ifdef __APPLE__
 #import <sctp/sctp.h>
-#include <sys/utsname.h>po
+#include <sys/utsname.h>
 
 #define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
 #define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
@@ -119,31 +119,6 @@ static int _global_msg_notification_mask = 0;
     }
 }
 
-- (UMSocketError) setSctpOptionNoDelay
-{
-#ifdef SCTP_NODELAY
-    char on = 1;
-    if(setsockopt(_sock, IPPROTO_SCTP, SCTP_NODELAY, (char *)&on, sizeof(on)))
-    {
-        /* FIXME: use errno for proper return */
-        return UMSocketError_not_supported_operation;
-    }
-#endif
-    return UMSocketError_no_error;
-}
-
-- (UMSocketError) setSctpOptionReusePort
-{
-#ifdef SCTP_REUSE_PORT
-    char on = 1;
-    if(setsockopt(_sock, IPPROTO_SCTP, SCTP_REUSE_PORT, (char *)&on, sizeof(on)))
-    {
-        /* FIXME: use errno for proper return */
-        return UMSocketError_not_supported_operation;
-    }
-#endif
-    return UMSocketError_no_error;
-}
 
 - (UMSocketError) bind;
 {
@@ -205,7 +180,7 @@ static int _global_msg_notification_mask = 0;
             memset(&local_addr6,0x00,sizeof(local_addr6));
             
             local_addr6.sin6_family = AF_INET6;
-#ifdef __APPLE__
+#ifdef HAVE_SOCKADDR_SIN_LEN
             local_addr6.sin6_len         = sizeof(struct sockaddr_in6);
 #endif
             local_addr6.sin6_port = htons(self.requestedLocalPort);
@@ -267,7 +242,7 @@ static int _global_msg_notification_mask = 0;
             memset(&local_addr4,0x00,sizeof(local_addr4));
             
             local_addr4.sin_family = AF_INET;
-#ifdef __APPLE__
+#ifdef HAVE_SOCKADDR_SIN_LEN
             local_addr4.sin_len         = sizeof(struct sockaddr_in);
 #endif
             local_addr4.sin_port = htons(self.requestedLocalPort);
@@ -404,7 +379,7 @@ static int _global_msg_notification_mask = 0;
             int result = inet_pton(AF_INET6,address.UTF8String, &addr6);
             if(result==1)
             {
-#ifdef __APPLE__
+#ifdef HAVE_SOCKADDR_SIN_LEN
                 remote_addresses6[i].sin6_len = sizeof(struct sockaddr_in6);
 #endif
                 remote_addresses6[j].sin6_family = AF_INET6;
@@ -450,7 +425,7 @@ static int _global_msg_notification_mask = 0;
             int result = inet_pton(AF_INET,address.UTF8String, &addr4);
             if(result==1)
             {
-#ifdef __APPLE__
+#ifdef HAVE_SOCKADDR_SIN_LEN
                 remote_addresses4[i].sin_len = sizeof(struct sockaddr_in);
 #endif
                 remote_addresses4[j].sin_family = AF_INET;
@@ -654,7 +629,8 @@ static int _global_msg_notification_mask = 0;
 #endif
         return [UMSocket umerrFromErrno:errno];
     }
-
+    
+    /* bytes_read is > 0 here */
     NSData *data = [NSData dataWithBytes:&buffer length:bytes_read];
 #if (ULIBSCTP_CONFIG==Debug)
     NSLog(@"Read DATA=%@",[data hexString]);
@@ -722,16 +698,14 @@ static int _global_msg_notification_mask = 0;
     //    UMAssert(timeoutInMs>0,@"timeout should be larger than 0");
     UMAssert(timeoutInMs<200000,@"timeout should be smaller than 20seconds");
     
-    errno = 99;
-
 #if (ULIBSCTP_CONFIG==Debug)
-    NSLog(@"calling poll (timeout =%dms",timeoutInMs);
+    NSLog(@"calling poll (timeout =%dms,socket=%d)",timeoutInMs,_sock);
 #endif
 
     ret1 = poll(pollfds, 1, timeoutInMs);
 
 #if (ULIBSCTP_CONFIG==Debug)
-    NSLog(@" poll returns %d (%d:%s",ret1,errno,strerror(errno));
+    NSLog(@" poll returns %d (%d:%s)",ret1,errno,strerror(errno));
 #endif
 
     [_controlLock unlock];
@@ -739,6 +713,10 @@ static int _global_msg_notification_mask = 0;
     if (ret1 < 0)
     {
         eno = errno;
+        if((eno==EINPROGRESS) || (eno == EINTR))
+        {
+            return UMSocketError_no_data;
+        }
 #if (ULIBSCTP_CONFIG==Debug)
         NSLog(@"poll: %d %s",errno,strerror(errno));
 #endif
@@ -753,6 +731,10 @@ static int _global_msg_notification_mask = 0;
     {
         /* we have some event to handle. */
         ret2 = pollfds[0].revents;
+#if (ULIBSCTP_CONFIG==Debug)
+        NSLog(@"pollfds[0].revents = %d",ret2);
+#endif
+
         if(ret2 & POLLERR)
         {
             returnValue = [self getSocketError];
@@ -779,11 +761,11 @@ static int _global_msg_notification_mask = 0;
             *hasData = YES;
         }
 #endif
-        else if(ret2 & POLLIN)
+        if(ret2 & POLLIN)
         {
             *hasData = YES;
         }
-        else if(ret2 & POLLPRI)
+        if(ret2 & POLLPRI)
         {
             *hasData = YES;
         }
@@ -798,4 +780,37 @@ static int _global_msg_notification_mask = 0;
     getsockopt(_sock, SOL_SOCKET, SO_ERROR, &eno, &len);
     return  [UMSocket umerrFromErrno:eno];
 }
+
+
+- (UMSocketError) setReusePort
+{
+#if defined(SCTP_REUSE_PORT)
+
+    int flags = 1;
+    int err = setsockopt(_sock, IPPROTO_SCTP, SCTP_REUSE_PORT, (char *)&flags, sizeof(flags));
+    if(err !=0)
+    {
+        return [UMSocket umerrFromErrno:errno];
+    }
+    return    UMSocketError_no_error;
+#else
+    return UMSocketError_not_supported_operation;
+#endif
+}
+
+- (UMSocketError) setNoDelay
+{
+#if defined(SCTP_NODELAY)
+    int flags = 1;
+    int err = setsockopt(_sock, IPPROTO_SCTP, SCTP_NODELAY, (char *)&flags, sizeof(flags));
+    if(err !=0)
+    {
+        return [UMSocket umerrFromErrno:errno];
+    }
+    return    UMSocketError_no_error;
+#else
+    return UMSocketError_not_supported_operation
+#endif
+}
+
 @end

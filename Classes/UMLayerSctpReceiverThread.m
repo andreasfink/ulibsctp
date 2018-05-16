@@ -50,6 +50,10 @@
     int hasHup = 0;
     e = [link dataIsAvailableSCTP:&hasData
                            hangup:&hasHup];
+#if  (ULIBSCTP_CONFIG==Debug)
+    NSLog(@"[link dataIsAvailableSCTP] returns %d",e);
+#endif
+    
     if((e==UMSocketError_has_data) || (e==UMSocketError_has_data_and_hup))
     {
         count = [link receiveData];
@@ -112,6 +116,11 @@
         {
             mustQuit = YES;
         }
+
+#if  (ULIBSCTP_CONFIG==Debug)
+        NSLog(@"[link dataIsAvailableSCTP] returns %d",e);
+#endif
+
         switch(e)
         {
             case UMSocketError_no_error:
