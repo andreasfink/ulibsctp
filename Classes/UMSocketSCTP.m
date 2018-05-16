@@ -15,7 +15,7 @@
 
 #ifdef __APPLE__
 #import <sctp/sctp.h>
-#include <sys/utsname.h>
+#include <sys/utsname.h>po
 
 #define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
 #define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
@@ -423,12 +423,9 @@ static int _global_msg_notification_mask = 0;
         }
         int err =  sctp_connectx(_sock,(struct sockaddr *)&remote_addresses6[0],j,&assoc);
         free(remote_addresses6);
-        if ((err < 0) && (err !=EINPROGRESS))
+        if (err < 0)
         {
-            if(errno != EINPROGRESS)
-            {
-                return [UMSocket umerrFromErrno:(UMSocketError)errno];
-            }
+            return [UMSocket umerrFromErrno:errno];
         }
         return UMSocketError_no_error;
     }
@@ -472,16 +469,12 @@ static int _global_msg_notification_mask = 0;
         }
         int err =  sctp_connectx(_sock,(struct sockaddr *)&remote_addresses4[0],j,&assoc);
         free(remote_addresses4);
-        if ((err < 0) && (err !=EINPROGRESS))
+        if (err < 0)
         {
-            if(errno != EINPROGRESS)
-            {
-                return [UMSocket umerrFromErrno:(UMSocketError)errno];
-            }
+            return [UMSocket umerrFromErrno:errno];
         }
         return UMSocketError_no_error;
     }
-
     else
     {
         return UMSocketError_address_not_valid_for_socket_family;
@@ -701,12 +694,15 @@ static int _global_msg_notification_mask = 0;
 
 
 - (UMSocketError) dataIsAvailableSCTP:(int)timeoutInMs
+                            dataAvail:(int *)hasData
+                               hangup:(int *)hasHup
 {
+    UMSocketError returnValue = UMSocketError_no_data;
     struct pollfd pollfds[1];
     int ret1;
     int ret2;
     int eno = 0;
-    
+
     int events = POLLIN | POLLPRI | POLLERR | POLLHUP | POLLNVAL;
     
 #ifdef POLLRDBAND
@@ -746,65 +742,60 @@ static int _global_msg_notification_mask = 0;
 #if (ULIBSCTP_CONFIG==Debug)
         NSLog(@"poll: %d %s",errno,strerror(errno));
 #endif
-
         /* error condition */
-        if (eno != EINTR)
-        {
-            ret2 = [UMSocket umerrFromErrno:EBADF];
-            return ret2;
-        }
-        else
-        {
-            return [UMSocket umerrFromErrno:eno];
-        }
+        returnValue = [UMSocket umerrFromErrno:eno];
     }
     else if (ret1 == 0)
     {
-        ret2 = UMSocketError_no_data;
-        return ret2;
+        returnValue = UMSocketError_no_data;
     }
-    else
+    else /* ret1 > 0 */
     {
-        eno = errno;
         /* we have some event to handle. */
         ret2 = pollfds[0].revents;
         if(ret2 & POLLERR)
         {
-            return [UMSocket umerrFromErrno:eno];
+            returnValue = [self getSocketError];
         }
-        else if(ret2 & POLLHUP)
+
+        if(ret2 & POLLHUP)
         {
-            return UMSocketError_has_data_and_hup;
+            *hasHup = YES;
         }
         
 #ifdef POLLRDHUP
-        else if(ret2 & POLLRDHUP)
+        if(ret2 & POLLRDHUP)
         {
-            return UMSocketError_has_data_and_hup;
+            *hasHup = YES;
         }
 #endif
-        else if(ret2 & POLLNVAL)
+        if(ret2 & POLLNVAL)
         {
-            return [UMSocket umerrFromErrno:eno];
+            returnValue = [self getSocketError];
         }
 #ifdef POLLRDBAND
-        else if(ret2 & POLLRDBAND)
+        if(ret2 & POLLRDBAND)
         {
-            return UMSocketError_has_data;
+            *hasData = YES;
         }
 #endif
         else if(ret2 & POLLIN)
         {
-            return UMSocketError_has_data;
+            *hasData = YES;
         }
         else if(ret2 & POLLPRI)
         {
-            return UMSocketError_has_data;
+            *hasData = YES;
         }
-        /* we get alerted by poll that something happened but no data to read.
-         so we either jump out of the timeout or something bad happened which we are not catching */
-        return [UMSocket umerrFromErrno:eno];
     }
-    return -999;
+    return returnValue;
+}
+
+- (UMSocketError) getSocketError
+{
+    int eno = 0;
+    socklen_t len = sizeof(int);
+    getsockopt(_sock, SOL_SOCKET, SO_ERROR, &eno, &len);
+    return  [UMSocket umerrFromErrno:eno];
 }
 @end

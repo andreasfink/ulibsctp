@@ -56,6 +56,8 @@ struct sctp_sndrcvinfo;
            protocol:(u_int32_t)protocolId
               error:(UMSocketError *)err;
 - (UMSocketError)receiveAndProcessSCTP; /* returns number of packets processed amd calls the notification and data delegates */
-- (UMSocketError) dataIsAvailableSCTP:(int)timeoutInMs;
-
+- (UMSocketError) dataIsAvailableSCTP:(int)timeoutInMs
+                            dataAvail:(int *)hasData
+                               hangup:(int *)hasHup;
+- (UMSocketError) getSocketError;
 @end

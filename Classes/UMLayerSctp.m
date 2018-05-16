@@ -384,7 +384,7 @@
             _sctpSocket.notificationDelegate = self;
             _sctpSocket.dataDelegate = self;
             UMSocketError err = [ _sctpSocket connectSCTP];
-            if(err == UMSocketError_no_error)
+            if((err == UMSocketError_no_error) || (err == UMSocketError_in_progress))
             {
                 self.status = SCTP_STATUS_OOS; /* we are CONNECTING but not yet CONNECTED. We are once the SCTP event up is received */
                 self.receiverThread = [[UMLayerSctpReceiverThread alloc]initWithSctpLink:self];
@@ -1160,15 +1160,14 @@
     return 0;
 }
 
-- (UMSocketError) dataIsAvailable
+- (UMSocketError) dataIsAvailableSCTP:(int *)hasData
+                               hangup:(int *)hasHup
 {
-    return [_sctpSocket dataIsAvailableSCTP:timeoutInMs];
+    return [_sctpSocket dataIsAvailableSCTP:timeoutInMs
+                                  dataAvail:hasData
+                                     hangup:hasHup];
 }
 
-- (UMSocketError) dataIsAvailable:(int)timeout
-{
-    return [_sctpSocket dataIsAvailableSCTP:timeout];
-}
 
 - (UMSocketError) sctpReceivedData:(NSData *)data
                           streamId:(uint32_t)streamId

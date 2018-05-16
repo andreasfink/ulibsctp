@@ -46,7 +46,10 @@
     UMSocketError e = UMSocketError_no_error;
     int count = 0;
 
-    e = [link dataIsAvailable];
+    int hasData = 0;
+    int hasHup = 0;
+    e = [link dataIsAvailableSCTP:&hasData
+                           hangup:&hasHup];
     if((e==UMSocketError_has_data) || (e==UMSocketError_has_data_and_hup))
     {
         count = [link receiveData];
@@ -97,20 +100,20 @@
     [self backgroundInit];
     while((UMBackgrounder_running == self.runningStatus) && (mustQuit==NO))
     {
-        e = [link dataIsAvailable];
-
+        int hasData = 0;
+        int hasHup = 0;
+        e = [link dataIsAvailableSCTP:&hasData
+                               hangup:&hasHup];
+        if(hasData)
+        {
+            [link receiveData];
+        }
+        if(hasHup)
+        {
+            mustQuit = YES;
+        }
         switch(e)
         {
-            case UMSocketError_address_not_available:
-                sleep(2);
-                break;
-            case UMSocketError_has_data:
-                [link receiveData];
-                break;
-            case UMSocketError_has_data_and_hup:
-                [link receiveData];
-                mustQuit=YES;
-                break;
             case UMSocketError_no_error:
             case UMSocketError_no_data:
             case UMSocketError_try_again:
