@@ -298,7 +298,7 @@
         /**********************/
         /* OPTIONS            */
         /**********************/
-
+        
         [_sctpSocket switchToNonBlocking];
         
         UMSocketError err = [_sctpSocket setNoDelay];

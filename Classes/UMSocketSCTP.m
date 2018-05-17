@@ -372,7 +372,6 @@ static int _global_msg_notification_mask = 0;
                 /* we have a IPV6 socket but the remote addres is in IPV4 format so we must use the IPv6 representation of it */
                 address =[NSString stringWithFormat:@"::ffff:%@",address];
             }
-            struct in6_addr addr6;
             int result = inet_pton(AF_INET6,address.UTF8String, &remote_addresses6[j].sin6_addr);
             if(result==1)
             {
@@ -394,7 +393,6 @@ static int _global_msg_notification_mask = 0;
             return UMSocketError_address_not_available;
         }
         int err =  sctp_connectx(_sock,(struct sockaddr *)&remote_addresses6[0],j,&assoc);
-
         free(remote_addresses6);
         UMSocketError result = UMSocketError_no_error;
         if (err < 0)
@@ -614,7 +612,7 @@ static int _global_msg_notification_mask = 0;
         if(errno==ECONNRESET)
         {
 #if (ULIBSCTP_CONFIG==Debug)
-            NSLog(@"receiveAndProcessSCTP returning UMSocketError_connection_reset");
+            NSLog(@"ECONNRESET receiveAndProcessSCTP returning UMSocketError_connection_reset");
 #endif
             
             return UMSocketError_connection_reset;
@@ -683,7 +681,7 @@ static int _global_msg_notification_mask = 0;
 #ifdef POLLRDBAND
     events |= POLLRDBAND;
 #endif
-    
+
 #ifdef POLLRDHUP
     events |= POLLRDHUP;
 #endif
@@ -692,7 +690,6 @@ static int _global_msg_notification_mask = 0;
     memset(pollfds,0,sizeof(pollfds));
     pollfds[0].fd = _sock;
     pollfds[0].events = events;
-    
     
     //    UMAssert(timeoutInMs>0,@"timeout should be larger than 0");
     UMAssert(timeoutInMs<200000,@"timeout should be smaller than 20seconds");
@@ -715,11 +712,14 @@ static int _global_msg_notification_mask = 0;
         NSLog(@"poll: %d %s",errno,strerror(errno));
 #endif
         eno = errno;
-        if((eno==EINPROGRESS) || (eno == EINTR))
+        if((eno==EINPROGRESS) || (eno == EINTR) || (eno==EAGAIN))
         {
-            return UMSocketError_no_data;
+            returnValue = UMSocketError_no_data;
         }
-        returnValue = [UMSocket umerrFromErrno:eno];
+        else
+        {
+            returnValue = [UMSocket umerrFromErrno:eno];
+        }
     }
     else if (ret1 == 0)
     {
@@ -732,7 +732,6 @@ static int _global_msg_notification_mask = 0;
 #if (ULIBSCTP_CONFIG==Debug)
         NSLog(@"pollfds[0].revents = %d",ret2);
 #endif
-
         if(ret2 & POLLERR)
         {
             returnValue = [self getSocketError];
@@ -751,7 +750,7 @@ static int _global_msg_notification_mask = 0;
 #endif
         if(ret2 & POLLNVAL)
         {
-            returnValue = UMSocketError_invalid_file_descriptor;
+            returnValue = UMSocketError_file_descriptor_not_open;
         }
 #ifdef POLLRDBAND
         if(ret2 & POLLRDBAND)
@@ -763,6 +762,9 @@ static int _global_msg_notification_mask = 0;
         if(ret2 & (POLLIN | POLLPRI))
         {
             *hasData = 1;
+        }
+        if(*hasData)
+        {
             if(returnValue == UMSocketError_no_data)
             {
                 returnValue = UMSocketError_has_data;

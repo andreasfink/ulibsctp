@@ -76,17 +76,20 @@
         int hasHup = 0;
         e = [link dataIsAvailableSCTP:&hasData
                                hangup:&hasHup];
-        if((e==UMSocketError_has_data) || (e==UMSocketError_has_data_and_hup) || (hasData))
-        {
-            [link receiveData];
-        }
-        if(hasHup)
-        {
-            mustQuit = YES;
-        }
 #if  (ULIBSCTP_CONFIG==Debug)
         NSLog(@"[link dataIsAvailableSCTP] returns %d",e);
 #endif
+
+        if((e==UMSocketError_has_data)
+           || (e==UMSocketError_has_data_and_hup)
+           || (hasData))
+        {
+            [link receiveData];
+        }
+        if((hasHup) || (e==UMSocketError_has_data_and_hup))
+        {
+            mustQuit = YES;
+        }
 
         switch(e)
         {
@@ -97,6 +100,11 @@
             case UMSocketError_has_data:
             case UMSocketError_has_data_and_hup:
                 break;
+            case UMSocketError_file_descriptor_not_open:
+                [link logMinorError:@"link dataIsAvailable returns 'file_descriptor_not_open'"];
+                mustQuit=YES;
+                break;
+
             default:
             {
                 NSString *s = [NSString stringWithFormat:@"link dataIsAvailable returns error %d %@",e, [UMSocket getSocketErrorString:e]];
