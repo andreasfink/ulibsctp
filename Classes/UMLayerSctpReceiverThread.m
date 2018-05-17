@@ -94,6 +94,8 @@
             case UMSocketError_no_data:
             case UMSocketError_try_again:
             case UMSocketError_in_progress:
+            case UMSocketError_has_data:
+            case UMSocketError_has_data_and_hup:
                 break;
             default:
             {
