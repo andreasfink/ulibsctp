@@ -336,12 +336,15 @@ static int _global_msg_notification_mask = 0;
 
 }
 
-- (UMSocketError) connectSCTP
+- (UMSocketError) connectSCTP:(BOOL)repeat
 {
     /**********************/
     /* CONNECTX           */
     /**********************/
-    int i;
+    int i=0;
+    int j=0;
+
+    UMSocketError returnValue = UMSocketError_no_error;
     int remote_addresses_count = (int)_requestedRemoteAddresses.count;
     if(remote_addresses_count == 0)
     {
@@ -352,12 +355,17 @@ static int _global_msg_notification_mask = 0;
 #endif
     sctp_assoc_t assoc;
     memset(&assoc,0x00,sizeof(assoc));
-    
+
+
+    struct sockaddr_in6 *remote_addresses6 = NULL;
+    struct sockaddr_in *remote_addresses4 = NULL;
+    struct sockaddr *remote_addresses = NULL;
+
     if(_socketFamily==AF_INET6)
     {
-        struct sockaddr_in6 *remote_addresses6 = malloc(sizeof(struct sockaddr_in6) * remote_addresses_count);
+        remote_addresses6 = malloc(sizeof(struct sockaddr_in6) * remote_addresses_count);
         memset(remote_addresses6,0x00,sizeof(struct sockaddr_in6) * remote_addresses_count);
-        int j=0;
+
         for(i=0;i<remote_addresses_count;i++)
         {
             struct sockaddr_in6 sa6;
@@ -392,32 +400,22 @@ static int _global_msg_notification_mask = 0;
         if(j==0)
         {
             NSLog(@"no valid IPs specified");
-            return UMSocketError_address_not_available;
+            returnValue = UMSocketError_address_not_available;
         }
-        int err =  sctp_connectx(_sock,(struct sockaddr *)&remote_addresses6[0],j,&assoc);
-#if (ULIBSCTP_CONFIG==Debug)
-        NSLog(@"sctp_connectx: returns %d. errno = %d %s",err,errno,strerror(errno));
-#endif
-        free(remote_addresses6);
-        UMSocketError result = UMSocketError_no_error;
-        if (err < 0)
-        {
-            result = [UMSocket umerrFromErrno:errno];
-        }
-        
-
-        return result;
+        remote_addresses = (struct sockaddr *)remote_addresses6;
     }
     else if(_socketFamily==AF_INET)
     {
-        struct sockaddr_in *remote_addresses4 = malloc(sizeof(struct sockaddr_in) * remote_addresses_count);
+        remote_addresses4 = malloc(sizeof(struct sockaddr_in) * remote_addresses_count);
         memset(remote_addresses4,0x00,sizeof(struct sockaddr_in) * remote_addresses_count);
+
+
         int j=0;
         for(i=0;i<remote_addresses_count;i++)
         {
             struct sockaddr_in sa4;
             memset(&sa4,0x00,sizeof(sa4));
-            
+
             NSString *address = [_requestedRemoteAddresses objectAtIndex:i];
             NSString *address2 = [UMSocket deunifyIp:address];
             if(address2.length>0)
@@ -445,23 +443,50 @@ static int _global_msg_notification_mask = 0;
         if(j==0)
         {
             NSLog(@"no valid IPs specified");
-            return UMSocketError_address_not_available;
+            returnValue= UMSocketError_address_not_available;
         }
-        int err =  sctp_connectx(_sock,(struct sockaddr *)&remote_addresses4[0],j,&assoc);
-#if (ULIBSCTP_CONFIG==Debug)
-        NSLog(@"sctp_connectx: returns %d. errno = %d %s",err,errno,strerror(errno));
-#endif
-        free(remote_addresses4);
-        if (err < 0)
-        {
-            return [UMSocket umerrFromErrno:errno];
-        }
-        return UMSocketError_no_error;
+        remote_addresses = (struct sockaddr *)remote_addresses4;
     }
     else
     {
-        return UMSocketError_address_not_valid_for_socket_family;
+        returnValue =  UMSocketError_address_not_valid_for_socket_family;
     }
+
+    if(returnValue ==  UMSocketError_no_error)
+    {
+        do
+        {
+            int err =  sctp_connectx(_sock,remote_addresses,j,&assoc);
+#if (ULIBSCTP_CONFIG==Debug)
+            NSLog(@"sctp_connectx: returns %d. errno = %d %s",err,errno,strerror(errno));
+#endif
+            if (err < 0)
+            {
+                returnValue = [UMSocket umerrFromErrno:errno];
+                if(repeat)
+                {
+                    sleep(_connectionRepeatTimer);
+                }
+                break;
+            }
+            if(err==0)
+            {
+                break;
+            }
+        } while(self.continuousConnectionAttempts);
+    }
+
+    if(remote_addresses6)
+    {
+        free(remote_addresses6);
+        remote_addresses6=NULL;
+    }
+    if(remote_addresses4)
+    {
+        free(remote_addresses4);
+        remote_addresses4=NULL;
+    }
+    return returnValue;
 }
 
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret

@@ -56,6 +56,8 @@
     BOOL    _listenerStarted;
 }
 
+@property(readwrite,strong) UMSocketSCTP    *sctpSocket;
+
 @property(readwrite,strong) NSDate          *startButtonPressed;
 @property(readwrite,strong) NSDate          *stopButtonPressed;
 

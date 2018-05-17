@@ -10,8 +10,14 @@
 #import "UMLayerSctpStatus.h"
 #import "UMLayerSctpUserProtocol.h"
 #import "UMLayerSctpApplicationContextProtocol.h"
+
+#ifdef __APPLE__
+#import <sctp/sctp.h>
+#else
+#include "netinet/sctp.h"
+#endif
+
 @class UMSocketSCTPListener;
-struct sctp_sndrcvinfo;
 
 @protocol UMSocketSCTP_notificationDelegate
 - (UMSocketError) handleEvent:(NSData *)data
@@ -34,9 +40,12 @@ struct sctp_sndrcvinfo;
     NSArray         *_connectedRemoteAddresses;
     int             _msg_notification_mask;
     int             _heartbeatMs;
+    NSTimeInterval  _connectionRepeatTimer;
+
     id<UMSocketSCTP_notificationDelegate> _notificationDelegate;
     id<UMSocketSCTP_dataDelegate>         _dataDelegate;
     UMSocketSCTPListener *_listener;
+    BOOL            _continuousConnectionAttempts;
 }
 
 @property(readwrite,strong) NSArray        *requestedLocalAddresses;
@@ -47,11 +56,15 @@ struct sctp_sndrcvinfo;
 @property(readwrite,assign) int            heartbeatMs;
 @property(readwrite,strong) id<UMSocketSCTP_notificationDelegate>   notificationDelegate;
 @property(readwrite,strong) id<UMSocketSCTP_dataDelegate>           dataDelegate;
+@property(readwrite,assign) BOOL            continuousConnectionAttempts;
+@property(readwrite,assign) NSTimeInterval  connectionRepeatTimer;
+
+
 
 - (UMSocketError) bind;
 - (UMSocketError) enableEvents;
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret;
-- (UMSocketError) connectSCTP;
+- (UMSocketError) connectSCTP:(BOOL)repeat;
 - (ssize_t)sendSCTP:(NSData *)data
              stream:(uint16_t)streamId
            protocol:(u_int32_t)protocolId

@@ -62,14 +62,33 @@
     }
     self.runningStatus = UMBackgrounder_running;
     [control_sleeper wakeUp:UMSleeper_StartupCompletedSignal];
-    
-    sleep(1);
-    /* we sleep here for a second to give connectx a chance to establish */
+
+    [self backgroundInit];
+
+
+
+    [link.sctpSocket switchToBlocking];
+    link.sctpSocket.connectionRepeatTimer = 6.0;
+    UMSocketError err = [ link.sctpSocket connectSCTP:YES];
+    [link.sctpSocket switchToNonBlocking];
+
+    if(err == UMSocketError_connection_refused)
+    {
+        link.status = SCTP_STATUS_OFF;
+        mustQuit = YES;
+    }
+    if((err == UMSocketError_no_error) || (err == UMSocketError_in_progress))
+    {
+        link.status = SCTP_STATUS_OOS; /* we are CONNECTING but not yet CONNECTED. We are once the SCTP event up is received */
+    }
+    else
+    {
+        link.status = SCTP_STATUS_OFF;
+    }
     if(enableLogging)
     {
         NSLog(@"%@: started up successfully",self.name);
     }
-    [self backgroundInit];
     while((UMBackgrounder_running == self.runningStatus) && (mustQuit==NO))
     {
         int hasData = 0;

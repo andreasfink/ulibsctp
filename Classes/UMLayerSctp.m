@@ -408,45 +408,19 @@
             UMSocketError err;
             
             /**********************/
-            /* LISTEN             */
+            /* SCTP_CONNECTX      */
             /**********************/
-//#define CALL_LISTEN_BEFORE_CONNECTX 1
-#ifdef CALL_LISTEN_BEFORE_CONNECTX
-            
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:[NSString stringWithFormat:@"listen()"]];
-            }
-#endif
-            err = [_sctpSocket listen];
-            if(err != UMSocketError_no_error)
-            {
-                [self logMinorError:[NSString stringWithFormat:@"listen() failed on %@ due to %@",self.layerName,[UMSocket getSocketErrorString:err]]];
-            }
-#endif
 
             
             _sctpSocket.notificationDelegate = self;
             _sctpSocket.dataDelegate = self;
-            err = [ _sctpSocket connectSCTP];
-            if((err == UMSocketError_no_error) || (err == UMSocketError_in_progress))
-            {
-                self.status = SCTP_STATUS_OOS; /* we are CONNECTING but not yet CONNECTED. We are once the SCTP event up is received */
-                self.receiverThread = [[UMLayerSctpReceiverThread alloc]initWithSctpLink:self];
-                self.receiverThread.name =[NSString stringWithFormat:@"%@.sctpReceiverTread",layerName];
-                [self.receiverThread startBackgroundTask];
-#if (ULIBSCTP_CONFIG==Debug)
-                if(logLevel <= UMLOG_DEBUG)
-                {
-                    [self logDebug:[NSString stringWithFormat:@"started receiver thread"]];
-                }
-#endif
-            }
-            else
-            {
-                self.status = SCTP_STATUS_OFF;
-            }
+
+            self.receiverThread = [[UMLayerSctpReceiverThread alloc]initWithSctpLink:self];
+            self.receiverThread.name =[NSString stringWithFormat:@"%@.sctpReceiverTread",layerName];
+            [self.receiverThread startBackgroundTask];
+
+            /* connectx is the first thing done in the receiver thread */
+            
         }
     }
     @catch (NSException *exception)
@@ -848,7 +822,8 @@
     return 1;
 }
 
--(void) handleEvent:(NSData *)event sinfo:(struct sctp_sndrcvinfo *)sinfo
+-(void) handleEvent:(NSData *)event
+              sinfo:(struct sctp_sndrcvinfo *)sinfo
 {
     
     const union sctp_notification *snp;
@@ -880,7 +855,7 @@
 #endif
 #if defined(SCTP_AUTHENTICATION_EVENT)
         case SCTP_AUTHENTICATION_EVENT:
-            [self handleAdaptionIndication:event sinfo:sinfo];
+            [self handleAuthenticationEvent:event sinfo:sinfo];
             break;
 #endif
         case SCTP_SENDER_DRY_EVENT:
