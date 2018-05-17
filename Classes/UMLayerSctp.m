@@ -821,33 +821,37 @@
         case SCTP_PEER_ADDR_CHANGE:
             [self handlePeerAddrChange:event sinfo:sinfo];
             break;
-        case SCTP_REMOTE_ERROR:
-            [self handleRemoteError:event sinfo:sinfo];
-            break;
         case SCTP_SEND_FAILED:
             [self handleSendFailed:event sinfo:sinfo];
+            break;
+        case SCTP_REMOTE_ERROR:
+            [self handleRemoteError:event sinfo:sinfo];
             break;
         case SCTP_SHUTDOWN_EVENT:
             [self handleShutdownEvent:event sinfo:sinfo];
             break;
-        case SCTP_ADAPTATION_INDICATION:
-            [self handleAdaptionIndication:event sinfo:sinfo];
-            break;
         case SCTP_PARTIAL_DELIVERY_EVENT:
             [self handleAdaptionIndication:event sinfo:sinfo];
             break;
-
+#if defined(SCTP_ADAPTATION_INDICATION)
+        case SCTP_ADAPTATION_INDICATION:
+            [self handleAdaptionIndication:event sinfo:sinfo];
+            break;
+#endif
+#if defined(SCTP_AUTHENTICATION_EVENT)
         case SCTP_AUTHENTICATION_EVENT:
             [self handleAdaptionIndication:event sinfo:sinfo];
             break;
-
-        case  SCTP_STREAM_RESET_EVENT:
-            [self handleStreamResetEvent:event sinfo:sinfo];
-            break;
-
+#endif
         case SCTP_SENDER_DRY_EVENT:
             [self handleSenderDryEvent:event sinfo:sinfo];
             break;
+
+#if defined SCTP_STREAM_RESET_EVENT
+        case  SCTP_STREAM_RESET_EVENT:
+            [self handleStreamResetEvent:event sinfo:sinfo];
+            break;
+#endif
 
         default:
             [logFeed majorErrorText:[NSString stringWithFormat:@"SCTP unknown event type: %hu", snp->sn_header.sn_type]];
@@ -1195,7 +1199,7 @@
     return UMSocketError_no_error;
 }
 
-
+#if defined(SCTP_STREAM_RESET_EVENT)
 -(int) handleStreamResetEvent:(NSData *)event
                         sinfo:(struct sctp_sndrcvinfo *)sinfo
 {
@@ -1226,6 +1230,7 @@
 #endif
     return UMSocketError_no_error;
 }
+#endif
 
 -(int) handleSenderDryEvent:(NSData *)event
                       sinfo:(struct sctp_sndrcvinfo *)sinfo
