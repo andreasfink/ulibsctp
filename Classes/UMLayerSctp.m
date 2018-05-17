@@ -397,6 +397,7 @@
             /**********************/
             /* LISTEN             */
             /**********************/
+#define CALL_LISTEN_BEFORE_CONNECTX 1
 #ifdef CALL_LISTEN_BEFORE_CONNECTX
             
 #if (ULIBSCTP_CONFIG==Debug)
