@@ -23,6 +23,8 @@
 @class UMSctpTask_Manual_ForceOutOfService;
 @class UMLayerSctpUser;
 @class UMLayerSctpUserProfile;
+@class UMSocketSCTPListenerRegistry;
+@class UMSocketSCTPListener;
 
 @interface UMLayerSctp : UMLayer<UMSocketSCTP_notificationDelegate,UMSocketSCTP_dataDelegate>
 {
@@ -49,6 +51,9 @@
     /* these properties can be used by a gui to keep track of valid actions */
     NSDate          *_startButtonPressed;
     NSDate          *_stopButtonPressed;
+    UMSocketSCTPListenerRegistry *_registry;
+    UMSocketSCTPListener *_listener;
+    BOOL    _listenerStarted;
 }
 
 @property(readwrite,strong) NSDate          *startButtonPressed;
@@ -75,6 +80,7 @@
 @property(readwrite,strong,atomic)      UMThroughputCounter *inboundThroughputBytes;
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputPackets;
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputBytes;
+@property(readwrite,strong) UMSocketSCTPListenerRegistry *registry;
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq;
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name;

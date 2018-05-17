@@ -10,6 +10,7 @@
 #import "UMLayerSctpStatus.h"
 #import "UMLayerSctpUserProtocol.h"
 #import "UMLayerSctpApplicationContextProtocol.h"
+@class UMSocketSCTPListener;
 struct sctp_sndrcvinfo;
 
 @protocol UMSocketSCTP_notificationDelegate
@@ -35,6 +36,7 @@ struct sctp_sndrcvinfo;
     int             _heartbeatMs;
     id<UMSocketSCTP_notificationDelegate> _notificationDelegate;
     id<UMSocketSCTP_dataDelegate>         _dataDelegate;
+    UMSocketSCTPListener *_listener;
 }
 
 @property(readwrite,strong) NSArray        *requestedLocalAddresses;
@@ -46,7 +48,7 @@ struct sctp_sndrcvinfo;
 @property(readwrite,strong) id<UMSocketSCTP_notificationDelegate>   notificationDelegate;
 @property(readwrite,strong) id<UMSocketSCTP_dataDelegate>           dataDelegate;
 
-
+- (UMSocketError) bind;
 - (UMSocketError) enableEvents;
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret;
 - (UMSocketError) connectSCTP;

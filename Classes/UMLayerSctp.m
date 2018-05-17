@@ -21,6 +21,8 @@
 #import "UMLayerSctpUser.h"
 #import "UMLayerSctpUserProfile.h"
 #import "UMLayerSctpApplicationContextProtocol.h"
+#import "UMSocketSCTPListener.h"
+#import "UMSocketSCTPListenerRegistry.h"
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
@@ -41,6 +43,7 @@
 
 
 #import "UMLayerSctpUser.h"
+
 
 @implementation UMLayerSctp
 
@@ -246,6 +249,7 @@
 {
     @try
     {
+        
         if(self.status == SCTP_STATUS_M_FOOS)
         {
             @throw([NSException exceptionWithName:@"FOOS" reason:@"failed due to manual forced out of service status" userInfo:@{@"errno":@(EBUSY), @"backtrace": UMBacktrace(NULL,0)}]);
@@ -295,6 +299,12 @@
             [self logDebug:@"SCTP socket creation successful"];
         }
 #endif
+        if(self.isPassive==NO)
+        {
+            _listener = [_registry listenerForPort:configured_local_port localIps:configured_local_addresses];
+        }
+        
+
         /**********************/
         /* OPTIONS            */
         /**********************/
@@ -392,6 +402,9 @@
         }
         else /* not passive */
         {
+            [_listener startListening];
+            _listenerStarted = YES;
+
             UMSocketError err;
             
             /**********************/
@@ -468,6 +481,11 @@
 #endif
     [self powerdown];
     [self reportStatus];
+    if(_listenerStarted==YES)
+    {
+        [_listener stopListening];
+    }
+    _listener = NULL;
 }
 
 
@@ -1534,6 +1552,15 @@
             return @"IS";
     }
     return @"UNDEFINED";
+}
+
+-(void)dealloc
+{
+    if(_listenerStarted==YES)
+    {
+        [_listener stopListening];
+    }
+    _listener = NULL;
 }
 
 

@@ -6,6 +6,8 @@
 //  Copyright © 2018 Andreas Fink (andreas@fink.org). All rights reserved.
 //
 #import "UMSocketSCTP.h"
+#import "UMSocketSCTPListener.h"
+
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
