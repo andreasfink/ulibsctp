@@ -393,12 +393,17 @@ static int _global_msg_notification_mask = 0;
             return UMSocketError_address_not_available;
         }
         int err =  sctp_connectx(_sock,(struct sockaddr *)&remote_addresses6[0],j,&assoc);
+#if (ULIBSCTP_CONFIG==Debug)
+        NSLog(@"sctp_connectx: returns %d. errno = %d %s",err,errno,strerror(errno));
+#endif
         free(remote_addresses6);
         UMSocketError result = UMSocketError_no_error;
         if (err < 0)
         {
             result = [UMSocket umerrFromErrno:errno];
         }
+        
+
         return result;
     }
     else if(_socketFamily==AF_INET)
@@ -427,6 +432,7 @@ static int _global_msg_notification_mask = 0;
 #endif
                 remote_addresses4[j].sin_family = AF_INET;
                 remote_addresses4[j].sin_addr = addr4;
+                remote_addresses4[j].sin_port = htons(requestedRemotePort);
                 j++;
             }
             else
@@ -440,6 +446,9 @@ static int _global_msg_notification_mask = 0;
             return UMSocketError_address_not_available;
         }
         int err =  sctp_connectx(_sock,(struct sockaddr *)&remote_addresses4[0],j,&assoc);
+#if (ULIBSCTP_CONFIG==Debug)
+        NSLog(@"sctp_connectx: returns %d. errno = %d %s",err,errno,strerror(errno));
+#endif
         free(remote_addresses4);
         if (err < 0)
         {
