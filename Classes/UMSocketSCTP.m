@@ -393,7 +393,6 @@ static int _global_msg_notification_mask = 0;
             NSLog(@"no valid IPs specified");
             return UMSocketError_address_not_available;
         }
-        [self switchToBlocking];
         int err =  sctp_connectx(_sock,(struct sockaddr *)&remote_addresses6[0],j,&assoc);
 
         free(remote_addresses6);
@@ -402,7 +401,6 @@ static int _global_msg_notification_mask = 0;
         {
             result = [UMSocket umerrFromErrno:errno];
         }
-        [self switchToNonBlocking];
         return result;
     }
     else if(_socketFamily==AF_INET)
