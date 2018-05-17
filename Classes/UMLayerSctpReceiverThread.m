@@ -69,7 +69,8 @@
 
     [link.sctpSocket switchToBlocking];
     link.sctpSocket.connectionRepeatTimer = 6.0;
-    UMSocketError err = [ link.sctpSocket connectSCTP:YES];
+    link.sctpSocket.continuousConnectionAttempts = YES;
+    UMSocketError err = [ link.sctpSocket connectSCTP];
     [link.sctpSocket switchToNonBlocking];
 
     if(err == UMSocketError_connection_refused)

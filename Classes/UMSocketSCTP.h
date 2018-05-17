@@ -64,7 +64,7 @@
 - (UMSocketError) bind;
 - (UMSocketError) enableEvents;
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret;
-- (UMSocketError) connectSCTP:(BOOL)repeat;
+- (UMSocketError) connectSCTP;
 - (ssize_t)sendSCTP:(NSData *)data
              stream:(uint16_t)streamId
            protocol:(u_int32_t)protocolId

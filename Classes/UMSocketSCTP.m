@@ -336,7 +336,7 @@ static int _global_msg_notification_mask = 0;
 
 }
 
-- (UMSocketError) connectSCTP:(BOOL)repeat
+- (UMSocketError) connectSCTP
 {
     /**********************/
     /* CONNECTX           */
