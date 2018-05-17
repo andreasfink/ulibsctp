@@ -373,14 +373,14 @@ static int _global_msg_notification_mask = 0;
                 address =[NSString stringWithFormat:@"::ffff:%@",address];
             }
             struct in6_addr addr6;
-            int result = inet_pton(AF_INET6,address.UTF8String, &addr6);
+            int result = inet_pton(AF_INET6,address.UTF8String, &remote_addresses6[j].sin6_addr);
             if(result==1)
             {
 #ifdef HAVE_SOCKADDR_SIN_LEN
                 remote_addresses6[i].sin6_len = sizeof(struct sockaddr_in6);
 #endif
                 remote_addresses6[j].sin6_family = AF_INET6;
-                remote_addresses6[j].sin6_addr = addr6;
+                remote_addresses6[j].sin6_port = htons(requestedRemotePort);
                 j++;
             }
             else
@@ -393,13 +393,17 @@ static int _global_msg_notification_mask = 0;
             NSLog(@"no valid IPs specified");
             return UMSocketError_address_not_available;
         }
+        [self switchToBlocking];
         int err =  sctp_connectx(_sock,(struct sockaddr *)&remote_addresses6[0],j,&assoc);
+
         free(remote_addresses6);
+        UMSocketError result = UMSocketError_no_error;
         if (err < 0)
         {
-            return [UMSocket umerrFromErrno:errno];
+            result = [UMSocket umerrFromErrno:errno];
         }
-        return UMSocketError_no_error;
+        [self switchToNonBlocking];
+        return result;
     }
     else if(_socketFamily==AF_INET)
     {
