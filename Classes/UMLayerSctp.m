@@ -412,7 +412,7 @@
             
             _sctpSocket.notificationDelegate = self;
             _sctpSocket.dataDelegate = self;
-            UMSocketError err = [ _sctpSocket connectSCTP];
+            err = [ _sctpSocket connectSCTP];
             if((err == UMSocketError_no_error) || (err == UMSocketError_in_progress))
             {
                 self.status = SCTP_STATUS_OOS; /* we are CONNECTING but not yet CONNECTED. We are once the SCTP event up is received */
