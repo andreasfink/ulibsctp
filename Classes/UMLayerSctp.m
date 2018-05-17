@@ -392,23 +392,26 @@
         }
         else /* not passive */
         {
+            UMSocketError err;
+            
             /**********************/
             /* LISTEN             */
             /**********************/
+#ifdef CALL_LISTEN_BEFORE_CONNECTX
+            
 #if (ULIBSCTP_CONFIG==Debug)
             if(logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"listen()"]];
             }
 #endif
-            UMSocketError err = [_sctpSocket listen];
+            err = [_sctpSocket listen];
             if(err != UMSocketError_no_error)
             {
                 [self logMinorError:[NSString stringWithFormat:@"listen() failed on %@ due to %@",self.layerName,[UMSocket getSocketErrorString:err]]];
             }
-            
+#endif
 
-            
             
             _sctpSocket.notificationDelegate = self;
             _sctpSocket.dataDelegate = self;
