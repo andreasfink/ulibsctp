@@ -454,8 +454,14 @@ static int _global_msg_notification_mask = 0;
 
     if(returnValue ==  UMSocketError_no_error)
     {
+        UMSleeper *sleeper = [[UMSleeper alloc]initFromFile:__FILE__
+                                                       line:__LINE__
+                                                   function:__func__];
         do
         {
+#if (ULIBSCTP_CONFIG==Debug)
+            NSLog(@"calling sctp_connectx");
+#endif
             int err =  sctp_connectx(_sock,remote_addresses,j,&assoc);
 #if (ULIBSCTP_CONFIG==Debug)
             NSLog(@"sctp_connectx: returns %d. errno = %d %s",err,errno,strerror(errno));
@@ -465,7 +471,10 @@ static int _global_msg_notification_mask = 0;
                 returnValue = [UMSocket umerrFromErrno:errno];
                 if(repeat)
                 {
-                    sleep(_connectionRepeatTimer);
+#if (ULIBSCTP_CONFIG==Debug)
+                    NSLog(@"sleeping%8.2lf seconds",_connectionRepeatTimer);
+#endif
+                    [sleeper sleep:(UMMicroSec)(_connectionRepeatTimer * 1000000.0)];
                 }
                 break;
             }
