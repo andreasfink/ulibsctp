@@ -469,7 +469,7 @@ static int _global_msg_notification_mask = 0;
             if (err < 0)
             {
                 returnValue = [UMSocket umerrFromErrno:errno];
-                if(repeat)
+                if(_continuousConnectionAttempts)
                 {
 #if (ULIBSCTP_CONFIG==Debug)
                     NSLog(@"sleeping%8.2lf seconds",_connectionRepeatTimer);
