@@ -83,6 +83,7 @@
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputPackets;
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputBytes;
 @property(readwrite,strong) UMSocketSCTPRegistry *registry;
+@property(readwrite,strong) UMSocketSCTPListener *listener;
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq;
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name;

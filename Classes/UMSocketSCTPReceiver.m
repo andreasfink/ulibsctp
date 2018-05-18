@@ -10,11 +10,12 @@
 #import "UMLayerSctp.h"
 #import "UMSocketSCTP.h"
 #import "UMSocketSCTPListener.h"
+#import "UMSocketSCTPRegistry.h"
 
 #include <poll.h>
 @implementation UMSocketSCTPReceiver
 
-- (UMSocketSCTPReceiver *) init
+- (UMSocketSCTPReceiver *)initWithRegistry:(UMSocketSCTPRegistry *)r;
 {
     self = [super init];
     if(self)
@@ -23,6 +24,7 @@
         _listeners = [[NSMutableArray alloc]init];
         _lock = [[UMMutex alloc]init];
         _timeoutInMs = 400;
+        _registry = r;
     }
     return self;
 }
@@ -75,8 +77,8 @@
     UMSocketError returnValue = UMSocketError_generic_error;
     
     [_lock lock];
-    NSArray *outboundLayers = [_outboundLayers copy];
-    NSArray *listeners = [_listeners copy];
+    NSArray *outboundLayers = [_registry allOutboundLayers];
+    NSArray *listeners = [_registry allListeners];
     [_lock unlock];
 
     NSUInteger outboundCount = outboundLayers.count;

@@ -350,9 +350,6 @@ static int _global_msg_notification_mask = 0;
     }
 }
 
-const char *
-inet_ntop(int af, const void * restrict src, char * restrict dst, socklen_t size);
-
 
 - (NSString *)addressOfSockAddr:(struct sockaddr *)sockAddr
 {
@@ -465,6 +462,11 @@ inet_ntop(int af, const void * restrict src, char * restrict dst, socklen_t size
     }
     return UMSocketError_no_error;
 
+}
+
+- (NSNumber *)assocId
+{
+    return @(assoc);
 }
 
 - (UMSocketError) connectSCTP
@@ -802,22 +804,21 @@ RFC 6458                    SCTP Sockets API               December 2011
 
 - (UMSocketSCTPReceivedPacket *)receiveSCTP
 {
-    struct sockaddr_in6     source_address6;
-    struct sockaddr_in      source_address4;
-    struct sockaddr *       source_address_ptr;
-    socklen_t               source_address_len;
+    struct sockaddr_in6     remote_address6;
+    struct sockaddr_in      remote_address4;
+    struct sockaddr *       remote_address_ptr;
+    socklen_t               remote_address_len;
     
     if(_socketFamily==AF_INET)
     {
-        source_address_ptr = (struct sockaddr *)&source_address4;
-        source_address_len = sizeof(struct sockaddr_in);
+        remote_address_ptr = (struct sockaddr *)&remote_address4;
+        remote_address_len = sizeof(struct sockaddr_in);
     }
     else
     {
-        source_address_ptr = (struct sockaddr *)&source_address6;
-        source_address_len = sizeof(struct sockaddr_in6);
+        remote_address_ptr = (struct sockaddr *)&remote_address6;
+        remote_address_len = sizeof(struct sockaddr_in6);
     }
-
     struct sctp_rcvinfo     rinfo;
     socklen_t               rinfo_len;
     ssize_t                 bytes_read = 0;
@@ -827,7 +828,7 @@ RFC 6458                    SCTP Sockets API               December 2011
     int                     iovcnt = 1;
     unsigned int            infoType;
     memset(&buffer[0],0xFA,sizeof(buffer));
-    memset(source_address_ptr,0x00,sizeof(source_address_len));
+    memset(remote_address_ptr,0x00,sizeof(remote_address_len));
     memset(&rinfo,0x00,sizeof(struct sctp_rcvinfo));
 
     iov[0].iov_base = &buffer;
@@ -840,12 +841,13 @@ RFC 6458                    SCTP Sockets API               December 2011
     bytes_read = sctp_recvv(_sock,
                             iov,
                             iovcnt,
-                            source_address_ptr,
-                            &source_address_len,
+                            remote_address_ptr,
+                            &remote_address_len,
                             &rinfo,
                             &rinfo_len,
                             &infoType,
                             &flags);
+    
     
     UMSocketSCTPReceivedPacket *rx = [[UMSocketSCTPReceivedPacket alloc]init];
     if(bytes_read <= 0)
@@ -854,6 +856,16 @@ RFC 6458                    SCTP Sockets API               December 2011
     }
     else
     {
+        rx.remoteAddress = [self addressOfSockAddr:remote_address_ptr];
+        if(_socketFamily==AF_INET6)
+        {
+            rx.remotePort = remote_address6.sin6_port;
+        }
+        else
+        {
+            rx.remotePort = remote_address4.sin_port;
+        }
+
         rx.data = [NSData dataWithBytes:&buffer length:bytes_read];
         rx.flags = flags;
         if(flags & _msg_notification_mask)

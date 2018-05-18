@@ -9,6 +9,7 @@
 #import "UMSocketSCTPListener.h"
 #import "UMSocketSCTP.h"
 #import "UMLayerSctp.h"
+#import "UMSocketSCTPRegistry.h"
 
 @implementation UMSocketSCTPListener
 
@@ -21,8 +22,6 @@
         _localIps = addresses;
         _isListening = NO;
         _listeningCount = 0;
-        _layerByAssocId = [[UMSynchronizedDictionary alloc]init];
-        _layerByRemoteIPRemotePort = [[UMSynchronizedDictionary alloc]init];
     }
     return self;
 }
@@ -90,7 +89,7 @@
     {
         if(rx.assocId)
         {
-            UMLayerSctp *layer = _layerByAssocId[rx.assocId];
+            UMLayerSctp *layer =  [_registry layerForAssoc:rx.assocId];
             if(layer)
             {
                 [layer processReceivedData:rx];
@@ -99,7 +98,23 @@
             {
                 /* we have not seen this association id before */
                 /* lets find it by source / destination IP */
-                
+                for(NSString *localIp in _localIps)
+                {
+                    layer = [_registry layerForLocalIp:localIp
+                                             localPort:_port
+                                              remoteIp:rx.remoteAddress
+                                            remotePort:rx.remotePort];
+                    if(layer)
+                    {
+                        [layer processReceivedData:rx];
+                        break;
+                    }
+                }
+                if(layer == NULL)
+                {
+                    /* we have not found anyone listening to this so we send abort */
+                    NSLog(@"should abort here for %@ %d",rx.remoteAddress,rx.remotePort);
+                }
             }
         }
     }

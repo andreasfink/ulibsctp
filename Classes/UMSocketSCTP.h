@@ -67,7 +67,7 @@
 @property(readwrite,assign) NSTimeInterval  connectionRepeatTimer;
 
 
-
+- (NSNumber *)assocId;
 - (UMSocketError) bind;
 - (UMSocketError) enableEvents;
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret;

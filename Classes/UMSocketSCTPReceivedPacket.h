@@ -17,6 +17,7 @@
     NSNumber    *_assocId;
     NSData      *_data;
     NSString    *_remoteAddress;
+    int         _remotePort;
     int         _flags;
     BOOL        _isNotification;
 }
@@ -28,6 +29,7 @@
 @property(readwrite,atomic,strong)  NSNumber *assocId;
 @property(readwrite,atomic,strong)  NSData *data;
 @property(readwrite,atomic,strong)  NSString *remoteAddress;
+@property(readwrite,atomic,assign)  int remotePort;
 @property(readwrite,atomic,assign)  int flags;
 @property(readwrite,atomic,assign) BOOL isNotification;
 

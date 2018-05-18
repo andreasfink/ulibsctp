@@ -249,7 +249,6 @@
 {
     @try
     {
-        
         if(self.status == SCTP_STATUS_M_FOOS)
         {
             @throw([NSException exceptionWithName:@"FOOS" reason:@"failed due to manual forced out of service status" userInfo:@{@"errno":@(EBUSY), @"backtrace": UMBacktrace(NULL,0)}]);
@@ -297,11 +296,7 @@
             [self logDebug:@"SCTP socket creation successful"];
         }
 #endif
-        if(self.isPassive==NO)
-        {
-            _listener = [_registry listenerForPort:configured_local_port localIps:configured_local_addresses];
-        }
-        
+
 
         /**********************/
         /* OPTIONS            */
@@ -350,69 +345,21 @@
             return;
         }
 
-        if(self.isPassive)
+        _listener = [_registry listenerForPort:configured_local_port localIps:configured_local_addresses];
+        [_listener startListening];
+        _listenerStarted = YES;
+
+        if(!self.isPassive)
         {
-            /**********************/
-            /* LISTEN             */
-            /**********************/
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:[NSString stringWithFormat:@"listen()"]];
-            }
-#endif
-            UMSocketError err = [_sctpSocket listen];
-            if(err != UMSocketError_no_error)
-            {
-                [self logMinorError:[NSString stringWithFormat:@"listen() failed on %@ due to %@",self.layerName,[UMSocket getSocketErrorString:err]]];
-            }
-            
-            /* accorindg to the draft, there is no need to call accept (if we call connect) */
-            struct sockaddr saddr;
-            socklen_t		saddr_len;
-            
-            saddr_len = sizeof(saddr);
-            memset(&saddr,0x00,saddr_len);
-            
-            /* we need to block on this accept call */
-            err = UMSocketError_no_error;
-            [_sctpSocket switchToBlocking];
-            UMSocketSCTP *newsock = [_sctpSocket acceptSCTP:&err];
-            [_sctpSocket switchToNonBlocking];
-
-
-            if (err != UMSocketError_no_error)
-            {
-                [self logMajorError:errno location:@"accept() failed"];
-            }
-            else
-            {
-                [_sctpSocket close];
-                _sctpSocket = newsock;
-                [_sctpSocket switchToNonBlocking];
-                /* we should restart receiver thread on this new socket */
-                self.receiverThread = [[UMLayerSctpReceiverThread alloc]initWithSctpLink:self];
-                self.receiverThread.name =[NSString stringWithFormat:@"%@.sctpReceiverTread",layerName];
-                [self.receiverThread startBackgroundTask];
-            }
-        }
-        else /* not passive */
-        {
-            [_listener startListening];
-            _listenerStarted = YES;
-
-            
             /**********************/
             /* SCTP_CONNECTX      */
             /**********************/
-            
-            self.receiverThread = [[UMLayerSctpReceiverThread alloc]initWithSctpLink:self];
-            self.receiverThread.name =[NSString stringWithFormat:@"%@.sctpReceiverTread",layerName];
-            [self.receiverThread startBackgroundTask];
 
-            /* connectx is the first thing done in the receiver thread */
-            
+            /* we are in async mode */
+            err = [ _sctpSocket connectSCTP];
+            [_registry registerLayer:self forAssoc:_sctpSocket.assocId];
         }
+        [_registry startReceiver];
     }
     @catch (NSException *exception)
     {

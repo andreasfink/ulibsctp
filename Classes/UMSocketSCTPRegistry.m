@@ -8,6 +8,8 @@
 
 #import "UMSocketSCTPRegistry.h"
 #import "UMSocketSCTPListener.h"
+#import "UMSocketSCTPReceiver.h"
+#import "UMLayerSctp.h"
 
 @implementation UMSocketSCTPRegistry
 
@@ -19,9 +21,32 @@
         _entries = [[NSMutableDictionary alloc]init];
         _assocs = [[NSMutableDictionary alloc]init];
         _lock = [[UMMutex alloc]init];
+        _receiver = [[UMSocketSCTPReceiver alloc]initWithRegistry:self];
+        
+        _outgoingLayers = [[NSMutableArray alloc]init];
+        _incomingListeners = [[NSMutableArray alloc]init];
+        _outgoingLayersByIpsAndPorts = [[NSMutableDictionary alloc]init];
+        _outgoingLayersByAssoc = [[NSMutableDictionary alloc]init];
     }
     return self;
 }
+
+- (NSArray *)allListeners
+{
+    [_lock lock];
+    NSArray *a = [_incomingListeners copy];
+    [_lock unlock];
+    return a;
+}
+
+- (NSArray *)allOutboundLayers
+{
+    [_lock lock];
+    NSArray *a = [_outgoingLayers copy];
+    [_lock unlock];
+    return a;
+}
+
 
 + (NSString *)keyForPort:(int)port ips:(NSArray<NSString *> *)ips
 {
@@ -44,27 +69,132 @@
     {
         e = [[UMSocketSCTPListener alloc]initWithPort:port localIpAddresses:ips];
         _entries[key]=e;
+        [_incomingListeners addObject:e];
     }
     [_lock unlock];
     return e;
 }
 
+- (void)unregisterListener:(UMSocketSCTPListener *)e
+{
+    [_lock lock];
+    NSString *key = [UMSocketSCTPRegistry keyForPort:e.port  ips:e.localIps];
+    [_entries removeObjectForKey:key];
+    [_incomingListeners removeObject:e];
+    [_lock unlock];
+}
+
+
+
+
+
 - (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId
 {
     [_lock lock];
-    UMLayerSctp *sctp = _assocs[assocId];
+    UMLayerSctp *sctp = _outgoingLayersByAssoc[assocId];
     [_lock unlock];
     return sctp;
 }
 
-- (void)registerLayer:(UMLayerSctp *)sctp forAssoc:(NSNumber *)assocId;
+- (UMLayerSctp *)layerForLocalIp:(NSString *)ip1
+                       localPort:(int)port1
+                        remoteIp:(NSString *)ip2
+                      remotePort:(int)port2
 {
-    if(sctp && assocId)
+    [_lock lock];
+    NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d",
+                     ip1,
+                     port1,
+                     ip2,
+                     port2];
+    UMLayerSctp *layer = _outgoingLayersByIpsAndPorts[key] ;
+    [_lock unlock];
+    return layer;
+}
+
+- (void)registerLayer:(UMLayerSctp *)layer forAssoc:(NSNumber *)assocId;
+{
+    if(layer && assocId)
     {
         [_lock lock];
-        _assocs[assocId] = sctp;
+        
+        if(assocId)
+        {
+            _assocs[assocId] = layer;
+        }
+        /* we register every local IP / remote IP pair combination */
+        
+        NSArray *localAddrs = layer.configured_local_addresses;
+        NSArray *remoteAddrs = layer.configured_remote_addresses;
+        for(NSString *localAddr in localAddrs)
+        {
+            for(NSString *remoteAddr in remoteAddrs)
+            {
+                NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d",
+                                 localAddr,
+                                 layer.configured_local_port,
+                                 remoteAddr,
+                                 layer.configured_remote_port];
+                _outgoingLayersByIpsAndPorts[key] = layer;
+            }
+        }
         [_lock unlock];
     }
 }
 
+- (void)unregisterLayer:(UMLayerSctp *)layer
+{
+    if(layer)
+    {
+        [_lock lock];
+        
+        [_assocs removeObjectForKey:layer.sctpSocket.assocId];
+
+        /* we unregister every local IP / remote IP pair combination */
+        
+        NSArray *localAddrs = layer.configured_local_addresses;
+        NSArray *remoteAddrs = layer.configured_remote_addresses;
+        for(NSString *localAddr in localAddrs)
+        {
+            for(NSString *remoteAddr in remoteAddrs)
+            {
+                NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d",
+                                 localAddr,
+                                 layer.configured_local_port,
+                                 remoteAddr,
+                                 layer.configured_remote_port];
+                
+                [_outgoingLayersByIpsAndPorts removeObjectForKey:key];
+            }
+        }
+        [_lock unlock];
+    }
+}
+
+- (void)startReceiver
+{
+    if(_receiverStarted==YES)
+    {
+        return;
+    }
+    [_lock lock];
+    if(_receiverStarted==NO)
+    {
+        [_receiver startBackgroundTask];
+        _receiverStarted = YES;
+    }
+    [_lock unlock];
+
+}
+
+- (void)stopReceiver
+{
+    [_lock lock];
+    if(_receiverStarted==YES)
+    {
+        [_receiver shutdownBackgroundTask];
+        _receiverStarted=NO;
+    }
+    [_lock unlock];
+}
 @end
