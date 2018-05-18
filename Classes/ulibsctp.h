@@ -22,5 +22,5 @@
 
 #import "UMLayerSctpApplicationContextProtocol.h"
 
-#import "UMSocketSCTPListenerRegistry.h"
+#import "UMSocketSCTPRegistry.h"
 #import "UMSocketSCTPListener.h"

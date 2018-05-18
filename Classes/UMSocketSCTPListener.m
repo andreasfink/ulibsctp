@@ -8,6 +8,7 @@
 
 #import "UMSocketSCTPListener.h"
 #import "UMSocketSCTP.h"
+#import "UMLayerSctp.h"
 
 @implementation UMSocketSCTPListener
 
@@ -20,6 +21,8 @@
         _localIps = addresses;
         _isListening = NO;
         _listeningCount = 0;
+        _layerByAssocId = [[UMSynchronizedDictionary alloc]init];
+        _layerByRemoteIPRemotePort = [[UMSynchronizedDictionary alloc]init];
     }
     return self;
 }
@@ -78,6 +81,37 @@
 - (void)dealloc
 {
     [_umsocket close];
+}
+
+- (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx
+{
+    /* we need to find the right layer to handle this */
+    if(rx.err == UMSocketError_no_error)
+    {
+        if(rx.assocId)
+        {
+            UMLayerSctp *layer = _layerByAssocId[rx.assocId];
+            if(layer)
+            {
+                [layer processReceivedData:rx];
+            }
+            else
+            {
+                /* we have not seen this association id before */
+                /* lets find it by source / destination IP */
+                
+            }
+        }
+    }
+}
+
+- (void)processHangUp
+{
+    
+}
+
+- (void)processInvalidSocket
+{
 }
 
 @end

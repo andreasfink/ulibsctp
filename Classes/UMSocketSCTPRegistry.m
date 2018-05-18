@@ -1,22 +1,23 @@
 //
-//  UMSocketSCTPListenerRegistry.m
+//  UMSocketSCTPRegistry.m
 //  ulibsctp
 //
 //  Created by Andreas Fink on 17.05.18.
 //  Copyright © 2018 Andreas Fink (andreas@fink.org). All rights reserved.
 //
 
-#import "UMSocketSCTPListenerRegistry.h"
+#import "UMSocketSCTPRegistry.h"
 #import "UMSocketSCTPListener.h"
 
-@implementation UMSocketSCTPListenerRegistry
+@implementation UMSocketSCTPRegistry
 
-- (UMSocketSCTPListenerRegistry *)init
+- (UMSocketSCTPRegistry *)init
 {
     self = [super init];
     if(self)
     {
         _entries = [[NSMutableDictionary alloc]init];
+        _assocs = [[NSMutableDictionary alloc]init];
         _lock = [[UMMutex alloc]init];
     }
     return self;
@@ -36,7 +37,7 @@
 
 - (UMSocketSCTPListener *)listenerForPort:(int)port localIps:(NSArray *)ips;
 {
-    NSString *key = [UMSocketSCTPListenerRegistry keyForPort:port  ips:ips];
+    NSString *key = [UMSocketSCTPRegistry keyForPort:port  ips:ips];
     [_lock lock];
     UMSocketSCTPListener *e = _entries[key];
     if(e == NULL)
@@ -46,6 +47,24 @@
     }
     [_lock unlock];
     return e;
+}
+
+- (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId
+{
+    [_lock lock];
+    UMLayerSctp *sctp = _assocs[assocId];
+    [_lock unlock];
+    return sctp;
+}
+
+- (void)registerLayer:(UMLayerSctp *)sctp forAssoc:(NSNumber *)assocId;
+{
+    if(sctp && assocId)
+    {
+        [_lock lock];
+        _assocs[assocId] = sctp;
+        [_lock unlock];
+    }
 }
 
 @end

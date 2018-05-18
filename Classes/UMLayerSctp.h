@@ -23,10 +23,10 @@
 @class UMSctpTask_Manual_ForceOutOfService;
 @class UMLayerSctpUser;
 @class UMLayerSctpUserProfile;
-@class UMSocketSCTPListenerRegistry;
+@class UMSocketSCTPRegistry;
 @class UMSocketSCTPListener;
 
-@interface UMLayerSctp : UMLayer<UMSocketSCTP_notificationDelegate,UMSocketSCTP_dataDelegate>
+@interface UMLayerSctp : UMLayer
 {
     UMSocketSCTP    *_sctpSocket;
     UMSynchronizedArray *_users;
@@ -51,7 +51,7 @@
     /* these properties can be used by a gui to keep track of valid actions */
     NSDate          *_startButtonPressed;
     NSDate          *_stopButtonPressed;
-    UMSocketSCTPListenerRegistry *_registry;
+    UMSocketSCTPRegistry *_registry;
     UMSocketSCTPListener *_listener;
     BOOL    _listenerStarted;
 }
@@ -82,7 +82,7 @@
 @property(readwrite,strong,atomic)      UMThroughputCounter *inboundThroughputBytes;
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputPackets;
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputBytes;
-@property(readwrite,strong) UMSocketSCTPListenerRegistry *registry;
+@property(readwrite,strong) UMSocketSCTPRegistry *registry;
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq;
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name;
@@ -132,7 +132,7 @@
 - (void)reportStatus;
 - (void)setNonBlocking;
 - (void)setBlocking;
-- (int)receiveData; /* returns number of packets processed */
+- (void)receiveData;
 - (UMSocketError) dataIsAvailableSCTP:(int *)hasData
                                hangup:(int *)hasHup;
 
@@ -145,5 +145,10 @@
 - (NSString *)statusString;
 
 -(void) handleEvent:(NSData *)event
-              sinfo:(struct sctp_sndrcvinfo *)sinfo;
+           streamId:(uint32_t)streamId
+         protocolId:(uint16_t)protocolId;
+- (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx;
+- (void)processHangUp;
+- (void)processInvalidSocket;
+
 @end

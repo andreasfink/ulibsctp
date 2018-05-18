@@ -22,7 +22,7 @@
 #import "UMLayerSctpUserProfile.h"
 #import "UMLayerSctpApplicationContextProtocol.h"
 #import "UMSocketSCTPListener.h"
-#import "UMSocketSCTPListenerRegistry.h"
+#import "UMSocketSCTPRegistry.h"
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
@@ -286,9 +286,7 @@
         _sctpSocket.requestedRemotePort = configured_remote_port;
         _sctpSocket.requestedLocalAddresses = configured_local_addresses;
         _sctpSocket.requestedLocalPort = configured_local_port;
-        _sctpSocket.dataDelegate = self;
-        _sctpSocket.notificationDelegate = self;
-        
+
         if(_sctpSocket == NULL)
         {
             @throw([NSException exceptionWithName:@"SCTP_SOCKET_CREATION_FAILURE" reason:@"calling socket() for SCTP failed" userInfo:@{@"errno":@(errno),@"backtrace": UMBacktrace(NULL,0)}]);
@@ -392,8 +390,6 @@
                 [_sctpSocket close];
                 _sctpSocket = newsock;
                 [_sctpSocket switchToNonBlocking];
-                _sctpSocket.notificationDelegate = self;
-                _sctpSocket.dataDelegate = self;
                 /* we should restart receiver thread on this new socket */
                 self.receiverThread = [[UMLayerSctpReceiverThread alloc]initWithSctpLink:self];
                 self.receiverThread.name =[NSString stringWithFormat:@"%@.sctpReceiverTread",layerName];
@@ -405,16 +401,11 @@
             [_listener startListening];
             _listenerStarted = YES;
 
-            UMSocketError err;
             
             /**********************/
             /* SCTP_CONNECTX      */
             /**********************/
-
             
-            _sctpSocket.notificationDelegate = self;
-            _sctpSocket.dataDelegate = self;
-
             self.receiverThread = [[UMLayerSctpReceiverThread alloc]initWithSctpLink:self];
             self.receiverThread.name =[NSString stringWithFormat:@"%@.sctpReceiverTread",layerName];
             [self.receiverThread startBackgroundTask];
@@ -765,65 +756,84 @@
 }
 
 
-- (int)receiveData /* returns number of packets processed */
+- (void)receiveData /* returns number of packets processed */
 {
-    _sctpSocket.dataDelegate = self;
-    _sctpSocket.notificationDelegate = self;
-    
-   UMSocketError err = [_sctpSocket receiveAndProcessSCTP];
-    
-    if(err==UMSocketError_try_again)
+    UMSocketSCTPReceivedPacket *rx = [_sctpSocket receiveSCTP];
+    [self processReceivedData:rx];
+}
+
+- (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx
+{
+    if(rx.err==UMSocketError_try_again)
     {
 #if (ULIBSCTP_CONFIG==Debug)
-        NSLog(@"receiveData: UMSocketError_try_again returned by receiveAndProcessSCTP");
+        NSLog(@"receiveData: UMSocketError_try_again returned by receiveSCTP");
 #endif
-        return 0;
     }
 
-    if(err==UMSocketError_connection_reset)
+    if(rx.err==UMSocketError_connection_reset)
     {
 #if (ULIBSCTP_CONFIG==Debug)
-        NSLog(@"receiveData: UMSocketError_connection_reset returned by receiveAndProcessSCTP");
+        NSLog(@"receiveData: UMSocketError_connection_reset returned by receiveSCTP");
 #endif
         [self logDebug:@"ECONNRESET"];
         [self powerdownInReceiverThread];
         [self reportStatus];
-        return -1;
     }
-    if(err==UMSocketError_connection_aborted)
+    if(rx.err==UMSocketError_connection_aborted)
     {
 #if (ULIBSCTP_CONFIG==Debug)
-        NSLog(@"receiveData: UMSocketError_connection_aborted returned by receiveAndProcessSCTP");
+        NSLog(@"receiveData: UMSocketError_connection_aborted returned by receiveSCTP");
 #endif
         [self logDebug:@"ECONNABORTED"];
         [self powerdownInReceiverThread];
         [self reportStatus];
-        return -1;
     }
-    
-    if(err==UMSocketError_connection_refused)
+    if(rx.err==UMSocketError_connection_refused)
     {
 #if (ULIBSCTP_CONFIG==Debug)
-        NSLog(@"receiveData: UMSocketError_connection_refused returned by receiveAndProcessSCTP");
+        NSLog(@"receiveData: UMSocketError_connection_refused returned by receiveSCTP");
 #endif
   /*      [self logDebug:@"ECONNREFUSED"];
         [self powerdownInReceiverThread];
         [self reportStatus];
    */
-        return -1;
     }
-    if(err != UMSocketError_no_error)
+    if(rx.err != UMSocketError_no_error)
     {
-        [self logMinorError:[NSString stringWithFormat:@"receiveData: Error %d %@ returned by receiveAndProcessSCTP",err,[UMSocket getSocketErrorString:err]]];
+        [self logMinorError:[NSString stringWithFormat:@"receiveData: Error %d %@ returned by receiveSCTP",rx.err,[UMSocket getSocketErrorString:rx.err]]];
         [self powerdownInReceiverThread];
         [self reportStatus];
-        return -1;
     }
-    return 1;
+    else
+    {
+        if(rx.isNotification)
+        {
+            [self handleEvent:rx.data
+                     streamId:rx.streamId
+                   protocolId:rx.protocolId];
+
+        }
+        else
+        {
+            [self sctpReceivedData:rx.data
+                          streamId:rx.streamId
+                        protocolId:rx.protocolId];
+        }
+    }
+}
+
+- (void)processHangUp
+{
+}
+
+- (void)processInvalidSocket
+{
 }
 
 -(void) handleEvent:(NSData *)event
-              sinfo:(struct sctp_sndrcvinfo *)sinfo
+           streamId:(uint32_t)streamId
+         protocolId:(uint16_t)protocolId
 {
     
     const union sctp_notification *snp;
@@ -831,54 +841,55 @@
     switch(snp->sn_header.sn_type)
     {
         case SCTP_ASSOC_CHANGE:
-            [self handleAssocChange:event sinfo:sinfo];
+            [self handleAssocChange:event streamId:streamId protocolId:protocolId];
             break;
         case SCTP_PEER_ADDR_CHANGE:
-            [self handlePeerAddrChange:event sinfo:sinfo];
+            [self handlePeerAddrChange:event streamId:streamId protocolId:protocolId];
             break;
         case SCTP_SEND_FAILED:
-            [self handleSendFailed:event sinfo:sinfo];
+            [self handleSendFailed:event streamId:streamId protocolId:protocolId];
             break;
         case SCTP_REMOTE_ERROR:
-            [self handleRemoteError:event sinfo:sinfo];
+            [self handleRemoteError:event streamId:streamId protocolId:protocolId];
             break;
         case SCTP_SHUTDOWN_EVENT:
-            [self handleShutdownEvent:event sinfo:sinfo];
+            [self handleShutdownEvent:event streamId:streamId protocolId:protocolId];
             break;
         case SCTP_PARTIAL_DELIVERY_EVENT:
-            [self handleAdaptionIndication:event sinfo:sinfo];
+            [self handleAdaptionIndication:event streamId:streamId protocolId:protocolId];
             break;
 #if defined(SCTP_ADAPTATION_INDICATION)
         case SCTP_ADAPTATION_INDICATION:
-            [self handleAdaptionIndication:event sinfo:sinfo];
+            [self handleAdaptionIndication:event streamId:streamId protocolId:protocolId];
             break;
 #endif
 #if defined(SCTP_AUTHENTICATION_EVENT)
         case SCTP_AUTHENTICATION_EVENT:
-            [self handleAuthenticationEvent:event sinfo:sinfo];
+            [self handleAuthenticationEvent:event streamId:streamId protocolId:protocolId];
             break;
 #endif
         case SCTP_SENDER_DRY_EVENT:
-            [self handleSenderDryEvent:event sinfo:sinfo];
+            [self handleSenderDryEvent:event streamId:streamId protocolId:protocolId];
             break;
 
 #if defined SCTP_STREAM_RESET_EVENT
         case  SCTP_STREAM_RESET_EVENT:
-            [self handleStreamResetEvent:event sinfo:sinfo];
+            [self handleStreamResetEvent:event streamId:streamId protocolId:protocolId];
             break;
 #endif
 
         default:
             [logFeed majorErrorText:[NSString stringWithFormat:@"SCTP unknown event type: %hu", snp->sn_header.sn_type]];
-            [logFeed majorErrorText:[NSString stringWithFormat:@" RX-STREAM: %d",sinfo->sinfo_stream]];
-            [logFeed majorErrorText:[NSString stringWithFormat:@" RX-PROTO: %d", ntohl(sinfo->sinfo_ppid)]];
+            [logFeed majorErrorText:[NSString stringWithFormat:@" RX-STREAM: %d",streamId]];
+            [logFeed majorErrorText:[NSString stringWithFormat:@" RX-PROTO: %d", protocolId]];
             [logFeed majorErrorText:[NSString stringWithFormat:@" RX-DATA: %@",event.description]];
     }
 }
 
 
 -(void) handleAssocChange:(NSData *)event
-                   sinfo:(struct sctp_sndrcvinfo *)sinfo
+                 streamId:(uint32_t)streamId
+               protocolId:(uint16_t)protocolId
 {
     const union sctp_notification *snp;
     snp = event.bytes;
@@ -930,7 +941,8 @@
 
 
 -(void) handlePeerAddrChange:(NSData *)event
-                   sinfo:(struct sctp_sndrcvinfo *)sinfo
+                    streamId:(uint32_t)streamId
+                  protocolId:(uint16_t)protocolId
 {
     const union sctp_notification *snp;
 
@@ -997,7 +1009,8 @@
 }
 
 -(void) handleRemoteError:(NSData *)event
-                   sinfo:(struct sctp_sndrcvinfo *)sinfo
+                 streamId:(uint32_t)streamId
+               protocolId:(uint16_t)protocolId
 {
     const union sctp_notification *snp;
     snp = event.bytes;
@@ -1032,7 +1045,8 @@
 
 
 -(int) handleSendFailed:(NSData *)event
-                   sinfo:(struct sctp_sndrcvinfo *)sinfo
+               streamId:(uint32_t)streamId
+             protocolId:(uint16_t)protocolId
 {
     const union sctp_notification *snp;
     snp = event.bytes;
@@ -1079,7 +1093,8 @@
 
 
 -(int) handleShutdownEvent:(NSData *)event
-                     sinfo:(struct sctp_sndrcvinfo *)sinfo
+                  streamId:(uint32_t)streamId
+                protocolId:(uint16_t)protocolId
 {
     const union sctp_notification *snp;
     snp = event.bytes;
@@ -1113,7 +1128,8 @@
 
 
 -(int) handleAdaptionIndication:(NSData *)event
-                  sinfo:(struct sctp_sndrcvinfo *)sinfo
+                       streamId:(uint32_t)streamId
+                     protocolId:(uint16_t)protocolId
 {
     const union sctp_notification *snp;
     snp = event.bytes;
@@ -1145,7 +1161,8 @@
 }
 
 -(int) handlePartialDeliveryEvent:(NSData *)event
-                  sinfo:(struct sctp_sndrcvinfo *)sinfo
+                         streamId:(uint32_t)streamId
+                       protocolId:(uint16_t)protocolId
 {
     const union sctp_notification *snp;
     snp = event.bytes;
@@ -1181,7 +1198,8 @@
 }
 
 -(int) handleAuthenticationEvent:(NSData *)event
-                  sinfo:(struct sctp_sndrcvinfo *)sinfo
+                        streamId:(uint32_t)streamId
+                      protocolId:(uint16_t)protocolId
 {
     const union sctp_notification *snp;
     snp = event.bytes;
@@ -1227,7 +1245,8 @@
 
 #if defined(SCTP_STREAM_RESET_EVENT)
 -(int) handleStreamResetEvent:(NSData *)event
-                        sinfo:(struct sctp_sndrcvinfo *)sinfo
+                     streamId:(uint32_t)streamId
+                   protocolId:(uint16_t)protocolId
 {
     const union sctp_notification *snp;
     snp = event.bytes;
@@ -1259,7 +1278,8 @@
 #endif
 
 -(int) handleSenderDryEvent:(NSData *)event
-                      sinfo:(struct sctp_sndrcvinfo *)sinfo
+                   streamId:(uint32_t)streamId
+                 protocolId:(uint16_t)protocolId
 {
     const union sctp_notification *snp;
     snp = event.bytes;
@@ -1537,6 +1557,7 @@
     }
     _listener = NULL;
 }
+
 
 
 

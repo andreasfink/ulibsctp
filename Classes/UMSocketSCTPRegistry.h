@@ -1,5 +1,5 @@
 //
-//  UMSocketSCTPListenerRegistry.h
+//  UMSocketSCTPRegistry.h
 //  ulibsctp
 //
 //  Created by Andreas Fink on 17.05.18.
@@ -8,14 +8,18 @@
 
 #import <ulib/ulib.h>
 @class UMSocketSCTPListener;
+@class UMLayerSctp;
 
-@interface UMSocketSCTPListenerRegistry : UMObject
+@interface UMSocketSCTPRegistry : UMObject
 {
     NSMutableDictionary *_entries;
+    NSMutableDictionary *_assocs;
     UMMutex *_lock;
 }
 
 + (NSString *)keyForPort:(int)port ips:(NSArray<NSString *> *)ips;
 - (UMSocketSCTPListener *)listenerForPort:(int)port localIps:(NSArray *)ips;
+- (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId;
+- (void)registerLayer:(UMLayerSctp *)sctp forAssoc:(NSNumber *)assocId;
 
 @end

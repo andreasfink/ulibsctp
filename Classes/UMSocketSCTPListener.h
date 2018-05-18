@@ -17,6 +17,8 @@
     BOOL        _isListening;
     UMMutex     *_lock;
     int         _listeningCount;
+    UMSynchronizedDictionary *_layerByAssocId; /* the key is NSNumber of the associationId, the entry is UMLayerSctp */
+    UMSynchronizedDictionary *_layerByRemoteIPRemotePort; /* the key is "remoteIP/remotePort" the entry is UMLayerSctp */
 }
 
 @property(readwrite,assign) int port;
@@ -27,5 +29,8 @@
 - (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses;
 - (void)startListening;
 - (void)stopListening;
+- (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx;
+- (void)processHangUp;
+- (void)processInvalidSocket;
 
 @end

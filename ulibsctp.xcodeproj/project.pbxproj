@@ -9,8 +9,12 @@
 /* Begin PBXBuildFile section */
 		A60DE3B820ADD0440047E3A6 /* UMSocketSCTPListener.h in Headers */ = {isa = PBXBuildFile; fileRef = A60DE3B620ADD0440047E3A6 /* UMSocketSCTPListener.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A60DE3B920ADD0440047E3A6 /* UMSocketSCTPListener.m in Sources */ = {isa = PBXBuildFile; fileRef = A60DE3B720ADD0440047E3A6 /* UMSocketSCTPListener.m */; };
-		A60DE3BC20ADD18E0047E3A6 /* UMSocketSCTPListenerRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = A60DE3BA20ADD18E0047E3A6 /* UMSocketSCTPListenerRegistry.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		A60DE3BD20ADD18E0047E3A6 /* UMSocketSCTPListenerRegistry.m in Sources */ = {isa = PBXBuildFile; fileRef = A60DE3BB20ADD18E0047E3A6 /* UMSocketSCTPListenerRegistry.m */; };
+		A60DE3BC20ADD18E0047E3A6 /* UMSocketSCTPRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = A60DE3BA20ADD18E0047E3A6 /* UMSocketSCTPRegistry.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		A60DE3BD20ADD18E0047E3A6 /* UMSocketSCTPRegistry.m in Sources */ = {isa = PBXBuildFile; fileRef = A60DE3BB20ADD18E0047E3A6 /* UMSocketSCTPRegistry.m */; };
+		A60DE3C020AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.h in Headers */ = {isa = PBXBuildFile; fileRef = A60DE3BE20AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		A60DE3C120AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.m in Sources */ = {isa = PBXBuildFile; fileRef = A60DE3BF20AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.m */; };
+		A60DE3C420AECB050047E3A6 /* UMSocketSCTPReceiver.h in Headers */ = {isa = PBXBuildFile; fileRef = A60DE3C220AECB050047E3A6 /* UMSocketSCTPReceiver.h */; };
+		A60DE3C520AECB050047E3A6 /* UMSocketSCTPReceiver.m in Sources */ = {isa = PBXBuildFile; fileRef = A60DE3C320AECB050047E3A6 /* UMSocketSCTPReceiver.m */; };
 		A61F7D4E1A2C87560090FC94 /* UMLayerSctpReceiverThread.h in Headers */ = {isa = PBXBuildFile; fileRef = A61F7D4C1A2C87560090FC94 /* UMLayerSctpReceiverThread.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A61F7D4F1A2C87560090FC94 /* UMLayerSctpReceiverThread.m in Sources */ = {isa = PBXBuildFile; fileRef = A61F7D4D1A2C87560090FC94 /* UMLayerSctpReceiverThread.m */; };
 		A61F7D511A2C9D380090FC94 /* UMLayerSctpUserProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = A61F7D501A2C9D380090FC94 /* UMLayerSctpUserProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -74,8 +78,12 @@
 /* Begin PBXFileReference section */
 		A60DE3B620ADD0440047E3A6 /* UMSocketSCTPListener.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UMSocketSCTPListener.h; sourceTree = "<group>"; };
 		A60DE3B720ADD0440047E3A6 /* UMSocketSCTPListener.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UMSocketSCTPListener.m; sourceTree = "<group>"; };
-		A60DE3BA20ADD18E0047E3A6 /* UMSocketSCTPListenerRegistry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UMSocketSCTPListenerRegistry.h; sourceTree = "<group>"; };
-		A60DE3BB20ADD18E0047E3A6 /* UMSocketSCTPListenerRegistry.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UMSocketSCTPListenerRegistry.m; sourceTree = "<group>"; };
+		A60DE3BA20ADD18E0047E3A6 /* UMSocketSCTPRegistry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UMSocketSCTPRegistry.h; sourceTree = "<group>"; };
+		A60DE3BB20ADD18E0047E3A6 /* UMSocketSCTPRegistry.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UMSocketSCTPRegistry.m; sourceTree = "<group>"; };
+		A60DE3BE20AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UMSocketSCTPReceivedPacket.h; sourceTree = "<group>"; };
+		A60DE3BF20AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UMSocketSCTPReceivedPacket.m; sourceTree = "<group>"; };
+		A60DE3C220AECB050047E3A6 /* UMSocketSCTPReceiver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UMSocketSCTPReceiver.h; sourceTree = "<group>"; };
+		A60DE3C320AECB050047E3A6 /* UMSocketSCTPReceiver.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UMSocketSCTPReceiver.m; sourceTree = "<group>"; };
 		A61F7D4C1A2C87560090FC94 /* UMLayerSctpReceiverThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpReceiverThread.h; sourceTree = "<group>"; };
 		A61F7D4D1A2C87560090FC94 /* UMLayerSctpReceiverThread.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMLayerSctpReceiverThread.m; sourceTree = "<group>"; };
 		A61F7D501A2C9D380090FC94 /* UMLayerSctpUserProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpUserProtocol.h; sourceTree = "<group>"; };
@@ -185,10 +193,14 @@
 				A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */,
 				A6B8BE4E20A9B102004D4004 /* UMSocketSCTP.h */,
 				A6B8BE4F20A9B102004D4004 /* UMSocketSCTP.m */,
+				A60DE3BE20AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.h */,
+				A60DE3BF20AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.m */,
 				A60DE3B620ADD0440047E3A6 /* UMSocketSCTPListener.h */,
 				A60DE3B720ADD0440047E3A6 /* UMSocketSCTPListener.m */,
-				A60DE3BA20ADD18E0047E3A6 /* UMSocketSCTPListenerRegistry.h */,
-				A60DE3BB20ADD18E0047E3A6 /* UMSocketSCTPListenerRegistry.m */,
+				A60DE3BA20ADD18E0047E3A6 /* UMSocketSCTPRegistry.h */,
+				A60DE3BB20ADD18E0047E3A6 /* UMSocketSCTPRegistry.m */,
+				A60DE3C220AECB050047E3A6 /* UMSocketSCTPReceiver.h */,
+				A60DE3C320AECB050047E3A6 /* UMSocketSCTPReceiver.m */,
 				A6C78D6D1A2942AB006C66A2 /* UMLayerSctp.h */,
 				A6C78D6E1A2942AB006C66A2 /* UMLayerSctp.m */,
 				A61F7D4C1A2C87560090FC94 /* UMLayerSctpReceiverThread.h */,
@@ -267,6 +279,7 @@
 			files = (
 				A6C78D131A29271D006C66A2 /* ulibsctp.h in Headers */,
 				A6C78D6F1A2942AB006C66A2 /* UMLayerSctp.h in Headers */,
+				A60DE3C420AECB050047E3A6 /* UMSocketSCTPReceiver.h in Headers */,
 				A6C78DC71A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.h in Headers */,
 				A6C78DC21A29466D006C66A2 /* UMSctpTask_Manual_InService.h in Headers */,
 				A6C78DAE1A2945FA006C66A2 /* UMSctpTask_Open.h in Headers */,
@@ -281,7 +294,8 @@
 				A61F7D531A2C9E4C0090FC94 /* UMLayerSctpStatus.h in Headers */,
 				A61F7D511A2C9D380090FC94 /* UMLayerSctpUserProtocol.h in Headers */,
 				A6C78DB81A294628006C66A2 /* UMSctpTask_Data.h in Headers */,
-				A60DE3BC20ADD18E0047E3A6 /* UMSocketSCTPListenerRegistry.h in Headers */,
+				A60DE3BC20ADD18E0047E3A6 /* UMSocketSCTPRegistry.h in Headers */,
+				A60DE3C020AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.h in Headers */,
 				A689747D1A2D4C5D00854472 /* UMSctpTask_AdminDetach.h in Headers */,
 				A61F7D4E1A2C87560090FC94 /* UMLayerSctpReceiverThread.h in Headers */,
 				A68974791A2D440F00854472 /* UMLayerSctpUser.h in Headers */,
@@ -389,9 +403,11 @@
 				A6C78DA51A2945C5006C66A2 /* UMSctpTask_AdminInit.m in Sources */,
 				A6C78DB41A294607006C66A2 /* UMSctpTask_Close.m in Sources */,
 				A634B49A1A2E9AF700854472 /* UMLayerSctpUserProfile.m in Sources */,
+				A60DE3C520AECB050047E3A6 /* UMSocketSCTPReceiver.m in Sources */,
 				A60DE3B920ADD0440047E3A6 /* UMSocketSCTPListener.m in Sources */,
 				A6C78DAF1A2945FA006C66A2 /* UMSctpTask_Open.m in Sources */,
 				A68974281A2D1EF800854472 /* UMSctpTask_AdminSetConfig.m in Sources */,
+				A60DE3C120AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.m in Sources */,
 				A6C78DB91A294628006C66A2 /* UMSctpTask_Data.m in Sources */,
 				A6B8BE5120A9B102004D4004 /* UMSocketSCTP.m in Sources */,
 				A6C78D701A2942AB006C66A2 /* UMLayerSctp.m in Sources */,
@@ -399,7 +415,7 @@
 				A689747E1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m in Sources */,
 				A6C78DC81A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m in Sources */,
 				A6C78DAA1A2945D9006C66A2 /* UMSctpTask_AdminAttach.m in Sources */,
-				A60DE3BD20ADD18E0047E3A6 /* UMSocketSCTPListenerRegistry.m in Sources */,
+				A60DE3BD20ADD18E0047E3A6 /* UMSocketSCTPRegistry.m in Sources */,
 				A6C78DC31A29466D006C66A2 /* UMSctpTask_Manual_InService.m in Sources */,
 				A689747A1A2D440F00854472 /* UMLayerSctpUser.m in Sources */,
 			);

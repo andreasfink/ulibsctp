@@ -10,7 +10,7 @@
 #import "UMLayerSctpStatus.h"
 #import "UMLayerSctpUserProtocol.h"
 #import "UMLayerSctpApplicationContextProtocol.h"
-
+#import "UMSocketSCTPReceivedPacket.h"
 #ifdef __APPLE__
 #import <sctp/sctp.h>
 #else
@@ -35,6 +35,7 @@
 @interface UMSocketSCTP : UMSocket
 {
     NSArray         *_requestedLocalAddresses;
+    NSArray         *_useableLocalAddresses;
     NSArray         *_connectedLocalAddresses;
     NSArray         *_requestedRemoteAddresses;
     NSArray         *_connectedRemoteAddresses;
@@ -42,10 +43,16 @@
     int             _heartbeatMs;
     NSTimeInterval  _connectionRepeatTimer;
 
-    id<UMSocketSCTP_notificationDelegate> _notificationDelegate;
-    id<UMSocketSCTP_dataDelegate>         _dataDelegate;
     UMSocketSCTPListener *_listener;
     BOOL            _continuousConnectionAttempts;
+    
+    struct sockaddr     *_remote_addresses;
+    int                 _remote_addresses_count;
+    BOOL                _remote_addresses_prepared;
+    struct sockaddr     *_local_addresses;
+    int                 _local_addresses_count;
+    BOOL                _local_addresses_prepared;
+    sctp_assoc_t        assoc;
 }
 
 @property(readwrite,strong) NSArray        *requestedLocalAddresses;
@@ -69,7 +76,8 @@
              stream:(uint16_t)streamId
            protocol:(u_int32_t)protocolId
               error:(UMSocketError *)err;
-- (UMSocketError)receiveAndProcessSCTP; /* returns number of packets processed amd calls the notification and data delegates */
+- (UMSocketSCTPReceivedPacket *)receiveSCTP;
+
 - (UMSocketError) dataIsAvailableSCTP:(int)timeoutInMs
                             dataAvail:(int *)hasData
                                hangup:(int *)hasHup;
