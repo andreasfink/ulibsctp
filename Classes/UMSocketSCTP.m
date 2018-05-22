@@ -23,6 +23,7 @@
 #define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
 #else
 #include "netinet/sctp.h"
+#include "netinet/sctp_uio.h"
 #endif
 
 #include <netinet/in.h>
