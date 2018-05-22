@@ -25,6 +25,7 @@
 #define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
 #define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
 #define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
+#define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
 
 #else
 #include <netinet/sctp.h>
@@ -726,16 +727,28 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         remote_address_ptr = (struct sockaddr *)&remote_address6;
         remote_address_len = sizeof(struct sockaddr_in6);
     }
-    struct sctp_rcvinfo     rinfo;
-    socklen_t               rinfo_len;
+
     ssize_t                 bytes_read = 0;
     char                    buffer[SCTP_RXBUF+1];
     int                     flags=0;
+    uint16_t                streamId;
+    uint32_t                protocolId;
+    uint32_t                context;
+
+    memset(&buffer[0],0xFA,sizeof(buffer));
+    memset(remote_address_ptr,0x00,sizeof(remote_address_len));
+
+    UMSocketSCTPReceivedPacket *rx = [[UMSocketSCTPReceivedPacket alloc]init];
+
+#ifdef ULIBSCTP_SCTP_RECVV_SUPPORTED
+
+    struct sctp_rcvinfo     rinfo;
+    socklen_t               rinfo_len;
     struct iovec            iov[1];
     int                     iovcnt = 1;
     unsigned int            infoType;
-    memset(&buffer[0],0xFA,sizeof(buffer));
-    memset(remote_address_ptr,0x00,sizeof(remote_address_len));
+    sctp_assoc_t            assoc;
+
     memset(&rinfo,0x00,sizeof(struct sctp_rcvinfo));
 
     iov[0].iov_base = &buffer;
@@ -752,9 +765,44 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                             &rinfo_len,
                             &infoType,
                             &flags);
-    
-    
-    UMSocketSCTPReceivedPacket *rx = [[UMSocketSCTPReceivedPacket alloc]init];
+
+    streamId = rinfo.rcv_sid;
+    protocolId = ntohl(rinfo.rcv_ppid);
+    context = ntohl(rinfo.rcv_context);
+    assoc  = rinfo.rcv_assoc_id;
+#else
+
+    struct sctp_sndrcvinfo sinfo;
+    memset(&sinfo,0x00,sizeof(struct sctp_sndrcvinfo));
+
+
+    struct sctp_sndrcvinfo sinfo;
+    memset(&sinfo,0x00,sizeof(struct sctp_sndrcvinfo));
+
+    sinfo.sinfo_stream = streamId;
+    sinfo.sinfo_flags = 0;
+    sinfo.sinfo_ppid = htonl(protocolId);
+    sinfo.sinfo_context = 0;
+    sinfo.sinfo_timetolive = 2000;
+    sinfo.sinfo_assoc_id = assoc;
+
+
+
+    bytes_read sctp_recvmsg(_sock,
+                         &buffer,
+                         SCTP_RXBUF,
+                         remote_address_ptr,
+                         &remote_address_len,
+                         &sinfo
+                         &msg_flags);
+
+    streamId = sinfo.sinfo_stream
+    protocolId = ntohl(sinfo.sinfo_ppid);
+    context = sinfo.sinfo_context;
+    assoc = sinfo.sinfo_assoc_id;
+
+#endif
+
     if(bytes_read <= 0)
     {
         rx.err = [UMSocket umerrFromErrno:errno];
@@ -777,10 +825,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         {
             rx.isNotification = YES;
         }
-        rx.streamId = rinfo.rcv_sid;
-        rx.protocolId = ntohl(rinfo.rcv_ppid);
-        rx.context = ntohl(rinfo.rcv_context);
-        rx.assocId = @(rinfo.rcv_assoc_id);
+        rx.streamId =streamId;
+        rx.protocolId = protocolId;
+        rx.context = context;
+        rx.assocId = @(assoc);
     }
     return rx;
 }
