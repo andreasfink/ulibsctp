@@ -294,7 +294,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                 local_addresses6[i].sin6_len = sizeof(struct sockaddr_in6);
 #endif
                 local_addresses6[j].sin6_family = AF_INET6;
-                local_addresses6[j].sin6_port = htons(requestedRemotePort);
+                local_addresses6[j].sin6_port = htons(requestedLocalPort);
                 j++;
             }
             else
