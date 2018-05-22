@@ -150,9 +150,10 @@
     if(layer)
     {
         [_lock lock];
-        
-        [_assocs removeObjectForKey:layer.sctpSocket.assocId];
-
+        if(layer.sctpSocket.assocId)
+        {
+            [_assocs removeObjectForKey:layer.sctpSocket.assocId];
+        }
         /* we unregister every local IP / remote IP pair combination */
         
         NSArray *localAddrs = layer.configured_local_addresses;
