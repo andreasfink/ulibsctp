@@ -774,14 +774,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     struct sctp_sndrcvinfo sinfo;
     memset(&sinfo,0x00,sizeof(struct sctp_sndrcvinfo));
-
-    sinfo.sinfo_stream = streamId;
-    sinfo.sinfo_flags = 0;
-    sinfo.sinfo_ppid = htonl(protocolId);
-    sinfo.sinfo_context = 0;
-    sinfo.sinfo_timetolive = 2000;
-    sinfo.sinfo_assoc_id = assoc;
-
     bytes_read = sctp_recvmsg(_sock,
                          &buffer,
                          SCTP_RXBUF,
