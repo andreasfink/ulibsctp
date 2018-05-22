@@ -267,7 +267,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     struct sockaddr_in6 *local_addresses6;
     struct sockaddr_in *local_addresses4;
     
-    int count = (int)_requestedRemoteAddresses.count;
+    int count = (int)_requestedLocalAddresses.count;
     
     int i;
     int j=0;
@@ -276,7 +276,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         local_addresses6 = calloc(count,sizeof(struct sockaddr_in6));
         for(i=0;i<count;i++)
         {
-            NSString *address = [_requestedRemoteAddresses objectAtIndex:i];
+            NSString *address = [_requestedLocalAddresses objectAtIndex:i];
             NSString *address2 = [UMSocket deunifyIp:address];
             if(address2.length>0)
             {
@@ -367,15 +367,32 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
 }
 
-
 - (NSString *)addressOfSockAddr:(struct sockaddr *)sockAddr
 {
-    char buf[INET6_ADDRSTRLEN];
-    const char *r = inet_ntop(_socketFamily, sockAddr, buf, sizeof(buf));
-    return @(r);
+    char buf[INET6_ADDRSTRLEN+1];
+    memset(buf,0x00,INET6_ADDRSTRLEN+1);
+    switch(_socketFamily)
+    {
+        case AF_INET:
+        {
+            struct sockaddr_in *sa_in = (struct sockaddr_in *)sockAddr;
+            const char *r = inet_ntop(_socketFamily, &sa_in->sin_addr, &buf[0], INET6_ADDRSTRLEN);
+            return @(r);
+            break;
+        }
+        case AF_INET6:
+        {
+            struct sockaddr_in6 *sa_in6 = (struct sockaddr_in6 *)sockAddr;
+            const char *r = inet_ntop(_socketFamily, &sa_in6->sin6_addr, &buf[0], INET6_ADDRSTRLEN);
+            return @(r);
+            break;
+        }
+        default:
+            return NULL;
+    }
 }
 
-- (UMSocketError) bind;
+- (UMSocketError) bind
 {
     NSMutableArray *useable_local_addr = [[NSMutableArray alloc]init];
 
