@@ -20,6 +20,7 @@
     UMMutex     *_lock;
     int         _listeningCount;
     UMSocketSCTPRegistry *_registry;
+    NSString    *_name;
 }
 
 @property(readwrite,assign) int port;
@@ -27,6 +28,7 @@
 @property(readwrite,strong) NSArray *localIps;
 @property(readwrite,strong) UMSocketSCTP *umsocket;
 @property(readwrite,strong) UMSocketSCTPRegistry *registry;
+@property(readwrite,strong) NSString *name;
 
 - (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses;
 - (void)startListening;

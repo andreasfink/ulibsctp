@@ -332,16 +332,17 @@
             [self logMinorError:[NSString stringWithFormat:@"can not set SCTP_REUSE_PORT option on sctp %@ %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
         }
 
-        err = [_sctpSocket bind];
-        if(err!=UMSocketError_no_error)
-        {
-            [self logMajorError:[NSString stringWithFormat:@"can not bind sctp connection %@ %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
-            return;
-        }
         err = [_sctpSocket enableEvents];
         if(err!=UMSocketError_no_error)
         {
             [self logMinorError:[NSString stringWithFormat:@"can not enable sctp events on %@ %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
+            return;
+        }
+
+        err = [_sctpSocket bind];
+        if(err!=UMSocketError_no_error)
+        {
+            [self logMajorError:[NSString stringWithFormat:@"can not bind sctp connection %@ %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
             return;
         }
 
