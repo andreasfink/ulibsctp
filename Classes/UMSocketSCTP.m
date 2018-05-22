@@ -16,19 +16,19 @@
 #include <sys/socket.h>
 #include <sys/poll.h>
 #include <arpa/inet.h>
+#include <string.h>
 
-<<<<<<< HEAD
-=======
 #ifdef __APPLE__
 #import <sctp/sctp.h>
 #include <sys/utsname.h>
 
 #define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
 #define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
+#define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
+
 #else
-#include "/usr/local/include/netinet/sctp.h"
+#include <netinet/sctp.h>
 #endif
->>>>>>> 3d42c9814ebc13db0d29a6e0067c3123c21614ae
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -41,40 +41,8 @@
 #include <netdb.h>
 #include <sys/utsname.h>
 
-#ifdef __APPLE__
-#import <sctp/sctp.h>
-#include <sys/utsname.h>
-
-#define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
-#define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
-#else
-#include "/usr/local/include/netinet/sctp.h"
-#endif
-
 static int _global_msg_notification_mask = 0;
 
-<<<<<<< HEAD
-/* for some reason sctp_sndinfo is forgotten in /usr/include/netinet/sctp.h on Debian9 so we copied it from /usr/include/linux/sctp.h */
-#if !defined(sctp_sndinfo)
-
-/* 5.3.4 SCTP Send Information Structure (SCTP_SNDINFO)
- *
- *   This cmsghdr structure specifies SCTP options for sendmsg().
- *
- *   cmsg_level    cmsg_type      cmsg_data[]
- *   ------------  ------------   -------------------
- *   IPPROTO_SCTP  SCTP_SNDINFO   struct sctp_sndinfo
- */
-struct sctp_sndinfo {
-	__u16 snd_sid;
-	__u16 snd_flags;
-	__u32 snd_ppid;
-	__u32 snd_context;
-	sctp_assoc_t snd_assoc_id;
-};
-
-#endif
-=======
 /*
 int sctp_sendv(int s, const struct iovec *iov, int iovcnt,
                struct sockaddr *addrs, int addrcnt, void *info,
@@ -85,7 +53,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                struct sockaddr *from, socklen_t *fromlen, void *info,
                socklen_t *infolen, unsigned int *infotype, int *flags);
 */
->>>>>>> 3d42c9814ebc13db0d29a6e0067c3123c21614ae
 
 @implementation UMSocketSCTP
 
@@ -657,134 +624,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 
 
-/*
- RFC 6458 SCTP Sockets API
-
-9.12.  sctp_sendv()
-
-   The function prototype is
-
-   ssize_t sctp_sendv(int sd,
-                      const struct iovec *iov,
-                      int iovcnt,
-                      struct sockaddr *addrs,
-                      int addrcnt,
-                      void *info,
-                      socklen_t infolen,
-                      unsigned int infotype,
-                      int flags);
-
-   The function sctp_sendv() provides an extensible way for an
-   application to communicate different send attributes to the SCTP
-   stack when sending a message.  An implementation may provide
-   sctp_sendv() as a library function or a system call.
-
-   This document defines three types of attributes that can be used to
-   describe a message to be sent.  They are struct sctp_sndinfo
-   (Section 5.3.4), struct sctp_prinfo (Section 5.3.7), and struct
-   sctp_authinfo (Section 5.3.8).  The following structure,
-   sctp_sendv_spa, is defined to be used when more than one of the above
-   attributes are needed to describe a message to be sent.
-
-   struct sctp_sendv_spa {
-     uint32_t sendv_flags;
-     struct sctp_sndinfo sendv_sndinfo;
-     struct sctp_prinfo sendv_prinfo;
-     struct sctp_authinfo sendv_authinfo;
-   };
-
-
-   The sendv_flags field holds a bitwise OR of SCTP_SEND_SNDINFO_VALID,
-   SCTP_SEND_PRINFO_VALID, and SCTP_SEND_AUTHINFO_VALID indicating if
-   the sendv_sndinfo/sendv_prinfo/sendv_authinfo fields contain valid
-   information.
-
-   In future, when new send attributes are needed, new structures can be
-   defined.  But those new structures do not need to be based on any of
-   the above defined structures.
-
-   The function takes the following arguments:
-
-   sd:  The socket descriptor.
-
-   iov:  The gather buffer.  The data in the buffer is treated as a
-      single user message.
-
-   iovcnt:  The number of elements in iov.
-
-   addrs:  An array of addresses to be used to set up an association or
-      a single address to be used to send the message.  NULL is passed
-      in if the caller neither wants to set up an association nor wants
-      to send the message to a specific address.
-
-   addrcnt:  The number of addresses in the addrs array.
-
-   info:  A pointer to the buffer containing the attribute associated
-      with the message to be sent.  The type is indicated by the
-      info_type parameter.
-
-   infolen:  The length of info, in bytes.
-
-   infotype:  Identifies the type of the information provided in info.
-      The current defined values are as follows:
-
-      SCTP_SENDV_NOINFO:  No information is provided.  The parameter
-         info is a NULL pointer, and infolen is 0.
-
-      SCTP_SENDV_SNDINFO:  The parameter info is pointing to a struct
-         sctp_sndinfo.
-
-      SCTP_SENDV_PRINFO:  The parameter info is pointing to a struct
-         sctp_prinfo.
-
-      SCTP_SENDV_AUTHINFO:  The parameter info is pointing to a struct
-         sctp_authinfo.
-
-      SCTP_SENDV_SPA:  The parameter info is pointing to a struct
-         sctp_sendv_spa.
-
-Stewart, et al.               Informational                    [Page 99]
-RFC 6458                    SCTP Sockets API               December 2011
-
-   flags:  The same flags as used by the sendmsg() call flags (e.g.,
-      MSG_DONTROUTE).
-
-   The call returns the number of bytes sent, or -1 if an error
-   occurred.  The variable errno is then set appropriately.
-
-   A note on the one-to-many style socket: The struct sctp_sndinfo
-   attribute must always be used in order to specify the association on
-   which the message is to be sent.  The only case where it is not
-   needed is when this call is used to set up a new association.
-
-   The caller provides a list of addresses in the addrs parameter to set
-   up an association.  This function will behave like calling
-   sctp_connectx() (see Section 9.9), first using the list of addresses
-   and then calling sendmsg() with the given message and attributes.
-   For a one-to-many style socket, if the struct sctp_sndinfo attribute
-   is provided, the snd_assoc_id field must be 0.  When this function
-   returns, the snd_assoc_id field will contain the association
-   identifier of the newly established association.  Note that the
-   struct sctp_sndinfo attribute is not required to set up an
-   association for a one-to-many style socket.  If this attribute is not
-   provided, the caller can enable the SCTP_ASSOC_CHANGE notification
-   and use the SCTP_COMM_UP message to find out the association
-   identifier.
-
-   If the caller wants to send the message to a specific peer address
-   (hence overriding the primary address), it can provide the specific
-   address in the addrs parameter and provide a struct sctp_sndinfo
-   attribute with the field snd_flags set to SCTP_ADDR_OVER.
-
-   This function call may also be used to terminate an association.  The
-   caller provides an sctp_sndinfo attribute with the snd_flags set to
-   SCTP_EOF.  In this case, len would be zero.
-
-   Sending a message using sctp_sendv() is atomic unless explicit EOR
-   marking is enabled on the socket specified by sd.
-
-*/
-
 - (ssize_t)sendSCTP:(NSData *)data
              stream:(uint16_t)streamId
            protocol:(u_int32_t)protocolId
@@ -809,6 +648,7 @@ RFC 6458                    SCTP Sockets API               December 2011
     }
     else
     {
+#ifdef ULIBSCTP_SCTP_SENDV_SUPPORTED
         struct iovec iov[1];
         iov[0].iov_base = (void *)data.bytes;
         iov[0].iov_len = data.length;
@@ -831,6 +671,24 @@ RFC 6458                    SCTP Sockets API               December 2011
                         sizeof(struct sctp_sndinfo),
                         SCTP_SENDV_SNDINFO,
                         flags);
+#else
+        struct sctp_sndrcvinfo sinfo;
+        memset(&sinfo,0x00,sizeof(struct sctp_sndrcvinfo));
+
+        sinfo.sinfo_stream = streamId;
+        sinfo.sinfo_flags = 0;
+        sinfo.sinfo_ppid = htonl(protocolId);
+        sinfo.sinfo_context = 0;
+        sinfo.sinfo_timetolive = 2000;
+        sinfo.sinfo_assoc_id = assoc;
+        int flags=0;
+        sp = sctp_send(_sock,
+                       (const void *)data.bytes,
+                       data.length,
+                       &sinfo,
+                       flags);
+#endif
+
         if(sp<0)
         {
             err = [UMSocket umerrFromErrno:errno];
