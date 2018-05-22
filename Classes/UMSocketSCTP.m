@@ -17,6 +17,18 @@
 #include <sys/poll.h>
 #include <arpa/inet.h>
 
+<<<<<<< HEAD
+=======
+#ifdef __APPLE__
+#import <sctp/sctp.h>
+#include <sys/utsname.h>
+
+#define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
+#define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
+#else
+#include "/usr/local/include/netinet/sctp.h"
+#endif
+>>>>>>> 3d42c9814ebc13db0d29a6e0067c3123c21614ae
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -41,6 +53,7 @@
 
 static int _global_msg_notification_mask = 0;
 
+<<<<<<< HEAD
 /* for some reason sctp_sndinfo is forgotten in /usr/include/netinet/sctp.h on Debian9 so we copied it from /usr/include/linux/sctp.h */
 #if !defined(sctp_sndinfo)
 
@@ -61,6 +74,18 @@ struct sctp_sndinfo {
 };
 
 #endif
+=======
+/*
+int sctp_sendv(int s, const struct iovec *iov, int iovcnt,
+               struct sockaddr *addrs, int addrcnt, void *info,
+               socklen_t infolen, unsigned int infotype, int flags);
+
+
+int sctp_recvv(int s, const struct iovec *iov, int iovlen,
+               struct sockaddr *from, socklen_t *fromlen, void *info,
+               socklen_t *infolen, unsigned int *infotype, int *flags);
+*/
+>>>>>>> 3d42c9814ebc13db0d29a6e0067c3123c21614ae
 
 @implementation UMSocketSCTP
 
@@ -860,8 +885,6 @@ RFC 6458                    SCTP Sockets API               December 2011
     rinfo_len = sizeof(struct sctp_rcvinfo);
     infoType = SCTP_RECVV_RCVINFO;
     
-    ssize_t    sctp_recvv(int, const struct iovec *, int, struct sockaddr *,
-                          socklen_t *, void *, socklen_t *, unsigned int *, int *);
     bytes_read = sctp_recvv(_sock,
                             iov,
                             iovcnt,
