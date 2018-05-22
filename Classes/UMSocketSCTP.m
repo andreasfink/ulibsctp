@@ -782,15 +782,13 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     sinfo.sinfo_timetolive = 2000;
     sinfo.sinfo_assoc_id = assoc;
 
-
-
-    bytes_read sctp_recvmsg(_sock,
+    bytes_read = sctp_recvmsg(_sock,
                          &buffer,
                          SCTP_RXBUF,
                          remote_address_ptr,
                          &remote_address_len,
                          &sinfo
-                         &msg_flags);
+                         &flags);
 
     streamId = sinfo.sinfo_stream
     protocolId = ntohl(sinfo.sinfo_ppid);
