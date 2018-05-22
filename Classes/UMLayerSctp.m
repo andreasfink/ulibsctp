@@ -856,10 +856,31 @@
 #if (ULIBSCTP_CONFIG==Debug)
     if(logLevel <= UMLOG_DEBUG)
     {
+        NSString *state = @"(UNKNOWN)";
+        switch(snp->sn_assoc_change.sac_state)
+        {
+            case SCTP_COMM_UP:
+                state =@"SCTP_COMM_UP";
+                break;
+            case SCTP_COMM_LOST:
+                state =@"SCTP_COMM_LOST";
+                break;
+            case SCTP_RESTART:
+                state =@"SCTP_RESTART";
+                break;
+            case SCTP_SHUTDOWN_COMP:
+                state =@"SCTP_SHUTDOWN_COMP";
+                break;
+            case SCTP_CANT_STR_ASSOC:
+                state =@"SCTP_CANT_STR_ASSOC";
+                break;
+        }
+
+
         [self logDebug:[NSString stringWithFormat:@"  sac_type: %d",             (int)snp->sn_assoc_change.sac_type]];
         [self logDebug:[NSString stringWithFormat:@"  sac_flags: %d",            (int)snp->sn_assoc_change.sac_flags]];
         [self logDebug:[NSString stringWithFormat:@"  sac_length: %d",           (int)snp->sn_assoc_change.sac_length]];
-        [self logDebug:[NSString stringWithFormat:@"  sac_state: %d",            (int)snp->sn_assoc_change.sac_state]];
+        [self logDebug:[NSString stringWithFormat:@"  sac_state: %d %@",            (int)snp->sn_assoc_change.sac_state, state]];
         [self logDebug:[NSString stringWithFormat:@"  sac_error: %d",            (int)snp->sn_assoc_change.sac_error]];
         [self logDebug:[NSString stringWithFormat:@"  sac_outbound_streams: %d", (int)snp->sn_assoc_change.sac_outbound_streams]];
         [self logDebug:[NSString stringWithFormat:@"  sac_inbound_streams: %d",  (int)snp->sn_assoc_change.sac_inbound_streams]];
