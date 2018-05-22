@@ -476,7 +476,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     self.status = SCTP_STATUS_OOS;
 
 
-    bzero((void *)&event, sizeof(struct sctp_event_subscribe));
+    memset((void *)&event,0x00, sizeof(struct sctp_event_subscribe));
     event.sctp_data_io_event            = 1;
     event.sctp_association_event        = 1;
     event.sctp_address_event            = 1;
@@ -485,7 +485,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     event.sctp_shutdown_event           = 1;
     event.sctp_partial_delivery_event   = 1;
     event.sctp_adaptation_layer_event   = 1;
-    event.sctp_authentication_event     = 1;
+//    event.sctp_authentication_event     = 1;
 #ifndef LINUX
     event.sctp_stream_reset_events      = 1;
 #endif
@@ -743,7 +743,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 
 #define SCTP_RXBUF 10240
-
+#define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
 - (UMSocketSCTPReceivedPacket *)receiveSCTP
 {
     struct sockaddr_in6     remote_address6;
@@ -807,7 +807,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #else
 
     struct sctp_sndrcvinfo sinfo;
-    sinfo.sinfo_assoc_id = SCTP_ALL_ASSOC;
+    sinfo.sinfo_assoc_id = SCTP_FUTURE_ASSOC;
     memset(&sinfo,0x00,sizeof(struct sctp_sndrcvinfo));
     bytes_read = sctp_recvmsg(_sock,
                          &buffer,
