@@ -787,7 +787,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                          SCTP_RXBUF,
                          remote_address_ptr,
                          &remote_address_len,
-                         &sinfo
+                         &sinfo,
                          &flags);
 
     streamId = sinfo.sinfo_stream
