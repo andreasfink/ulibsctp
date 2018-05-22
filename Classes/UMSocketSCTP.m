@@ -5,6 +5,8 @@
 //  Created by Andreas Fink on 14.05.18.
 //  Copyright © 2018 Andreas Fink (andreas@fink.org). All rights reserved.
 //
+
+
 #import "UMSocketSCTP.h"
 #import "UMSocketSCTPListener.h"
 
@@ -15,16 +17,6 @@
 #include <sys/poll.h>
 #include <arpa/inet.h>
 
-#ifdef __APPLE__
-#import <sctp/sctp.h>
-#include <sys/utsname.h>
-
-#define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
-#define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
-#else
-#include "netinet/sctp.h"
-#include "netinet/sctp_uio.h"
-#endif
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -37,7 +29,38 @@
 #include <netdb.h>
 #include <sys/utsname.h>
 
+#ifdef __APPLE__
+#import <sctp/sctp.h>
+#include <sys/utsname.h>
+
+#define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
+#define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
+#else
+#include "/usr/local/include/netinet/sctp.h"
+#endif
+
 static int _global_msg_notification_mask = 0;
+
+/* for some reason sctp_sndinfo is forgotten in /usr/include/netinet/sctp.h on Debian9 so we copied it from /usr/include/linux/sctp.h */
+#if !defined(sctp_sndinfo)
+
+/* 5.3.4 SCTP Send Information Structure (SCTP_SNDINFO)
+ *
+ *   This cmsghdr structure specifies SCTP options for sendmsg().
+ *
+ *   cmsg_level    cmsg_type      cmsg_data[]
+ *   ------------  ------------   -------------------
+ *   IPPROTO_SCTP  SCTP_SNDINFO   struct sctp_sndinfo
+ */
+struct sctp_sndinfo {
+	__u16 snd_sid;
+	__u16 snd_flags;
+	__u32 snd_ppid;
+	__u32 snd_context;
+	sctp_assoc_t snd_assoc_id;
+};
+
+#endif
 
 @implementation UMSocketSCTP
 
