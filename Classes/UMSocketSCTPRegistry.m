@@ -170,6 +170,7 @@
                 [_outgoingLayersByIpsAndPorts removeObjectForKey:key];
             }
         }
+        [_outgoingLayers removeObject:layer];
         [_lock unlock];
     }
 }

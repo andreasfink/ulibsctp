@@ -40,7 +40,7 @@
     NSArray         *_requestedRemoteAddresses;
     NSArray         *_connectedRemoteAddresses;
     int             _msg_notification_mask;
-    int             _heartbeatMs;
+    double          _heartbeatSeconds;
     NSTimeInterval  _connectionRepeatTimer;
 
     UMSocketSCTPListener *_listener;
@@ -60,7 +60,7 @@
 @property(readwrite,strong) NSArray        *requestedRemoteAddresses;
 @property(readwrite,strong) NSArray        *connectedRemoteAddresses;
 @property(readwrite,assign) int            msg_notification_mask;
-@property(readwrite,assign) int            heartbeatMs;
+@property(readwrite,assign) double            heartbeatSeconds;
 @property(readwrite,strong) id<UMSocketSCTP_notificationDelegate>   notificationDelegate;
 @property(readwrite,strong) id<UMSocketSCTP_dataDelegate>           dataDelegate;
 @property(readwrite,assign) BOOL            continuousConnectionAttempts;

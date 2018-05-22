@@ -60,7 +60,6 @@
 @synthesize active_remote_port;
 @synthesize isPassive;
 @synthesize defaultUser;
-@synthesize heartbeatMs;
 
 - (void)setLogLevel:(UMLogLevel )newLevel
 {
@@ -87,7 +86,7 @@
     {
         _sctpSocket = NULL;
         timeoutInMs = 2400;
-        heartbeatMs = 30000;
+        _heartbeatSeconds = 30.0;
         _users = [[UMSynchronizedArray alloc]init];
         self.status = SCTP_STATUS_OFF;
 
@@ -95,7 +94,8 @@
         _inboundThroughputBytes     = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
         _outboundThroughputPackets  = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
         _outboundThroughputBytes    = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
-
+        _reconnectTimerValue = 10.0;
+        _reconnectTimer = [[UMTimer alloc]initWithTarget:self selector:@selector(reconnectTimerFires) object:NULL seconds:_reconnectTimerValue name:@"reconnect-timer" repeats:NO];
     }
     return self;
 }
@@ -660,6 +660,7 @@
     [_sctpSocket close];
     _sctpSocket = NULL;
     self.status = SCTP_STATUS_OFF;
+    [_registry unregisterLayer:self];
 }
 
 - (void) powerdownInReceiverThread
@@ -674,6 +675,7 @@
     [_sctpSocket close];
     _sctpSocket = NULL;
     self.status = SCTP_STATUS_OFF;
+    [_registry unregisterLayer:self];
 }
 
 
@@ -899,6 +901,16 @@
         self.status=SCTP_STATUS_OFF;
         [self reportStatus];
         [self powerdownInReceiverThread];
+        [_reconnectTimer start];
+    }
+    else if(snp->sn_assoc_change.sac_state==SCTP_CANT_STR_ASSOC)
+    {
+        [logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_CANT_STR_ASSOC->OFF"];
+        self.status=SCTP_STATUS_OFF;
+        [self reportStatus];
+        [self powerdownInReceiverThread];
+        [_reconnectTimer start];
+
     }
     else if(snp->sn_assoc_change.sac_error!=0)
     {
@@ -1425,7 +1437,12 @@
     }
     if (cfg[@"heartbeat"])
     {
-        heartbeatMs = [cfg[@"heartbeat"] intValue];
+        _heartbeatSeconds = [cfg[@"heartbeat"] doubleValue];
+    }
+    if (cfg[@"reconnect-timer"])
+    {
+        _reconnectTimerValue = [cfg[@"reconnect-timer"] doubleValue];
+        _reconnectTimer.duration = (UMMicroSec) (_reconnectTimerValue * 1000000.0);
     }
 #ifdef ULIB_SCTP_DEBUG
     NSLog(@"configured_local_addresses=%@",configured_local_addresses);
@@ -1443,7 +1460,10 @@
     config[@"remote-ip"] = [configured_remote_addresses componentsJoinedByString:@" "];
     config[@"remote-port"] = @(configured_remote_port);
     config[@"passive"] = isPassive ? @YES : @ NO;
-    config[@"heartbeat"] = @(heartbeatMs);
+    config[@"heartbeat"] = @(_heartbeatSeconds);
+    config[@"reconnect-timer"] = @(_reconnectTimerValue);
+    config[@"heartbeat"] = @(_heartbeatSeconds);
+
     return config;
 }
 
@@ -1493,7 +1513,7 @@
     }
     d[@"is-passive"] = isPassive ? @(YES) : @(NO);
     d[@"poll-timeout-in-ms"] = @(timeoutInMs);
-    d[@"heartbeat-in-ms"] = @(heartbeatMs);
+    d[@"heartbeat"] = @(_heartbeatSeconds);
     return d;
 }
 
@@ -1527,7 +1547,12 @@
     _listener = NULL;
 }
 
+- (void)reconnectTimerFires
+{
+    [_reconnectTimer stop];
+    [ _sctpSocket connectSCTP];
+    [_registry registerLayer:self forAssoc:_sctpSocket.assocId];
+}
 
 
-
-    @end
+@end

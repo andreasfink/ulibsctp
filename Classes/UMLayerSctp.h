@@ -43,7 +43,7 @@
     int             active_remote_port;
     BOOL            isPassive;
     int             timeoutInMs; /* poll timeout in receiver thread . Default 400ms */
-    int             heartbeatMs;
+    NSTimeInterval  _heartbeatSeconds;
     UMThroughputCounter *_inboundThroughputPackets;
     UMThroughputCounter *_outboundThroughputPackets;
     UMThroughputCounter *_inboundThroughputBytes;
@@ -54,6 +54,8 @@
     UMSocketSCTPRegistry *_registry;
     UMSocketSCTPListener *_listener;
     BOOL    _listenerStarted;
+    UMTimer          *_reconnectTimer;
+    NSTimeInterval  _reconnectTimerValue;
 }
 
 @property(readwrite,strong) UMSocketSCTP    *sctpSocket;
@@ -76,7 +78,7 @@
 
 @property(readwrite,assign) BOOL            isPassive;
 @property(readwrite,strong) UMLayerSctpUser *defaultUser;
-@property(readwrite,assign) int             heartbeatMs;
+@property(readwrite,assign) NSTimeInterval  heartbeatSeconds;
 
 @property(readwrite,strong,atomic)      UMThroughputCounter *inboundThroughputPackets;
 @property(readwrite,strong,atomic)      UMThroughputCounter *inboundThroughputBytes;
