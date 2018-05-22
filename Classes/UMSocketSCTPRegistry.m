@@ -138,6 +138,9 @@
                 _outgoingLayersByIpsAndPorts[key] = layer;
             }
         }
+
+        [_outgoingLayers removeObject:layer];
+        [_outgoingLayers addObject:layer];
         [_lock unlock];
     }
 }
