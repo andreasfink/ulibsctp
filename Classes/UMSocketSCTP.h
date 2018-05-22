@@ -14,7 +14,7 @@
 #ifdef __APPLE__
 #import <sctp/sctp.h>
 #else
-#include "netinet/sctp.h"
+#include "/usr/local/include/netinet/sctp.h"
 #endif
 
 @class UMSocketSCTPListener;
