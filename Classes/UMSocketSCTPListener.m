@@ -123,6 +123,18 @@
             {
                 [self logDebug:[NSString stringWithFormat:@"%@:  enableEvents successful",_name]];
             }
+
+            err = [_umsocket enableFutureAssoc];
+            if(err!=UMSocketError_no_error)
+            {
+                [self logMinorError:[NSString stringWithFormat:@"can not enableFutureAssocon %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
+                return;
+            }
+            else
+            {
+                [self logDebug:[NSString stringWithFormat:@"%@:  enableFutureAssoc successful",_name]];
+            }
+
             err = [_umsocket bind];
             if(err!=UMSocketError_no_error)
             {

@@ -70,6 +70,8 @@
 - (NSNumber *)assocId;
 - (UMSocketError) bind;
 - (UMSocketError) enableEvents;
+- (UMSocketError) enableFutureAssoc;
+
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret;
 - (UMSocketError) connectSCTP;
 - (ssize_t)sendSCTP:(NSData *)data

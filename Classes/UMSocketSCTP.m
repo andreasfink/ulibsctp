@@ -24,8 +24,8 @@
 
 #define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
 #define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
-#define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
-#define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
+//#define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
+//#define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
 
 #else
 #include <netinet/sctp.h>
@@ -64,21 +64,21 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     {
         case UMSOCKET_TYPE_SCTP4ONLY:
             _socketFamily=AF_INET;
-            _socketType = SOCK_STREAM;
+            _socketType = SOCK_SEQPACKET;
             _socketProto = IPPROTO_SCTP;
             _sock = socket(_socketFamily,_socketType, _socketProto);
             TRACK_FILE_SOCKET(_sock,@"sctp");
             break;
         case UMSOCKET_TYPE_SCTP6ONLY:
             _socketFamily=AF_INET6;
-            _socketType = SOCK_STREAM;
+            _socketType = SOCK_SEQPACKET;
             _socketProto = IPPROTO_SCTP;
             _sock = socket(_socketFamily,_socketType, _socketProto);
             TRACK_FILE_SOCKET(_sock,@"sctp");
             break;
         case UMSOCKET_TYPE_SCTP:
             _socketFamily=AF_INET6;
-            _socketType = SOCK_STREAM;
+            _socketType = SOCK_SEQPACKET;
             _socketProto = IPPROTO_SCTP;
             _sock = socket(_socketFamily,_socketType, _socketProto);
             TRACK_FILE_SOCKET(_sock,@"sctp");
@@ -491,8 +491,25 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #endif
     if(setsockopt(_sock, IPPROTO_SCTP, SCTP_EVENTS, &event, sizeof(event)) != 0)
     {
-        /* FIXME: use errno for proper return */
-        return UMSocketError_not_supported_operation;
+        return [UMSocket umerrFromErrno:errno];
+    }
+    return UMSocketError_no_error;
+
+}
+
+
+- (UMSocketError) enableFutureAssoc
+{
+    struct sctp_event event;
+
+    /* Enable the events of interest. */
+    memset(&event, 0, sizeof(event));
+    event.se_assoc_id = SCTP_FUTURE_ASSOC;
+    event.se_on = 1;
+    event.se_type = SCTP_ADAPTATION_INDICATION;
+    if (setsockopt(_sock, IPPROTO_SCTP, SCTP_EVENT, &event, sizeof(event)) < 0)
+    {
+        return [UMSocket umerrFromErrno:errno];
     }
     return UMSocketError_no_error;
 
@@ -757,7 +774,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     UMSocketSCTPReceivedPacket *rx = [[UMSocketSCTPReceivedPacket alloc]init];
 
-#ifdef ULIBSCTP_SCTP_RECVV_SUPPORTED
+#if defined(ULIBSCTP_SCTP_RECVV_SUPPORTED)
 
     struct sctp_rcvinfo     rinfo;
     socklen_t               rinfo_len;
@@ -790,6 +807,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #else
 
     struct sctp_sndrcvinfo sinfo;
+    sinfo.sinfo_assoc_id = SCTP_ALL_ASSOC;
     memset(&sinfo,0x00,sizeof(struct sctp_sndrcvinfo));
     bytes_read = sctp_recvmsg(_sock,
                          &buffer,
