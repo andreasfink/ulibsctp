@@ -790,7 +790,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                          &sinfo,
                          &flags);
 
-    streamId = sinfo.sinfo_stream:
+    streamId = sinfo.sinfo_stream;
     protocolId = ntohl(sinfo.sinfo_ppid);
     context = sinfo.sinfo_context;
     assoc = sinfo.sinfo_assoc_id;
