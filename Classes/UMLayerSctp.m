@@ -901,6 +901,13 @@
         self.status=SCTP_STATUS_OFF;
         [self reportStatus];
         [self powerdownInReceiverThread];
+#if (ULIBSCTP_CONFIG==Debug)
+        if(logLevel <= UMLOG_DEBUG)
+        {
+            [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",(_reconnectTimer.duration / 1000000.0)]];
+        }
+#endif
+
         [_reconnectTimer start];
     }
     else if(snp->sn_assoc_change.sac_state==SCTP_CANT_STR_ASSOC)
@@ -909,6 +916,12 @@
         self.status=SCTP_STATUS_OFF;
         [self reportStatus];
         [self powerdownInReceiverThread];
+#if (ULIBSCTP_CONFIG==Debug)
+        if(logLevel <= UMLOG_DEBUG)
+        {
+            [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",(_reconnectTimer.duration / 1000000.0)]];
+        }
+#endif
         [_reconnectTimer start];
 
     }
@@ -917,6 +930,13 @@
         [logFeed majorError:snp->sn_assoc_change.sac_error withText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)->OFF"];
         self.status=SCTP_STATUS_OFF;
         [self powerdownInReceiverThread];
+#if (ULIBSCTP_CONFIG==Debug)
+        if(logLevel <= UMLOG_DEBUG)
+        {
+            [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",(_reconnectTimer.duration / 1000000.0)]];
+        }
+#endif
+
     }
 }
 
@@ -1549,6 +1569,12 @@
 
 - (void)reconnectTimerFires
 {
+#if (ULIBSCTP_CONFIG==Debug)
+    if(logLevel <= UMLOG_DEBUG)
+    {
+        [self logDebug:@"reconnectTimerFires"];
+    }
+#endif
     [_reconnectTimer stop];
     [ _sctpSocket connectSCTP];
     [_registry registerLayer:self forAssoc:_sctpSocket.assocId];
