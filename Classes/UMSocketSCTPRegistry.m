@@ -68,11 +68,63 @@
     if(e == NULL)
     {
         e = [[UMSocketSCTPListener alloc]initWithPort:port localIpAddresses:ips];
+        e.registry = self;
         _entries[key]=e;
         [_incomingListeners addObject:e];
     }
     [_lock unlock];
     return e;
+}
+
+
+- (NSString *)description
+{
+    NSMutableString *s = [[NSMutableString alloc]init];
+    [s appendFormat:@"-----------------------------------------------------------\n"];
+    [s appendFormat:@"UMSocketSCTPRegistry %p\n",self];
+    NSArray *arr = _entries.allKeys;
+
+    [s appendFormat:@".entries: %d entries]\n",(int)arr.count];
+    for(NSString *key in arr)
+    {
+        [s appendFormat:@"  [%@]\n",key];
+    }
+
+    arr = _assocs.allKeys;
+    [s appendFormat:@".assoc: %d entries]\n",(int)arr.count];
+    for(NSString *key in arr)
+    {
+        [s appendFormat:@"  [%@]\n",key];
+    }
+
+    [s appendFormat:@".outgoingLayers: %d entries]\n",(int)_outgoingLayers.count];
+    for(UMLayerSctp *layer in _outgoingLayers)
+    {
+        [s appendFormat:@"  [%@]\n",layer.layerName];
+    }
+
+    [s appendFormat:@".incomingListeners: %d entries]\n",(int)_incomingListeners.count];
+    for(UMSocketSCTPListener *listener in _incomingListeners)
+    {
+        [s appendFormat:@"  [%@]\n",listener.name];
+    }
+
+    [s appendFormat:@".outgoingLayersByIpsAndPorts: %d entries]\n",(int)_outgoingLayersByIpsAndPorts.count];
+    arr = _outgoingLayersByIpsAndPorts.allKeys;
+    for(NSString *key in arr)
+    {
+        [s appendFormat:@"  [%@]\n",key];
+    }
+
+
+    [s appendFormat:@".outgoingLayersByAssoc: %d entries]\n",(int)_outgoingLayersByAssoc.count];
+    arr = _outgoingLayersByAssoc.allKeys;
+    for(NSNumber *key in arr)
+    {
+        [s appendFormat:@"  [%@]\n",key];
+    }
+    [s appendFormat:@"-----------------------------------------------------------\n"];
+    return s;
 }
 
 - (void)unregisterListener:(UMSocketSCTPListener *)e

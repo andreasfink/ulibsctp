@@ -190,6 +190,9 @@
     {
         if(rx.assocId)
         {
+#if (ULIBSCTP_CONFIG==Debug)
+            NSLog(@"Lookign into registry: %@",_registry);
+#endif
             UMLayerSctp *layer =  [_registry layerForAssoc:rx.assocId];
             if(layer)
             {
