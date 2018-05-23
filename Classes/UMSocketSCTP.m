@@ -809,7 +809,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #else
 
     struct sctp_sndrcvinfo sinfo;
+#if defined(SCTP_FUTURE_ASSOC)
     sinfo.sinfo_assoc_id = SCTP_FUTURE_ASSOC;
+#endif
     memset(&sinfo,0x00,sizeof(struct sctp_sndrcvinfo));
     bytes_read = sctp_recvmsg(_sock,
                          &buffer,
