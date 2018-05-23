@@ -183,7 +183,9 @@
 
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx
 {
-    /* we need to find the right layer to handle this */
+#if (ULIBSCTP_CONFIG==Debug)
+    NSLog(@"Processing received data: \n%@",rx);
+#endif
     if(rx.err == UMSocketError_no_error)
     {
         if(rx.assocId)
