@@ -893,6 +893,7 @@
     {
         [logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS"];
         self.status=SCTP_STATUS_IS;
+        [_reconnectTimer stop];
         [self reportStatus];
     }
     else if(snp->sn_assoc_change.sac_state==SCTP_COMM_LOST)
