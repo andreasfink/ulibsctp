@@ -163,16 +163,18 @@
 
 - (void)registerLayer:(UMLayerSctp *)layer forAssoc:(NSNumber *)assocId;
 {
-    if(layer && assocId)
+    if(layer)
     {
+
         [_lock lock];
-        
+
         if(assocId)
         {
+            /* an active outbound connection */
             _assocs[assocId] = layer;
         }
         /* we register every local IP / remote IP pair combination */
-        
+
         NSArray *localAddrs = layer.configured_local_addresses;
         NSArray *remoteAddrs = layer.configured_remote_addresses;
         for(NSString *localAddr in localAddrs)
