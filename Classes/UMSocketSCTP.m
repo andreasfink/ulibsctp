@@ -743,7 +743,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 
 #define SCTP_RXBUF 10240
-#define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
+
 - (UMSocketSCTPReceivedPacket *)receiveSCTP
 {
     struct sockaddr_in6     remote_address6;
@@ -826,6 +826,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     if(bytes_read <= 0)
     {
+        NSLog(@"errno %d %s",errno,strerror(errno));
         rx.err = [UMSocket umerrFromErrno:errno];
     }
     else
