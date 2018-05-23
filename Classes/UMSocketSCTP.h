@@ -46,9 +46,6 @@
     UMSocketSCTPListener *_listener;
     BOOL            _continuousConnectionAttempts;
     
-    struct sockaddr     *_remote_addresses;
-    int                 _remote_addresses_count;
-    BOOL                _remote_addresses_prepared;
     struct sockaddr     *_local_addresses;
     int                 _local_addresses_count;
     BOOL                _local_addresses_prepared;
@@ -73,7 +70,7 @@
 - (UMSocketError) enableFutureAssoc;
 
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret;
-- (UMSocketError) connectSCTP;
+//- (UMSocketError) connectSCTP;
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs port:(int)port assoc:(sctp_assoc_t *)assoc;
 - (ssize_t) sendToAddresses:(NSArray *)addrs

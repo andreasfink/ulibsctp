@@ -137,11 +137,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (void)dealloc
 {
-    if(_remote_addresses)
-    {
-        free(_remote_addresses);
-        _remote_addresses=NULL;
-    }
     if(_local_addresses)
     {
         free(_local_addresses);
@@ -150,113 +145,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 }
 
 
-- (void)prepareRemoteAddresses
-{
-    if(_remote_addresses_prepared)
-    {
-        return;
-    }
-    struct sockaddr_in6 *remote_addresses6;
-    struct sockaddr_in *remote_addresses4;
-    
-    int count = (int)_requestedRemoteAddresses.count;
-    
-    int j=0;
-    if(_socketFamily==AF_INET6)
-    {
-        remote_addresses6 = calloc(count,sizeof(struct sockaddr_in6));
-        for(int i=0;i<count;i++)
-        {
-            NSString *address = [_requestedRemoteAddresses objectAtIndex:i];
-            NSString *address2 = [UMSocket deunifyIp:address];
-            if(address2.length>0)
-            {
-                address = address2;
-            }
-            if([address isIPv4])
-            {
-                /* we have a IPV6 socket but the remote addres is in IPV4 format so we must use the IPv6 representation of it */
-                address =[NSString stringWithFormat:@"::ffff:%@",address];
-            }
-            int result = inet_pton(AF_INET6,address.UTF8String, &remote_addresses6[j].sin6_addr);
-            if(result==1)
-            {
-#ifdef HAVE_SOCKADDR_SIN_LEN
-                remote_addresses6[i].sin6_len = sizeof(struct sockaddr_in6);
-#endif
-                remote_addresses6[j].sin6_family = AF_INET6;
-                remote_addresses6[j].sin6_port = htons(requestedRemotePort);
-                j++;
-            }
-            else
-            {
-                NSLog(@"%@ is not a valid IP address. skipped ",address);
-            }
-        }
-        _remote_addresses_count = j;
-        if(_remote_addresses)
-        {
-            free(_remote_addresses);
-            _remote_addresses = NULL;
-        }
-        if(j==0)
-        {
-            NSLog(@"no valid local IP addresses found");
-            free(remote_addresses6);
-        }
-        else
-        {
-            if(j<count)
-            {
-                remote_addresses6 = realloc(remote_addresses6,sizeof(struct sockaddr_in6)*j);
-            }
-            _remote_addresses = (struct sockaddr *)remote_addresses6;
-            _remote_addresses_prepared=YES;
-        }
-    }
-    else if(_socketFamily==AF_INET)
-    {
-        remote_addresses4 = calloc(count,sizeof(struct sockaddr_in));
-        for(int i=0;i<count;i++)
-        {
-            NSString *address = [_requestedRemoteAddresses objectAtIndex:i];
-            NSString *address2 = [UMSocket deunifyIp:address];
-            if(address2.length>0)
-            {
-                address = address2;
-            }
-            int result = inet_pton(AF_INET,address.UTF8String, &remote_addresses4[j].sin_addr);
-            if(result==1)
-            {
-#ifdef HAVE_SOCKADDR_SIN_LEN
-                remote_addresses4[i].sin_len = sizeof(struct sockaddr_in);
-#endif
-                remote_addresses4[j].sin_family = AF_INET;
-                remote_addresses4[j].sin_port = htons(requestedRemotePort);
-                j++;
-            }
-            else
-            {
-                NSLog(@"'%@' is not a valid IP address. skipped ",address);
-            }
-        }
-        _remote_addresses_count = j;
-        if(j==0)
-        {
-            NSLog(@"no valid local IPv4 addresses found");
-            free(remote_addresses4);
-        }
-        else
-        {
-            if(j<count)
-            {
-                remote_addresses4 = realloc(remote_addresses4,sizeof(struct sockaddr_in)*j);
-            }
-            _remote_addresses = (struct sockaddr *)remote_addresses4;
-            _remote_addresses_prepared=YES;
-        }
-    }
-}
+
 
 - (void)prepareLocalAddresses
 {
@@ -552,6 +441,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     return @(assoc);
 }
 
+#if 0
 - (UMSocketError) connectSCTP
 {
     /**********************/
@@ -588,6 +478,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
     return returnValue;
 }
+#endif
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs port:(int)port assoc:(sctp_assoc_t *)assoc
 {
@@ -636,7 +527,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         }
         else
         {
-            remote_addresses46 = (struct sockaddr *)remote_addresses6;
             if(j<count)
             {
                 remote_addresses6 = realloc(remote_addresses6,sizeof(struct sockaddr_in6)*j);
@@ -702,7 +592,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         NSLog(@"calling sctp_connectx");
 #endif
         memset(assoc,0,sizeof(sctp_assoc_t));
-        int err =  sctp_connectx(_sock,_remote_addresses,_remote_addresses_count,assoc);
+        int err =  sctp_connectx(_sock,remote_addresses46,count,assoc);
 #if (ULIBSCTP_CONFIG==Debug)
         NSLog(@"sctp_connectx: returns %d. errno = %d %s",err,errno,strerror(errno));
 #endif
