@@ -500,6 +500,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (UMSocketError) enableFutureAssoc
 {
+#ifdef __APPLE__
     struct sctp_event event;
 
     /* Enable the events of interest. */
@@ -511,6 +512,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     {
         return [UMSocket umerrFromErrno:errno];
     }
+#endif
     return UMSocketError_no_error;
 
 }
