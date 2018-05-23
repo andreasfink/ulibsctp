@@ -79,15 +79,13 @@
     [_lock lock];
     //NSArray *outboundLayers = [_registry allOutboundLayers];
     NSArray *listeners = [_registry allListeners];
+    NSUInteger listeners_count = listeners.count;
+
     [_lock unlock];
 
-    //NSUInteger outboundCount = outboundLayers.count;
-    NSUInteger inboundCount = listeners.count;
-    NSUInteger socketCount =/*outboundCount*/ + inboundCount;
-
-    struct pollfd *pollfds = calloc(socketCount,sizeof(struct pollfd));
+    struct pollfd *pollfds = calloc(listeners_count+1,sizeof(struct pollfd));
     NSAssert(pollfds !=0,@"can not allocate memory for poll()");
-    memset(pollfds, 0x00,socketCount  * sizeof(struct pollfd));
+    memset(pollfds, 0x00,listeners_count+1  * sizeof(struct pollfd));
 
     int events = POLLIN | POLLPRI | POLLERR | POLLHUP | POLLNVAL;
 
@@ -99,22 +97,15 @@
     events |= POLLRDHUP;
 #endif
     nfds_t j=0;
-#if 0
-    for(NSUInteger i=0;i<outboundCount;i++)
-    {
-        UMLayerSctp *outbound = outboundLayers[i];
-        pollfds[j].fd = outbound.sctpSocket.fileDescriptor;
-        pollfds[j].events = events;
-        j++;
-    }
-#endif
-    for(NSUInteger i=0;i<inboundCount;i++)
+
+    for(NSUInteger i=0;i<listeners_count;i++)
     {
         UMSocketSCTPListener *listener = listeners[i];
         pollfds[j].fd = listener.umsocket.fileDescriptor;
         pollfds[j].events = events;
         j++;
     }
+    /* we could add a wakeup pipe here if we want */
 
     int ret1 = poll(pollfds, j, _timeoutInMs);
     
@@ -146,22 +137,9 @@
         UMSocketSCTP *socket = NULL;
         for(int i=0;i<j;i++)
         {
-            int isListener = 0;
-            /*
-            if(i<outboundCount)
-            {
-                outbound = outboundLayers[i];
-                listener = NULL;
-                socket = outbound.sctpSocket;
-            }
-            else
-            {
-                outbound = NULL;*/
-                listener = listeners[i /* -outboundCount */];
-                socket = listener.umsocket;
-                isListener = 1;
-            //}
-            
+            listener = listeners[i];
+            socket = listener.umsocket;
+
             int revent = pollfds[i].revents;
             int revent_error = UMSocketError_no_error;
             int revent_hup = 0;
@@ -199,40 +177,15 @@
             if(revent_has_data)
             {
                 UMSocketSCTPReceivedPacket *rx = [socket receiveSCTP];
-                /*
-                if(outbound)
-                {
-                    [outbound processReceivedData:rx];
-                }
-                else if(listener)
-                {*/
-                    [listener processReceivedData:rx];
-                //}
+                [listener processReceivedData:rx];
             }
             if(revent_hup)
-            {/*
-                if(outbound)
-                {
-                    [outbound processHangUp];
-                }
-                else if(listener)
-                {*/
-                    [listener processHangUp];
-                //}
+            {
+                [listener processHangUp];
             }
             if(revent_invalid)
             {
-                /*
-                if(outbound)
-                {
-                    
-                    [outbound processInvalidSocket];
-                }
-                else if(listener)
-                {*/
-                    [listener processInvalidSocket];
-                //}
-
+                [listener processInvalidSocket];
             }
         }
     }
