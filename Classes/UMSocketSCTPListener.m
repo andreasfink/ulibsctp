@@ -168,10 +168,8 @@
     _listeningCount--;
     if(_listeningCount<=0)
     {
-        if(_umsocket)
-        {
-            [_umsocket close];
-        }
+        [_registry unregisterListener:self];
+        [_umsocket close];
         _umsocket=NULL;
         _listeningCount = 0;
     }

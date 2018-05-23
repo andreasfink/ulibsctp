@@ -85,9 +85,6 @@
 }
 
 
-
-
-
 - (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId
 {
     [_lock lock];
