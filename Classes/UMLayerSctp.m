@@ -811,9 +811,11 @@
         case SCTP_ADAPTATION_INDICATION:
             [self handleAdaptionIndication:event streamId:streamId protocolId:protocolId];
             break;
+#if defined SCTP_AUTHENTICATION_EVENT
         case SCTP_AUTHENTICATION_EVENT:
             [self handleAuthenticationEvent:event streamId:streamId protocolId:protocolId];
             break;
+#endif
         case SCTP_SENDER_DRY_EVENT:
             [self handleSenderDryEvent:event streamId:streamId protocolId:protocolId];
             break;
