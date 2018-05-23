@@ -664,7 +664,6 @@
     [_sctpSocket close];
     _sctpSocket = NULL;
     self.status = SCTP_STATUS_OFF;
-    [_registry unregisterLayer:self];
 }
 
 - (void) powerdownInReceiverThread
@@ -679,7 +678,6 @@
     [_sctpSocket close];
     _sctpSocket = NULL;
     self.status = SCTP_STATUS_OFF;
-    [_registry unregisterLayer:self];
 }
 
 
