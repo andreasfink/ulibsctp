@@ -28,7 +28,7 @@
 
 @interface UMLayerSctp : UMLayer
 {
-    UMSocketSCTP    *_sctpSocket;
+    //UMSocketSCTP    *_sctpSocket;
     UMSynchronizedArray *_users;
     
     SCTP_Status     _status;
@@ -56,10 +56,11 @@
     BOOL    _listenerStarted;
     UMTimer          *_reconnectTimer;
     NSTimeInterval  _reconnectTimerValue;
+    NSNumber        *_assocId;
 }
 
-@property(readwrite,strong) UMSocketSCTP    *sctpSocket;
-
+//@property(readwrite,strong) UMSocketSCTP    *sctpSocket;
+@property(readwrite,strong) NSNumber          *assocId;
 @property(readwrite,strong) NSDate          *startButtonPressed;
 @property(readwrite,strong) NSDate          *stopButtonPressed;
 
@@ -86,6 +87,7 @@
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputBytes;
 @property(readwrite,strong) UMSocketSCTPRegistry *registry;
 @property(readwrite,strong) UMSocketSCTPListener *listener;
+@property(readwrite,assign) sctp_assoc_t        assoc;
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq;
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name;
@@ -133,12 +135,6 @@
 - (void)powerdown;
 - (void) powerdownInReceiverThread;
 - (void)reportStatus;
-- (void)setNonBlocking;
-- (void)setBlocking;
-- (void)receiveData;
-- (UMSocketError) dataIsAvailableSCTP:(int *)hasData
-                               hangup:(int *)hasHup;
-
 #pragma mark -
 #pragma mark Config Handling
 - (void)setConfig:(NSDictionary *)cfg applicationContext:(id<UMLayerSctpApplicationContextProtocol>)appContext;

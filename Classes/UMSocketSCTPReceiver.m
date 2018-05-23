@@ -77,13 +77,13 @@
     UMSocketError returnValue = UMSocketError_generic_error;
     
     [_lock lock];
-    NSArray *outboundLayers = [_registry allOutboundLayers];
+    //NSArray *outboundLayers = [_registry allOutboundLayers];
     NSArray *listeners = [_registry allListeners];
     [_lock unlock];
 
-    NSUInteger outboundCount = outboundLayers.count;
+    //NSUInteger outboundCount = outboundLayers.count;
     NSUInteger inboundCount = listeners.count;
-    NSUInteger socketCount = outboundCount + inboundCount;
+    NSUInteger socketCount =/*outboundCount*/ + inboundCount;
 
     struct pollfd *pollfds = calloc(socketCount,sizeof(struct pollfd));
     NSAssert(pollfds !=0,@"can not allocate memory for poll()");
@@ -99,6 +99,7 @@
     events |= POLLRDHUP;
 #endif
     nfds_t j=0;
+#if 0
     for(NSUInteger i=0;i<outboundCount;i++)
     {
         UMLayerSctp *outbound = outboundLayers[i];
@@ -106,7 +107,7 @@
         pollfds[j].events = events;
         j++;
     }
-
+#endif
     for(NSUInteger i=0;i<inboundCount;i++)
     {
         UMSocketSCTPListener *listener = listeners[i];
@@ -140,12 +141,13 @@
     {
         /* we have some event to handle. */
 
-        UMLayerSctp *outbound = NULL;
+//        UMLayerSctp *outbound = NULL;
         UMSocketSCTPListener *listener = NULL;
         UMSocketSCTP *socket = NULL;
         for(int i=0;i<j;i++)
         {
             int isListener = 0;
+            /*
             if(i<outboundCount)
             {
                 outbound = outboundLayers[i];
@@ -154,11 +156,11 @@
             }
             else
             {
-                outbound = NULL;
-                listener = listeners[i-outboundCount];
+                outbound = NULL;*/
+                listener = listeners[i /* -outboundCount */];
                 socket = listener.umsocket;
                 isListener = 1;
-            }
+            //}
             
             int revent = pollfds[i].revents;
             int revent_error = UMSocketError_no_error;
@@ -197,38 +199,39 @@
             if(revent_has_data)
             {
                 UMSocketSCTPReceivedPacket *rx = [socket receiveSCTP];
+                /*
                 if(outbound)
                 {
                     [outbound processReceivedData:rx];
                 }
                 else if(listener)
-                {
+                {*/
                     [listener processReceivedData:rx];
-                }
+                //}
             }
             if(revent_hup)
-            {
+            {/*
                 if(outbound)
                 {
-
                     [outbound processHangUp];
                 }
                 else if(listener)
-                {
+                {*/
                     [listener processHangUp];
-                }
+                //}
             }
             if(revent_invalid)
             {
+                /*
                 if(outbound)
                 {
                     
                     [outbound processInvalidSocket];
                 }
                 else if(listener)
-                {
+                {*/
                     [listener processInvalidSocket];
-                }
+                //}
 
             }
         }

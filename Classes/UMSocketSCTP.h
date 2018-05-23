@@ -74,10 +74,21 @@
 
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret;
 - (UMSocketError) connectSCTP;
+
+- (UMSocketError) connectToAddresses:(NSArray *)addrs port:(int)port assoc:(sctp_assoc_t *)assoc;
+- (ssize_t) sendToAddresses:(NSArray *)addrs
+                       port:(int)port
+                      assoc:(sctp_assoc_t *)assoc
+                       data:(NSData *)data
+                     stream:(uint16_t)streamId
+                   protocol:(u_int32_t)protocolId
+                      error:(UMSocketError *)err2;
+/*
 - (ssize_t)sendSCTP:(NSData *)data
              stream:(uint16_t)streamId
            protocol:(u_int32_t)protocolId
               error:(UMSocketError *)err;
+ */
 - (UMSocketSCTPReceivedPacket *)receiveSCTP;
 
 - (UMSocketError) dataIsAvailableSCTP:(int)timeoutInMs

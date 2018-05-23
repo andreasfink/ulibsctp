@@ -206,9 +206,9 @@
     if(layer)
     {
         [_lock lock];
-        if(layer.sctpSocket.assocId)
+        if(layer.assocId)
         {
-            [_assocs removeObjectForKey:layer.sctpSocket.assocId];
+            [_assocs removeObjectForKey:layer.assocId];
         }
         /* we unregister every local IP / remote IP pair combination */
         

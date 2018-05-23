@@ -233,4 +233,10 @@
 {
 }
 
+
+- (UMSocketError) connectToAddresses:(NSArray *)addrs port:(int)port assoc:(sctp_assoc_t *)assocptr
+{
+    UMSocketError err = [_umsocket connectToAddresses:addrs port:port assoc:assocptr];
+    return err;
+}
 @end

@@ -589,6 +589,140 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     return returnValue;
 }
 
+- (UMSocketError) connectToAddresses:(NSArray *)addrs port:(int)port assoc:(sctp_assoc_t *)assoc
+{
+    struct sockaddr_in6 *remote_addresses6;
+    struct sockaddr_in *remote_addresses4;
+    struct sockaddr *remote_addresses46 = NULL;
+    int count = (int)addrs.count;
+
+    int j=0;
+    if(_socketFamily==AF_INET6)
+    {
+        remote_addresses6 = calloc(count,sizeof(struct sockaddr_in6));
+        for(int i=0;i<count;i++)
+        {
+            NSString *address = [addrs objectAtIndex:i];
+            NSString *address2 = [UMSocket deunifyIp:address];
+            if(address2.length>0)
+            {
+                address = address2;
+            }
+            if([address isIPv4])
+            {
+                /* we have a IPV6 socket but the remote addres is in IPV4 format so we must use the IPv6 representation of it */
+                address =[NSString stringWithFormat:@"::ffff:%@",address];
+            }
+            int result = inet_pton(AF_INET6,address.UTF8String, &remote_addresses6[j].sin6_addr);
+            if(result==1)
+            {
+#ifdef HAVE_SOCKADDR_SIN_LEN
+                remote_addresses6[i].sin6_len = sizeof(struct sockaddr_in6);
+#endif
+                remote_addresses6[j].sin6_family = AF_INET6;
+                remote_addresses6[j].sin6_port = htons(port);
+                j++;
+            }
+            else
+            {
+                NSLog(@"%@ is not a valid IP address. skipped ",address);
+            }
+        }
+        if(j==0)
+        {
+            NSLog(@"no valid local IP addresses found");
+            free(remote_addresses6);
+            remote_addresses6 = NULL;
+        }
+        else
+        {
+            remote_addresses46 = (struct sockaddr *)remote_addresses6;
+            if(j<count)
+            {
+                remote_addresses6 = realloc(remote_addresses6,sizeof(struct sockaddr_in6)*j);
+                count = j;
+            }
+            remote_addresses46 = (struct sockaddr *)remote_addresses6;
+        }
+    }
+    else if(_socketFamily==AF_INET)
+    {
+        remote_addresses4 = calloc(count,sizeof(struct sockaddr_in));
+        for(int i=0;i<count;i++)
+        {
+            NSString *address = [_requestedRemoteAddresses objectAtIndex:i];
+            NSString *address2 = [UMSocket deunifyIp:address];
+            if(address2.length>0)
+            {
+                address = address2;
+            }
+            int result = inet_pton(AF_INET,address.UTF8String, &remote_addresses4[j].sin_addr);
+            if(result==1)
+            {
+#ifdef HAVE_SOCKADDR_SIN_LEN
+                remote_addresses4[i].sin_len = sizeof(struct sockaddr_in);
+#endif
+                remote_addresses4[j].sin_family = AF_INET;
+                remote_addresses4[j].sin_port = htons(port);
+                j++;
+            }
+            else
+            {
+                NSLog(@"'%@' is not a valid IP address. skipped ",address);
+            }
+        }
+        if(j==0)
+        {
+            NSLog(@"no valid local IPv4 addresses found");
+            free(remote_addresses4);
+        }
+        else
+        {
+            if(j<count)
+            {
+                remote_addresses4 = realloc(remote_addresses4,sizeof(struct sockaddr_in)*j);
+                count = j;
+            }
+            remote_addresses46 = (struct sockaddr *)remote_addresses4;
+        }
+    }
+
+    /**********************/
+    /* CONNECTX           */
+    /**********************/
+    UMSocketError returnValue = UMSocketError_no_error;
+
+    if(count<1)
+    {
+        returnValue = UMSocketError_address_not_available;
+    }
+    else
+    {
+#if (ULIBSCTP_CONFIG==Debug)
+        NSLog(@"calling sctp_connectx");
+#endif
+        memset(assoc,0,sizeof(sctp_assoc_t));
+        int err =  sctp_connectx(_sock,_remote_addresses,_remote_addresses_count,assoc);
+#if (ULIBSCTP_CONFIG==Debug)
+        NSLog(@"sctp_connectx: returns %d. errno = %d %s",err,errno,strerror(errno));
+#endif
+        if (err < 0)
+        {
+            returnValue = [UMSocket umerrFromErrno:errno];
+        }
+        else
+        {
+            returnValue = UMSocketError_no_error;
+        }
+    }
+    if(remote_addresses46)
+    {
+        free(remote_addresses46);
+        remote_addresses46=NULL;
+    }
+    return returnValue;
+}
+
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret
 {
     [_controlLock lock];
@@ -690,7 +824,107 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 }
 
 
+- (ssize_t) sendToAddresses:(NSArray *)addrs
+                       port:(int)port
+                      assoc:(sctp_assoc_t *)assocptr
+                       data:(NSData *)data
+                     stream:(uint16_t)streamId
+                   protocol:(u_int32_t)protocolId
+                      error:(UMSocketError *)err2
+{
+    UMSocketError err = UMSocketError_no_error;
+    ssize_t sp = 0;
+    if(data == NULL)
+    {
+        if(err2)
+        {
+            *err2 = UMSocketError_no_data;
+        }
+        return -1;
+    }
+    if(*assocptr==0)
+    {
+        err = [self connectToAddresses:addrs
+                                  port:port
+                                 assoc:assocptr];
+        if((err != UMSocketError_no_error) && (err != UMSocketError_in_progress))
+        {
+            if(err2)
+            {
+                *err2 = err;
+            }
+            return -1;
+        }
+    }
+    if (*assocptr==0)
+    {
+        if(err2)
+        {
+            *err2 = UMSocketError_address_not_available;
+        }
+        return -1;
+    }
 
+
+#ifdef ULIBSCTP_SCTP_SENDV_SUPPORTED
+    struct iovec iov[1];
+    iov[0].iov_base = (void *)data.bytes;
+    iov[0].iov_len = data.length;
+    int iovcnt = 1;
+
+    struct sctp_sndinfo  send_info;
+    memset(&send_info,0x00,sizeof(struct sctp_sndinfo));
+    send_info.snd_sid = streamId;
+    send_info.snd_flags = 0;
+    send_info.snd_ppid = htonl(protocolId);
+    send_info.snd_context = 0;
+    send_info.snd_assoc_id = *assocptr;
+    int flags = 0;
+    sp = sctp_sendv(_sock,
+                    iov,
+                    iovcnt,
+                    remote_addresses46,
+                    count,
+                    &send_info,
+                    sizeof(struct sctp_sndinfo),
+                    SCTP_SENDV_SNDINFO,
+                    flags);
+#else
+    struct sctp_sndrcvinfo sinfo;
+    memset(&sinfo,0x00,sizeof(struct sctp_sndrcvinfo));
+
+    sinfo.sinfo_stream = streamId;
+    sinfo.sinfo_flags = 0;
+    sinfo.sinfo_ppid = htonl(protocolId);
+    sinfo.sinfo_context = 0;
+    sinfo.sinfo_timetolive = 2000;
+    sinfo.sinfo_assoc_id = *assocptr;
+    int flags=0;
+    sp = sctp_send(_sock,
+                   (const void *)data.bytes,
+                   data.length,
+                   &sinfo,
+                   flags);
+#endif
+
+    if(sp<0)
+    {
+        err = [UMSocket umerrFromErrno:errno];
+    }
+    else if(sp==0)
+    {
+        err = UMSocketError_no_data;
+    }
+
+    if(err2)
+    {
+        *err2 = err;
+    }
+    return sp;
+}
+
+
+#if 0
 - (ssize_t)sendSCTP:(NSData *)data
              stream:(uint16_t)streamId
            protocol:(u_int32_t)protocolId
@@ -773,6 +1007,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     return sp;
 }
 
+#endif
 
 #define SCTP_RXBUF 10240
 

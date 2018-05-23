@@ -24,7 +24,6 @@
 }
 
 @property(readwrite,assign) int port;
-@property(readwrite,assign) int socket;
 @property(readwrite,strong) NSArray *localIps;
 @property(readwrite,strong) UMSocketSCTP *umsocket;
 @property(readwrite,strong) UMSocketSCTPRegistry *registry;
@@ -36,5 +35,5 @@
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx;
 - (void)processHangUp;
 - (void)processInvalidSocket;
-
+- (UMSocketError) connectToAddresses:(NSArray *)addrs port:(int)port assoc:(sctp_assoc_t *)assoc;
 @end

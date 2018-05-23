@@ -5,7 +5,7 @@
 //  Created by Andreas Fink on 01/12/14.
 //  Copyright © 2017 Andreas Fink (andreas@fink.org). All rights reserved.
 //
-
+#if 0
 #import "UMLayerSctpReceiverThread.h"
 #import "UMLayerSctp.h"
 
@@ -66,13 +66,11 @@
     [self backgroundInit];
 
 
-
     [link.sctpSocket switchToBlocking];
     link.sctpSocket.connectionRepeatTimer = 6.0;
     link.sctpSocket.continuousConnectionAttempts = YES;
     UMSocketError err = [ link.sctpSocket connectSCTP];
     [link.sctpSocket switchToNonBlocking];
-
     if(err == UMSocketError_connection_refused)
     {
         link.status = SCTP_STATUS_OFF;
@@ -144,3 +142,4 @@
     [control_sleeper wakeUp:UMSleeper_ShutdownCompletedSignal];
 }
 @end
+#endif

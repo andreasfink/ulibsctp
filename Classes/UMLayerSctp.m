@@ -84,7 +84,6 @@
     self = [super initWithTaskQueueMulti:tq name:name];
     if(self)
     {
-        _sctpSocket = NULL;
         timeoutInMs = 2400;
         _heartbeatSeconds = 30.0;
         _users = [[UMSynchronizedArray alloc]init];
@@ -261,22 +260,14 @@
         {
             @throw([NSException exceptionWithName:@"IS" reason:@"status is IS so already up." userInfo:@{@"errno":@(EAGAIN),@"backtrace": UMBacktrace(NULL,0)}]);
         }
-        if(_sctpSocket)
-        {
-#if (ULIBSCTP_CONFIG==Debug)
-            if(logLevel <= UMLOG_DEBUG)
-            {
-                [self logDebug:@"old open socket detected. closing it first"];
-            }
-#endif
-            [self powerdown];
-        }
 #if (ULIBSCTP_CONFIG==Debug)
         if(logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"socket()"]];
         }
 #endif
+        UMSocketError err;
+#if OLDCODE
         /**********************/
         /* SOCKET             */
         /**********************/
@@ -304,7 +295,7 @@
         
         [_sctpSocket switchToNonBlocking];
         
-        UMSocketError err = [_sctpSocket setNoDelay];
+        err = [_sctpSocket setNoDelay];
         if(err!=UMSocketError_no_error)
         {
             [self logMinorError:[NSString stringWithFormat:@"can not set NODELAY option on sctp %@: %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
@@ -345,25 +336,19 @@
             [self logMajorError:[NSString stringWithFormat:@"can not bind sctp connection %@ %d %@",self.layerName,err,[UMSocket getSocketErrorString:err]]];
             return;
         }
-
+#endif
         _listener = [_registry listenerForPort:configured_local_port localIps:configured_local_addresses];
         [_listener startListening];
         _listenerStarted = YES;
 
-        if(self.isPassive)
+        _assoc = 0;
+        if(self.isPassive==NO)
         {
-            [_registry registerLayer:self forAssoc:0];
+            err = [_listener.umsocket connectToAddresses:configured_remote_addresses
+                                                    port:configured_remote_port
+                                                   assoc:&_assoc];
         }
-        else
-        {
-            /**********************/
-            /* SCTP_CONNECTX      */
-            /**********************/
-
-            /* we are in async mode */
-            err = [ _sctpSocket connectSCTP];
-            [_registry registerLayer:self forAssoc:_sctpSocket.assocId];
-        }
+        [_registry registerLayer:self forAssoc:@(_assoc)];
         [_registry startReceiver];
     }
     @catch (NSException *exception)
@@ -441,10 +426,20 @@
         }
 #endif
         UMSocketError err = UMSocketError_no_error;
-        ssize_t sent_packets = [_sctpSocket sendSCTP:task.data
+
+        ssize_t sent_packets = [_listener.umsocket sendToAddresses:configured_remote_addresses
+                                                              port:configured_remote_port
+                                                             assoc:&_assoc
+                                                              data:task.data
+                                                            stream:task.streamId
+                                                          protocol:task.protocolId
+                                                             error:&err];
+/*
+        ssize_t sent_packets = [_listener.umsocket sendSCTP:task.data
                                               stream:task.streamId
                                             protocol:task.protocolId
                                                error:&err];
+ */
         [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
         [_outboundThroughputPackets increaseBy:(uint32_t)sent_packets];
 
@@ -661,8 +656,6 @@
 #endif
     [receiverThread shutdownBackgroundTask];
     self.status = SCTP_STATUS_OOS;
-    [_sctpSocket close];
-    _sctpSocket = NULL;
     self.status = SCTP_STATUS_OFF;
 }
 
@@ -675,8 +668,6 @@
     }
 #endif
     self.status = SCTP_STATUS_OOS;
-    [_sctpSocket close];
-    _sctpSocket = NULL;
     self.status = SCTP_STATUS_OFF;
 }
 
@@ -695,24 +686,6 @@
     }
 }
 
-- (void)setNonBlocking
-{
-    [self logDebug:@"setting socket to non blocking"];
-    [_sctpSocket switchToNonBlocking];
-}
-
-- (void)setBlocking
-{
-    [self logDebug:@"setting socket to blocking"];
-    [_sctpSocket switchToBlocking];
-}
-
-
-- (void)receiveData /* returns number of packets processed */
-{
-    UMSocketSCTPReceivedPacket *rx = [_sctpSocket receiveSCTP];
-    [self processReceivedData:rx];
-}
 
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx
 {
@@ -1312,14 +1285,6 @@
 }
 
 
-- (UMSocketError) dataIsAvailableSCTP:(int *)hasData
-                               hangup:(int *)hasHup
-{
-    return [_sctpSocket dataIsAvailableSCTP:timeoutInMs
-                                  dataAvail:hasData
-                                     hangup:hasHup];
-}
-
 - (UMSocketError) sctpReceivedData:(NSData *)data
                           streamId:(uint32_t)streamId
                         protocolId:(uint16_t)protocolId
@@ -1577,8 +1542,10 @@
     }
 #endif
     [_reconnectTimer stop];
-    [ _sctpSocket connectSCTP];
-    [_registry registerLayer:self forAssoc:_sctpSocket.assocId];
+    [_listener.umsocket connectToAddresses:configured_remote_addresses
+                                            port:configured_remote_port
+                                           assoc:&_assoc];
+    [_registry registerLayer:self forAssoc:@(_assoc)];
 }
 
 
