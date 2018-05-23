@@ -350,7 +350,11 @@
         [_listener startListening];
         _listenerStarted = YES;
 
-        if(!self.isPassive)
+        if(self.isPassive)
+        {
+            [_registry registerLayer:self forAssoc:0];
+        }
+        else
         {
             /**********************/
             /* SCTP_CONNECTX      */

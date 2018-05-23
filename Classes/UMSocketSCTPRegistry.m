@@ -150,14 +150,17 @@
                         remoteIp:(NSString *)ip2
                       remotePort:(int)port2
 {
+    NSLog(@"layerForLocalIp:%@ localPort:%d remoteIp:%@ remotePort:%d",ip1,port1,ip2,port2);
     [_lock lock];
     NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d",
                      ip1,
                      port1,
                      ip2,
                      port2];
+    NSLog(@" key=%@",key);
     UMLayerSctp *layer = _outgoingLayersByIpsAndPorts[key] ;
     [_lock unlock];
+    NSLog(@" leyer=%@",layer.layerName);
     return layer;
 }
 
@@ -186,6 +189,8 @@
                                  layer.configured_local_port,
                                  remoteAddr,
                                  layer.configured_remote_port];
+                NSLog(@"registerLayer:%@",layer.layerName);
+                NSLog(@" key=%@",key);
                 _outgoingLayersByIpsAndPorts[key] = layer;
             }
         }
