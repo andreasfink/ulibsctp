@@ -384,7 +384,12 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         {
             struct sockaddr_in6 *sa_in6 = (struct sockaddr_in6 *)sockAddr;
             const char *r = inet_ntop(_socketFamily, &sa_in6->sin6_addr, &buf[0], INET6_ADDRSTRLEN);
-            return @(r);
+            NSString *s = @(r);
+            if([s hasPrefix:@"::ffff:"])
+            {
+                s = [s substringFromIndex:7];
+            }
+            return s;
             break;
         }
         default:
