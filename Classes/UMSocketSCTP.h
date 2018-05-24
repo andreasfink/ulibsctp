@@ -49,7 +49,7 @@
     struct sockaddr     *_local_addresses;
     int                 _local_addresses_count;
     BOOL                _local_addresses_prepared;
-    sctp_assoc_t        assoc;
+  //  sctp_assoc_t        assoc;
 }
 
 @property(readwrite,strong) NSArray        *requestedLocalAddresses;
@@ -63,14 +63,15 @@
 @property(readwrite,assign) BOOL            continuousConnectionAttempts;
 @property(readwrite,assign) NSTimeInterval  connectionRepeatTimer;
 
-
-- (NSNumber *)assocId;
 - (UMSocketError) bind;
 - (UMSocketError) enableEvents;
 - (UMSocketError) enableFutureAssoc;
 
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret;
 //- (UMSocketError) connectSCTP;
+
+
+- (NSData *)sockaddrFromAddresses:(NSArray *)addrs port:(int)port count:(int *)count_out; /* returns struct sockaddr data in NSData */
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs port:(int)port assoc:(sctp_assoc_t *)assoc;
 - (ssize_t) sendToAddresses:(NSArray *)addrs

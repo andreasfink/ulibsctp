@@ -191,6 +191,7 @@
                                  layer.configured_remote_port];
                 NSLog(@"registerLayer:%@",layer.layerName);
                 NSLog(@" key=%@",key);
+                NSLog(@" assoc=%@",assocId);
                 _outgoingLayersByIpsAndPorts[key] = layer;
             }
         }
