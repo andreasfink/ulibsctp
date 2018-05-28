@@ -546,7 +546,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     return result;
 }
 
-- (UMSocketError) connectToAddresses:(NSArray *)addrs port:(int)port assoc:(sctp_assoc_t *)assocptr
+- (UMSocketError) connectToAddresses:(NSArray *)addrs
+                                port:(int)port
+                               assoc:(sctp_assoc_t *)assocptr
 {
 
     int count = 0;
@@ -1085,11 +1087,11 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             return [UMSocket umerrFromErrno:eno];
         }
         self.isListening = 1;
-        [self reportStatus:@"isListening=1"];
 #if defined(SCTP_LISTEN_FIX)
         int flag=1;
         setsockopt(_sock,IPPROTO_SCTP,SCTP_LISTEN_FIX,&flag,sizeof(flag));
 #endif
+        [self reportStatus:@"isListening=1"];
         return UMSocketError_no_error;
     }
     @finally
@@ -1097,5 +1099,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         [_controlLock unlock];
     }
 }
+
 
 @end
