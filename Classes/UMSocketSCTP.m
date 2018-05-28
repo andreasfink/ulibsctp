@@ -1059,4 +1059,43 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #endif
 }
 
+
+- (UMSocketError) listen: (int) backlog
+{
+    [self updateName];
+    [_controlLock lock];
+    @try
+    {
+        int err;
+        
+        [self reportStatus:@"caling listen()"];
+        if (self.isListening == 1)
+        {
+            [self reportStatus:@"- already listening"];
+            return UMSocketError_already_listening;
+        }
+        self.isListening = 0;
+        
+        err = listen(_sock,backlog);
+        
+        direction = direction | UMSOCKET_DIRECTION_INBOUND;
+        if(err)
+        {
+            int eno = errno;
+            return [UMSocket umerrFromErrno:eno];
+        }
+        self.isListening = 1;
+        [self reportStatus:@"isListening=1"];
+#if defined(SCTP_LISTEN_FIX)
+        int flag=1;
+        setsockopt(_sock,IPPROTO_SCTP,SCTP_LISTEN_FIX,&flag,sizeof(flag));
+#endif
+        return UMSocketError_no_error;
+    }
+    @finally
+    {
+        [_controlLock unlock];
+    }
+}
+
 @end
