@@ -329,7 +329,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         if(usable_ips == -1)
         {
 #if (ULIBSCTP_CONFIG==Debug)
-            NSLog(@"calling bind for '%@:%d'",addr,port);
+            NSLog(@"calling bind for '%@:%d' on socket %d",addr,port,_sock);
 #endif
             int err;
             if(_socketFamily == AF_INET6)
@@ -564,7 +564,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     else
     {
 #if (ULIBSCTP_CONFIG==Debug)
-        NSLog(@"calling sctp_connectx");
+        NSLog(@"calling sctp_connectx (%@)", [addrs componentsJoinedByString:@" "]);
 #endif
         memset(assocptr,0,sizeof(sctp_assoc_t));
         int err =  sctp_connectx(_sock,(struct sockaddr *)remote_sockaddr.bytes,count,assocptr);
