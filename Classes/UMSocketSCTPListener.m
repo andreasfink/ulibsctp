@@ -104,6 +104,7 @@
             {
                 [self logDebug:[NSString stringWithFormat:@"%@:  setReuseAddr successful",_name]];
             }
+#if 0
             err = [_umsocket setReusePort];
             if(err!=UMSocketError_no_error)
             {
@@ -113,6 +114,8 @@
             {
                 [self logDebug:[NSString stringWithFormat:@"%@:  setReusePort successful",_name]];
             }
+#endif
+            
             err = [_umsocket enableEvents];
             if(err!=UMSocketError_no_error)
             {
@@ -145,7 +148,7 @@
             {
                 [self logDebug:[NSString stringWithFormat:@"%@:  bind successful",_name]];
             }
-            err = [_umsocket listen];
+            err = [_umsocket listen:128];
             if(err!=UMSocketError_no_error)
             {
                 [self logMinorError:[NSString stringWithFormat:@"can not enable sctp events on sctp-listener port %d: %d %@",_port,err,[UMSocket getSocketErrorString:err]]];
