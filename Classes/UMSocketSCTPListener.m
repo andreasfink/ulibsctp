@@ -104,18 +104,18 @@
             {
                 [self logDebug:[NSString stringWithFormat:@"%@:  setReuseAddr successful",_name]];
             }
-#if 0
-            err = [_umsocket setReusePort];
-            if(err!=UMSocketError_no_error)
+            if(_umsocket.socketType != SOCK_SEQPACKET)
             {
-                [self logMinorError:[NSString stringWithFormat:@"can not set SCTP_REUSE_PORT option on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
+                err = [_umsocket setReusePort];
+                if(err!=UMSocketError_no_error)
+                {
+                    [self logMinorError:[NSString stringWithFormat:@"can not set SCTP_REUSE_PORT option on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
+                }
+                else
+                {
+                    [self logDebug:[NSString stringWithFormat:@"%@:  setReusePort successful",_name]];
+                }
             }
-            else
-            {
-                [self logDebug:[NSString stringWithFormat:@"%@:  setReusePort successful",_name]];
-            }
-#endif
-            
             err = [_umsocket enableEvents];
             if(err!=UMSocketError_no_error)
             {

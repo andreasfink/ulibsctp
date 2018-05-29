@@ -260,19 +260,19 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 {
     char buf[INET6_ADDRSTRLEN+1];
     memset(buf,0x00,INET6_ADDRSTRLEN+1);
-    switch(_socketFamily)
+    switch(sockAddr->sa_family)
     {
         case AF_INET:
         {
             struct sockaddr_in *sa_in = (struct sockaddr_in *)sockAddr;
-            const char *r = inet_ntop(_socketFamily, &sa_in->sin_addr, &buf[0], INET6_ADDRSTRLEN);
+            const char *r = inet_ntop(sa_in->sin_family, &sa_in->sin_addr, &buf[0], INET6_ADDRSTRLEN);
             return @(r);
             break;
         }
         case AF_INET6:
         {
             struct sockaddr_in6 *sa_in6 = (struct sockaddr_in6 *)sockAddr;
-            const char *r = inet_ntop(_socketFamily, &sa_in6->sin6_addr, &buf[0], INET6_ADDRSTRLEN);
+            const char *r = inet_ntop(sa_in6->sin6_family, &sa_in6->sin6_addr, &buf[0], INET6_ADDRSTRLEN);
             NSString *s = @(r);
             if([s hasPrefix:@"::ffff:"])
             {
@@ -825,6 +825,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     memset(remote_address_ptr,0x00,sizeof(remote_address_len));
 
     UMSocketSCTPReceivedPacket *rx = [[UMSocketSCTPReceivedPacket alloc]init];
+#if defined __APPLE__
+//define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
+#endif
 
 #if defined(ULIBSCTP_SCTP_RECVV_SUPPORTED)
 
@@ -833,7 +836,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     struct iovec            iov[1];
     int                     iovcnt = 1;
     unsigned int            infoType;
-    sctp_assoc_t            assoc;
 
     memset(&rinfo,0x00,sizeof(struct sctp_rcvinfo));
 
@@ -875,7 +877,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     protocolId = ntohl(sinfo.sinfo_ppid);
     context = sinfo.sinfo_context;
     assoc = sinfo.sinfo_assoc_id;
-
+    if(!(flags & MSG_NOTIFICATION))
+    {
+        NSLog(@"Data for protocolId %d received",protocolId);
+    }
 #endif
 
     if(bytes_read <= 0)
