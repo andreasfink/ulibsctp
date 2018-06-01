@@ -256,60 +256,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
 }
 
-- (NSString *)addressOfSockAddr:(struct sockaddr *)sockAddr
-{
-    char buf[INET6_ADDRSTRLEN+1];
-    memset(buf,0x00,INET6_ADDRSTRLEN+1);
-    switch(sockAddr->sa_family)
-    {
-        case AF_INET:
-        {
-            struct sockaddr_in *sa_in = (struct sockaddr_in *)sockAddr;
-            const char *r = inet_ntop(sa_in->sin_family, &sa_in->sin_addr, &buf[0], INET6_ADDRSTRLEN);
-            return @(r);
-            break;
-        }
-        case AF_INET6:
-        {
-            struct sockaddr_in6 *sa_in6 = (struct sockaddr_in6 *)sockAddr;
-            const char *r = inet_ntop(sa_in6->sin6_family, &sa_in6->sin6_addr, &buf[0], INET6_ADDRSTRLEN);
-            NSString *s = @(r);
-            if([s hasPrefix:@"::ffff:"])
-            {
-                s = [s substringFromIndex:7];
-            }
-            return s;
-            break;
-        }
-        default:
-            return NULL;
-    }
-}
-
-
-- (int)portOfSockAddr:(struct sockaddr *)sockAddr
-{
-    char buf[INET6_ADDRSTRLEN+1];
-    memset(buf,0x00,INET6_ADDRSTRLEN+1);
-    switch(_socketFamily)
-    {
-        case AF_INET:
-        {
-            struct sockaddr_in *sa_in = (struct sockaddr_in *)sockAddr;
-            return ntohs (sa_in->sin_port);
-            break;
-        }
-        case AF_INET6:
-        {
-            struct sockaddr_in6 *sa_in6 = (struct sockaddr_in6 *)sockAddr;
-            return ntohs(sa_in6->sin6_port);
-            break;
-        }
-        default:
-            return 0;
-    }
-}
-
 - (UMSocketError) bind
 {
     NSMutableArray *useable_local_addr = [[NSMutableArray alloc]init];
@@ -324,8 +270,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     
     for(int i=0;i<_local_addresses_count;i++)
     {
-        NSString *addr = [self addressOfSockAddr:&_local_addresses[i]];
-        int port = [self portOfSockAddr:&_local_addresses[i]];
+        NSString *addr = [UMSocket addressOfSockAddr:&_local_addresses[i]];
+        int port = [UMSocket portOfSockAddr:&_local_addresses[i]];
         if(usable_ips == -1)
         {
 #if (ULIBSCTP_CONFIG==Debug)
@@ -890,8 +836,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
     else
     {
-        rx.remoteAddress = [self addressOfSockAddr:remote_address_ptr];
-        rx.remotePort = [self portOfSockAddr:remote_address_ptr];
+        rx.remoteAddress = [UMSocket addressOfSockAddr:remote_address_ptr];
+        rx.remotePort = [UMSocket portOfSockAddr:remote_address_ptr];
         rx.data = [NSData dataWithBytes:&buffer length:bytes_read];
         rx.flags = flags;
         if(flags & _msg_notification_mask)
