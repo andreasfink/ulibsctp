@@ -284,9 +284,14 @@
                 [self logDebug:[NSString stringWithFormat:@"asking listener to connect to %@ on port %d",addrs,configured_remote_port]];
             }
 #endif
-            err = [_listener.umsocket connectToAddresses:configured_remote_addresses
-                                                    port:configured_remote_port
-                                                   assoc:&_assoc];
+            err = [_listener connectToAddresses:configured_remote_addresses
+                                           port:configured_remote_port
+                                          assoc:&_assoc];
+            if(logLevel <= UMLOG_DEBUG)
+            {
+                NSString *e = [UMSocket getSocketErrorString:err];
+                [self logDebug:[NSString stringWithFormat:@"returns %d %@",err,e]];
+            }
         }
         [_registry registerLayer:self forAssoc:@(_assoc)];
         [_registry startReceiver];

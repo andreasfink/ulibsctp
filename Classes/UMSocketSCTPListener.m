@@ -239,6 +239,10 @@
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs port:(int)port assoc:(sctp_assoc_t *)assocptr
 {
+    if(_umsocket==NULL)
+    {
+        return UMSocketError_file_descriptor_not_open;
+    }
     UMSocketError err = [_umsocket connectToAddresses:addrs port:port assoc:assocptr];
     return err;
 }
