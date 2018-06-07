@@ -1303,6 +1303,10 @@
 #pragma mark Config Handling
 - (void)setConfig:(NSDictionary *)cfg applicationContext:(id<UMLayerSctpApplicationContextProtocol>)appContext
 {
+    if(_registry==NULL)
+    {
+        NSLog(@"warning: configuring a SCTP object which does not have .registry initialized to a global UMSocketSCTPRegistry object");
+    }
     [self readLayerConfig:cfg];
     if (cfg[@"local-ip"])
     {

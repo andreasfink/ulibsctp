@@ -62,7 +62,6 @@
             _umsocket.requestedLocalAddresses = _localIps;
             _umsocket.requestedLocalPort = _port;
 
-
             [_umsocket switchToNonBlocking];
 
             UMSocketError err = [_umsocket setNoDelay];
