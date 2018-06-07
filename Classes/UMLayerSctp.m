@@ -250,14 +250,17 @@
     {
         if(self.status == SCTP_STATUS_M_FOOS)
         {
+            NSLog(@"SCTP_STATUS_M_FOOS");
             @throw([NSException exceptionWithName:@"FOOS" reason:@"failed due to manual forced out of service status" userInfo:@{@"errno":@(EBUSY), @"backtrace": UMBacktrace(NULL,0)}]);
         }
         if(self.status == SCTP_STATUS_OOS)
         {
+            NSLog(@"SCTP_STATUS_OOS");
             @throw([NSException exceptionWithName:@"OOS" reason:@"status is OOS so SCTP is already establishing." userInfo:@{@"errno":@(EBUSY),@"backtrace": UMBacktrace(NULL,0)}]);
         }
         if(self.status == SCTP_STATUS_IS)
         {
+            NSLog(@"SCTP_STATUS_IS");
             @throw([NSException exceptionWithName:@"IS" reason:@"status is IS so already up." userInfo:@{@"errno":@(EAGAIN),@"backtrace": UMBacktrace(NULL,0)}]);
         }
 #if (ULIBSCTP_CONFIG==Debug)
@@ -274,6 +277,13 @@
         _assoc = 0;
         if(self.isPassive==NO)
         {
+#if (ULIBSCTP_CONFIG==Debug)
+            if(logLevel <= UMLOG_DEBUG)
+            {
+                NSString *addrs = [configured_remote_addresses componentsJoinedByString:@","];
+                [self logDebug:[NSString stringWithFormat:@"asking listener to connect to %@ on port %d",addrs,configured_remote_port]];
+            }
+#endif
             err = [_listener.umsocket connectToAddresses:configured_remote_addresses
                                                     port:configured_remote_port
                                                    assoc:&_assoc];
