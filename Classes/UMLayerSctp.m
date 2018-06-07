@@ -337,6 +337,7 @@
 
     @try
     {
+        /*
         if(self.status == SCTP_STATUS_M_FOOS)
         {
             @throw([NSException exceptionWithName:@"FOOS" reason:@"Link out of service" userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
@@ -345,6 +346,7 @@
         {
             @throw([NSException exceptionWithName:@"NOT_IS" reason:@"trying to send data on non open link" userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
         }
+         */
         if(task.data == NULL)
         {
             @throw([NSException exceptionWithName:@"NULL" reason:@"trying to send NULL data" userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
