@@ -13,12 +13,12 @@
 
 @implementation UMSocketSCTPListener
 
-- (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses
+- (UMSocketSCTPListener *)initWithPort:(int)localPort localIpAddresses:(NSArray *)addresses
 {
     self = [super init];
     if(self)
     {
-        _port = port;
+        _port = localPort;
         _localIps = addresses;
         _isListening = NO;
         _listeningCount = 0;

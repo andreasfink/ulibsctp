@@ -71,7 +71,10 @@
 //- (UMSocketError) connectSCTP;
 
 
-- (NSData *)sockaddrFromAddresses:(NSArray *)addrs port:(int)port count:(int *)count_out; /* returns struct sockaddr data in NSData */
++ (NSData *)sockaddrFromAddresses:(NSArray *)theAddrs
+                             port:(int)thePort
+                            count:(int *)count_out /* returns struct sockaddr data in NSData */
+                     socketFamily:(int)socketFamily;
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)remotePort

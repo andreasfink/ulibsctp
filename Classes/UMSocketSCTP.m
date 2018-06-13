@@ -382,24 +382,25 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 }
 
-- (NSData *)sockaddrFromAddresses:(NSArray *)addrs
-                             port:(int)port
-                            count:(int *)count_out; /* returns struct sockaddr data in NSData */
++ (NSData *)sockaddrFromAddresses:(NSArray *)theAddrs
+                             port:(int)thePort
+                            count:(int *)count_out /* returns struct sockaddr data in NSData */
+                     socketFamily:(int)socketFamily
 {
     struct sockaddr_in6 *addresses6;
     struct sockaddr_in  *addresses4;
     struct sockaddr     *addresses46 = NULL;
     size_t              addresses46_len = 0;
 
-    int count = (int)addrs.count;
+    int count = (int)theAddrs.count;
 
     int j=0;
-    if(_socketFamily==AF_INET6)
+    if(socketFamily==AF_INET6)
     {
         addresses6 = calloc(count,sizeof(struct sockaddr_in6));
         for(int i=0;i<count;i++)
         {
-            NSString *address = [addrs objectAtIndex:i];
+            NSString *address = [theAddrs objectAtIndex:i];
             NSString *address2 = [UMSocket deunifyIp:address];
             if(address2.length>0)
             {
@@ -417,7 +418,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                 addresses6[i].sin6_len = sizeof(struct sockaddr_in6);
 #endif
                 addresses6[j].sin6_family = AF_INET6;
-                addresses6[j].sin6_port = htons(port);
+                addresses6[j].sin6_port = htons(thePort);
                 j++;
             }
             else
@@ -443,12 +444,12 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             addresses46_len = sizeof(struct sockaddr_in6)*count;
         }
     }
-    else if(_socketFamily==AF_INET)
+    else if(socketFamily==AF_INET)
     {
         addresses4 = calloc(count,sizeof(struct sockaddr_in));
         for(int i=0;i<count;i++)
         {
-            NSString *address = [_requestedRemoteAddresses objectAtIndex:i];
+            NSString *address = [theAddrs objectAtIndex:i];
             NSString *address2 = [UMSocket deunifyIp:address];
             if(address2.length>0)
             {
@@ -461,7 +462,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                 addresses4[i].sin_len = sizeof(struct sockaddr_in);
 #endif
                 addresses4[j].sin_family = AF_INET;
-                addresses4[j].sin_port = htons(port);
+                addresses4[j].sin_port = htons(thePort);
                 j++;
             }
             else
@@ -500,7 +501,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 {
 
     int count = 0;
-    NSData *remote_sockaddr = [self sockaddrFromAddresses:addrs port:remotePort count:&count]; /* returns struct sockaddr data in NSData */
+    NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
 
     /**********************/
     /* CONNECTX           */
@@ -680,7 +681,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #if defined(ULIBSCTP_SCTP_SENDV_SUPPORTED)
 
     int count = 0;
-    NSData *remote_sockaddr = [self sockaddrFromAddresses:addrs port:remotePort count:&count]; /* returns struct sockaddr data in NSData */
+    NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
 
     struct iovec iov[1];
     iov[0].iov_base = (void *)data.bytes;

@@ -270,7 +270,21 @@
         }
 #endif
         UMSocketError err;
+
+        if(logLevel <= UMLOG_DEBUG)
+        {
+            NSString *addrs = [configured_local_addresses componentsJoinedByString:@","];
+            [self logDebug:[NSString stringWithFormat:@"getting listener on %@ on port %d",addrs,configured_local_port]];
+        }
+
         _listener = [_registry listenerForPort:configured_local_port localIps:configured_local_addresses];
+
+        if(logLevel <= UMLOG_DEBUG)
+        {
+            NSString *addrs = [configured_local_addresses componentsJoinedByString:@","];
+            [self logDebug:[NSString stringWithFormat:@"asking listener %@ to start",_listener]];
+        }
+
         [_listener startListening];
         _listenerStarted = YES;
 
