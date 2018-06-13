@@ -287,7 +287,7 @@
 
         [_listener startListening];
         _listenerStarted = YES;
-
+        sleep(1);
         _assoc = 0;
         if((self.isPassive==NO) && (0))
         {
@@ -309,6 +309,7 @@
         }
         [_registry registerLayer:self forAssoc:@(_assoc)];
         [_registry startReceiver];
+        sleep(2);
     }
     @catch (NSException *exception)
     {
