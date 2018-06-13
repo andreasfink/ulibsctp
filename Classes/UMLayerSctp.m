@@ -289,7 +289,7 @@
         _listenerStarted = YES;
 
         _assoc = 0;
-        if(self.isPassive==NO)
+        if((self.isPassive==NO) && (0))
         {
 #if (ULIBSCTP_CONFIG==Debug)
             if(logLevel <= UMLOG_DEBUG)
