@@ -707,6 +707,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                     flags);
 #else
 
+    int count=0;
     NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
 
     struct sctp_sndrcvinfo sinfo;
