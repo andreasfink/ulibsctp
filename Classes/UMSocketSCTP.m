@@ -382,7 +382,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 }
 
-- (NSData *)sockaddrFromAddresses:(NSArray *)addrs port:(int)port count:(int *)count_out; /* returns struct sockaddr data in NSData */
+- (NSData *)sockaddrFromAddresses:(NSArray *)addrs
+                             port:(int)port
+                            count:(int *)count_out; /* returns struct sockaddr data in NSData */
 {
     struct sockaddr_in6 *addresses6;
     struct sockaddr_in  *addresses4;
@@ -493,12 +495,12 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 }
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
-                                port:(int)port
+                                port:(int)remotePort
                                assoc:(sctp_assoc_t *)assocptr
 {
 
     int count = 0;
-    NSData *remote_sockaddr = [self sockaddrFromAddresses:addrs port:port count:&count]; /* returns struct sockaddr data in NSData */
+    NSData *remote_sockaddr = [self sockaddrFromAddresses:addrs port:remotePort count:&count]; /* returns struct sockaddr data in NSData */
 
     /**********************/
     /* CONNECTX           */
@@ -633,7 +635,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 
 - (ssize_t) sendToAddresses:(NSArray *)addrs
-                       port:(int)port
+                       port:(int)remotePort
                       assoc:(sctp_assoc_t *)assocptr
                        data:(NSData *)data
                      stream:(uint16_t)streamId
@@ -654,7 +656,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     if(*assocptr==0)
     {
         err = [self connectToAddresses:addrs
-                                  port:port
+                                  port:remotePort
                                  assoc:assocptr];
         if((err != UMSocketError_no_error) && (err != UMSocketError_in_progress))
         {
@@ -678,7 +680,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #if defined(ULIBSCTP_SCTP_SENDV_SUPPORTED)
 
     int count = 0;
-    NSData *remote_sockaddr = [self sockaddrFromAddresses:addrs port:port count:&count]; /* returns struct sockaddr data in NSData */
+    NSData *remote_sockaddr = [self sockaddrFromAddresses:addrs port:remotePort count:&count]; /* returns struct sockaddr data in NSData */
 
     struct iovec iov[1];
     iov[0].iov_base = (void *)data.bytes;

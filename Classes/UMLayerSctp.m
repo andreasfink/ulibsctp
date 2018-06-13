@@ -425,6 +425,10 @@
         }
         else
         {
+            if(errno!=EISCONN)
+            {
+                NSLog(@"still connected");
+            }
             [self powerdown];
             [self reportStatus];
             switch(errno)
@@ -1339,6 +1343,7 @@
     if (cfg[@"local-port"])
     {
         configured_local_port = [cfg[@"local-port"] intValue];
+        NSLog(@"LocalPort: %d",configured_local_port);
     }
     if (cfg[@"remote-ip"])
     {

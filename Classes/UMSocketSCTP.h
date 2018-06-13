@@ -73,7 +73,10 @@
 
 - (NSData *)sockaddrFromAddresses:(NSArray *)addrs port:(int)port count:(int *)count_out; /* returns struct sockaddr data in NSData */
 
-- (UMSocketError) connectToAddresses:(NSArray *)addrs port:(int)port assoc:(sctp_assoc_t *)assoc;
+- (UMSocketError) connectToAddresses:(NSArray *)addrs
+                                port:(int)remotePort
+                               assoc:(sctp_assoc_t *)assoc;
+
 - (ssize_t) sendToAddresses:(NSArray *)addrs
                        port:(int)port
                       assoc:(sctp_assoc_t *)assoc
