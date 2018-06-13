@@ -492,7 +492,7 @@
 
                 default:
                     @throw([NSException exceptionWithName:[NSString stringWithFormat:@"ERROR %d",errno]
-                                                   reason:[NSString stringWithFormat:@"unknown error %d",errno]
+                                                   reason:[NSString stringWithFormat:@"unknown error %d %s",errno,strerror(errno)]
                                                  userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
                     break;
             }
