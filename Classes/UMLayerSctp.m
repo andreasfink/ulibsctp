@@ -281,7 +281,6 @@
 
         if(logLevel <= UMLOG_DEBUG)
         {
-            NSString *addrs = [configured_local_addresses componentsJoinedByString:@","];
             [self logDebug:[NSString stringWithFormat:@"asking listener %@ to start",_listener]];
         }
 

@@ -708,18 +708,23 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #else
 
     int count=0;
+
+    int flags=0;
+    int timetolive=2000;
+    int context=0;
+
     NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
 
+/*
     struct sctp_sndrcvinfo sinfo;
     memset(&sinfo,0x00,sizeof(struct sctp_sndrcvinfo));
 
     sinfo.sinfo_stream = streamId;
     sinfo.sinfo_flags = 0;
     sinfo.sinfo_ppid = htonl(protocolId);
-    sinfo.sinfo_context = 0;
-    sinfo.sinfo_timetolive = 2000;
+    sinfo.sinfo_context = flags;
+    sinfo.sinfo_timetolive = timetolive;
     sinfo.sinfo_assoc_id = *assocptr;
-    int flags=0;
     /*
     sp = sctp_send(_sock,
                    (const void *)data.bytes,
@@ -733,10 +738,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                       (struct sockaddr *)remote_sockaddr.bytes,
                       (socklen_t)remote_sockaddr.length,
                       htonl(protocolId),
-                      0, /* flags */
+                      flags, /* flags */
                       streamId,
-                      2000, // timetolive,
-                      0); // context);
+                      timetolive, // timetolive,
+                      context); // context);
 
 #endif
 
