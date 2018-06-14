@@ -725,7 +725,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     sinfo.sinfo_context = flags;
     sinfo.sinfo_timetolive = timetolive;
     sinfo.sinfo_assoc_id = *assocptr;
-    /*
     sp = sctp_send(_sock,
                    (const void *)data.bytes,
                    data.length,
