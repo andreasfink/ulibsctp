@@ -654,6 +654,11 @@
 
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx
 {
+    if(_assoc == 0)
+    {
+        _assoc = [rx.assocId unsignedIntValue];
+    }
+
     if(rx.err==UMSocketError_try_again)
     {
 #if (ULIBSCTP_CONFIG==Debug)
