@@ -19,7 +19,7 @@
     [s appendFormat:@".streamId =  %lu\n",(unsigned long)_streamId];
     [s appendFormat:@".protocolId =  %lu\n",(unsigned long)_protocolId];
     [s appendFormat:@".context =  %lu\n",(unsigned long)_context];
-    [s appendFormat:@".assocId =  %lu\n",(unsigned long)_assocId];
+    [s appendFormat:@".assocId =  %@\n",_assocId];
     [s appendFormat:@".remoteAddress = %@\n",_remoteAddress];
     [s appendFormat:@".rempotePort =  %d\n",_remotePort];
     [s appendFormat:@".isNotification =  %@\n",_isNotification ? @"YES" : @"NO"];

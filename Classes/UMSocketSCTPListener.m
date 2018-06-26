@@ -183,6 +183,7 @@
     [_umsocket close];
 }
 
+
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx
 {
 #if (ULIBSCTP_CONFIG==Debug)
@@ -226,13 +227,19 @@
     }
 }
 
+- (void)processError:(UMSocketError)err
+{
+    /* FIXME */
+}
+
 - (void)processHangUp
 {
-    
+    /* FIXME */
 }
 
 - (void)processInvalidSocket
 {
+    /* FIXME */
 }
 
 

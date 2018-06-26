@@ -152,6 +152,8 @@
             if(revent & POLLERR)
             {
                 revent_error = [socket getSocketError];
+                [listener processError:revent_error];
+
             }
             if(revent & POLLHUP)
             {

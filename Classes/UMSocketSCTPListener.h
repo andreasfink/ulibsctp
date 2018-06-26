@@ -33,6 +33,7 @@
 - (void)startListening;
 - (void)stopListening;
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx;
+- (void)processError:(UMSocketError)err;
 - (void)processHangUp;
 - (void)processInvalidSocket;
 - (UMSocketError) connectToAddresses:(NSArray *)addrs port:(int)port assoc:(sctp_assoc_t *)assoc;
