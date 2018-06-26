@@ -448,6 +448,7 @@
             switch(errno)
             {
                 case 0:
+                    break;
                     @throw([NSException exceptionWithName:@"ERROR-ZERO"
                                                    reason:@"send returns no error. weird"
                                                  userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
