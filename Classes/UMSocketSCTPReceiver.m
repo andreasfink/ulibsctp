@@ -23,7 +23,7 @@
         _outboundLayers = [[NSMutableArray alloc]init];
         _listeners = [[NSMutableArray alloc]init];
         _lock = [[UMMutex alloc]init];
-        _timeoutInMs = 4000;
+        _timeoutInMs = 100;
         _registry = r;
     }
     return self;
