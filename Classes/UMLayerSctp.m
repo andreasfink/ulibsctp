@@ -1329,7 +1329,8 @@
 {
     if(_registry==NULL)
     {
-        NSLog(@"warning: configuring a SCTP object which does not have .registry initialized to a global UMSocketSCTPRegistry object");
+        NSLog(@"Error: configuring a SCTP object which does not have .registry initialized to a global UMSocketSCTPRegistry object");
+        exit(0); 
     }
     [self readLayerConfig:cfg];
     if (cfg[@"local-ip"])
