@@ -260,4 +260,64 @@
     }
     [_lock unlock];
 }
+- (NSString *)webStat
+{
+    NSMutableString *s = [[NSMutableString alloc]init];
+    [_lock lock];
+    [s appendString:@"<html>\n"];
+    [s appendString:@"<header>\n"];
+    [s appendString:@"    <link rel=\"stylesheet\" href=\"/css/style.css\" type=\"text/css\">\n"];
+    [s appendFormat:@"    <title>Debug: SCTP Registry Statistic</title>\n"];
+    [s appendString:@"</header>\n"];
+    [s appendString:@"<body>\n"];
+
+    [s appendString:@"<h2>Debug: SCTP Registry Statistic</h2>\n"];
+    [s appendString:@"<UL>\n"];
+    [s appendString:@"<LI><a href=\"/\">main</a></LI>\n"];
+    [s appendString:@"<LI><a href=\"/debug\">debug</a></LI>\n"];
+    [s appendString:@"</UL>\n"];
+
+    [s appendString:@"<table class=\"object_table\">\n"];
+    [s appendString:@"    <tr>\r\n"];
+    [s appendString:@"        <th class=\"object_title\">Object Type</th>\r\n"];
+    [s appendString:@"        <th class=\"object_title\">Count</th>\r\n"];
+    [s appendString:@"    </tr>\r\n"];
+
+
+    [s appendString:@"    <tr>\r\n"];
+    [s appendFormat:@"        <td class=\"object_name\">_entries</td>\r\n"];
+    [s appendFormat:@"        <td class=\"object_value\">%d</th>\r\n",(int)_entries.count];
+    [s appendString:@"    </tr>\r\n"];
+
+    [s appendString:@"    <tr>\r\n"];
+    [s appendFormat:@"        <td class=\"object_name\">_assocs</td>\r\n"];
+    [s appendFormat:@"        <td class=\"object_value\">%d</th>\r\n",(int)_assocs.count];
+    [s appendString:@"    </tr>\r\n"];
+
+    [s appendString:@"    <tr>\r\n"];
+    [s appendFormat:@"        <td class=\"object_name\">_outgoingLayers</td>\r\n"];
+    [s appendFormat:@"        <td class=\"object_value\">%d</th>\r\n",(int)_outgoingLayers.count];
+    [s appendString:@"    </tr>\r\n"];
+
+
+    [s appendString:@"    <tr>\r\n"];
+    [s appendFormat:@"        <td class=\"object_name\">_outgoingLayers</td>\r\n"];
+    [s appendFormat:@"        <td class=\"object_value\">%d</th>\r\n",(int)_outgoingLayers.count];
+    [s appendString:@"    </tr>\r\n"];
+
+    [s appendString:@"    <tr>\r\n"];
+    [s appendFormat:@"        <td class=\"object_name\">_incomingListeners</td>\r\n"];
+    [s appendFormat:@"        <td class=\"object_value\">%d</th>\r\n",(int)_incomingListeners.count];
+    [s appendString:@"    </tr>\r\n"];
+
+    [s appendString:@"    <tr>\r\n"];
+    [s appendFormat:@"        <td class=\"object_name\">_outgoingLayersByIpsAndPorts</td>\r\n"];
+    [s appendFormat:@"        <td class=\"object_value\">%d</th>\r\n",(int)_outgoingLayersByIpsAndPorts.count];
+    [s appendString:@"    </tr>\r\n"];
+    [s appendString:@"</table>\r\n"];
+    [s appendString:@"</body>\r\n"];
+    [s appendString:@"</html>\r\n"];
+    [_lock unlock];
+    return s;
+}
 @end

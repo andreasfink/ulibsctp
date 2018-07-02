@@ -26,6 +26,8 @@
     BOOL                _receiverStarted;
 }
 
+- (NSString *)webStat;
+
 + (NSString *)keyForPort:(int)port ips:(NSArray<NSString *> *)ips;
 
 - (UMSocketSCTPListener *)listenerForPort:(int)port localIps:(NSArray *)ips;
