@@ -304,6 +304,7 @@
             {
                 NSString *e = [UMSocket getSocketErrorString:err];
                 [self logDebug:[NSString stringWithFormat:@"returns %d %@",err,e]];
+                if(e==)
             }
         }
         [_registry registerLayer:self forAssoc:@(_assoc)];
