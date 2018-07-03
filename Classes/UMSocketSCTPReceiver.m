@@ -23,7 +23,7 @@
         _outboundLayers = [[NSMutableArray alloc]init];
         _listeners = [[NSMutableArray alloc]init];
         _lock = [[UMMutex alloc]init];
-        _timeoutInMs = 100;
+        _timeoutInMs = 4000;
         _registry = r;
     }
     return self;
@@ -106,14 +106,14 @@
         j++;
     }
     /* we could add a wakeup pipe here if we want */
-#if (ULIBSCTP_CONFIG==Debug)
-    NSLog(@"calling poll(timeout=%8.2fs)",((double)_timeoutInMs)/1000.0);
-#endif
+//#if (ULIBSCTP_CONFIG==Debug)
+//    NSLog(@"calling poll(timeout=%8.2fs)",((double)_timeoutInMs)/1000.0);
+//#endif
 
     int ret1 = poll(pollfds, j, _timeoutInMs);
-#if (ULIBSCTP_CONFIG==Debug)
-    NSLog(@"poll returns: %d %s",errno,strerror(errno));
-#endif
+//#if (ULIBSCTP_CONFIG==Debug)
+//    NSLog(@"poll returns: %d %s",errno,strerror(errno));
+//#endif
 
     if (ret1 < 0)
     {
