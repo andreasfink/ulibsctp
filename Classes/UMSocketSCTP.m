@@ -415,7 +415,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             if(result==1)
             {
 #ifdef HAVE_SOCKADDR_SIN_LEN
-                addresses6[i].sin6_len = sizeof(struct sockaddr_in6);
+                addresses6[j].sin6_len = sizeof(struct sockaddr_in6);
 #endif
                 addresses6[j].sin6_family = AF_INET6;
                 addresses6[j].sin6_port = htons(thePort);
@@ -459,7 +459,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             if(result==1)
             {
 #ifdef HAVE_SOCKADDR_SIN_LEN
-                addresses4[i].sin_len = sizeof(struct sockaddr_in);
+                addresses4[j].sin_len = sizeof(struct sockaddr_in);
 #endif
                 addresses4[j].sin_family = AF_INET;
                 addresses4[j].sin_port = htons(thePort);
@@ -536,102 +536,100 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret
 {
-    [_controlLock lock];
-    @try
+    int           newsock = -1;
+    UMSocketSCTP  *newcon =NULL;
+    NSString *remoteAddress=@"";
+    in_port_t remotePort=0;
+    if(type == UMSOCKET_TYPE_SCTP4ONLY)
     {
-        int           newsock = -1;
-        UMSocketSCTP  *newcon =NULL;
-        NSString *remoteAddress=@"";
-        in_port_t remotePort=0;
-        if( type == UMSOCKET_TYPE_SCTP4ONLY)
+        struct    sockaddr_in sa4;
+        socklen_t slen4 = sizeof(sa4);
+        [_controlLock lock];
+        newsock = accept(_sock,(struct sockaddr *)&sa4,&slen4);
+        [_controlLock unlock];
+
+        if(newsock >=0)
         {
-            struct    sockaddr_in sa4;
-            socklen_t slen4 = sizeof(sa4);
-            newsock = accept(_sock,(struct sockaddr *)&sa4,&slen4);
-            if(newsock >=0)
+            char hbuf[NI_MAXHOST];
+            char sbuf[NI_MAXSERV];
+            if (getnameinfo((struct sockaddr *)&sa4, slen4, hbuf, sizeof(hbuf), sbuf,
+                            sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV))
             {
-                char hbuf[NI_MAXHOST];
-                char sbuf[NI_MAXSERV];
-                if (getnameinfo((struct sockaddr *)&sa4, slen4, hbuf, sizeof(hbuf), sbuf,
-                                sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV))
-                {
-                    remoteAddress = @"ipv4:0.0.0.0";
-                    remotePort = sa4.sin_port;
-                }
-                else
-                {
-                    remoteAddress = @(hbuf);
-                    remoteAddress = [NSString stringWithFormat:@"ipv4:%@", remoteAddress];
-                    remotePort = sa4.sin_port;
-                }
-                TRACK_FILE_SOCKET(newsock,remoteAddress);
-                newcon.cryptoStream.fileDescriptor = newsock;
+                remoteAddress = @"ipv4:0.0.0.0";
+                remotePort = sa4.sin_port;
             }
-        }
-        else
-        {
-            /* IPv6 or dual mode */
-            struct    sockaddr_in6        sa6;
-            socklen_t slen6 = sizeof(sa6);
-            newsock = accept(_sock,(struct sockaddr *)&sa6,&slen6);
-            if(newsock >= 0)
+            else
             {
-                char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
-                if (getnameinfo((struct sockaddr *)&sa6, slen6, hbuf, sizeof(hbuf), sbuf,
-                                sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV))
-                {
-                    remoteAddress = @"ipv6:[::]";
-                    remotePort = sa6.sin6_port;
-                }
-                else
-                {
-                    remoteAddress = @(hbuf);
-                    remotePort = sa6.sin6_port;
-                }
-                /* this is a IPv4 style address packed into IPv6 */
-                
-                remoteAddress = [UMSocket unifyIP:remoteAddress];
-                TRACK_FILE_SOCKET(newsock,remoteAddress);
+                remoteAddress = @(hbuf);
+                remoteAddress = [NSString stringWithFormat:@"ipv4:%@", remoteAddress];
+                remotePort = sa4.sin_port;
             }
+            TRACK_FILE_SOCKET(newsock,remoteAddress);
+            newcon.cryptoStream.fileDescriptor = newsock;
         }
-        
+    }
+    else
+    {
+        /* IPv6 or dual mode */
+        struct    sockaddr_in6        sa6;
+        socklen_t slen6 = sizeof(sa6);
+        [_controlLock lock];
+        newsock = accept(_sock,(struct sockaddr *)&sa6,&slen6);
+        [_controlLock unlock];
+
         if(newsock >= 0)
         {
-            newcon = [[UMSocketSCTP alloc]init];
-            newcon.type = type;
-            newcon.direction =  direction;
-            newcon.status=status;
-            newcon.localHost = localHost;
-            newcon.remoteHost = remoteHost;
-            newcon.requestedLocalAddresses = _requestedLocalAddresses;
-            newcon.requestedLocalPort=requestedLocalPort;
-            newcon.requestedRemoteAddresses = _requestedRemoteAddresses;
-            newcon.requestedRemotePort=requestedRemotePort;
-            newcon.cryptoStream = [[UMCrypto alloc]initWithRelatedSocket:newcon];
-            newcon.isBound=NO;
-            newcon.isListening=NO;
-            newcon.isConnecting=NO;
-            newcon.isConnected=YES;
-            [newcon setSock: newsock];
-            [newcon switchToNonBlocking];
-            [newcon doInitReceiveBuffer];
-            newcon.connectedRemoteAddress = remoteAddress;
-            newcon.connectedRemotePort = remotePort;
-            newcon.useSSL = useSSL;
-            [newcon updateName];
-            newcon.objectStatisticsName = @"UMSocket(accept)";
-            [self reportStatus:@"accept () successful"];
-            /* TODO: start SSL if required here */
-            *ret = UMSocketError_no_error;
-            return newcon;
+            char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+            if (getnameinfo((struct sockaddr *)&sa6, slen6, hbuf, sizeof(hbuf), sbuf,
+                            sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV))
+            {
+                remoteAddress = @"ipv6:[::]";
+                remotePort = sa6.sin6_port;
+            }
+            else
+            {
+                remoteAddress = @(hbuf);
+                remotePort = sa6.sin6_port;
+            }
+            /* this is a IPv4 style address packed into IPv6 */
+            
+            remoteAddress = [UMSocket unifyIP:remoteAddress];
+            TRACK_FILE_SOCKET(newsock,remoteAddress);
         }
-        *ret = [UMSocket umerrFromErrno:errno];
-        return nil;
     }
-    @finally
+    
+    if(newsock >= 0)
     {
-        [_controlLock unlock];
+        newcon = [[UMSocketSCTP alloc]init];
+        newcon.type = type;
+        newcon.direction =  direction;
+        newcon.status=status;
+        newcon.localHost = localHost;
+        newcon.remoteHost = remoteHost;
+        newcon.requestedLocalAddresses = _requestedLocalAddresses;
+        newcon.requestedLocalPort=requestedLocalPort;
+        newcon.requestedRemoteAddresses = _requestedRemoteAddresses;
+        newcon.requestedRemotePort=requestedRemotePort;
+        newcon.cryptoStream = [[UMCrypto alloc]initWithRelatedSocket:newcon];
+        newcon.isBound=NO;
+        newcon.isListening=NO;
+        newcon.isConnecting=NO;
+        newcon.isConnected=YES;
+        [newcon setSock: newsock];
+        [newcon switchToNonBlocking];
+        [newcon doInitReceiveBuffer];
+        newcon.connectedRemoteAddress = remoteAddress;
+        newcon.connectedRemotePort = remotePort;
+        newcon.useSSL = useSSL;
+        [newcon updateName];
+        newcon.objectStatisticsName = @"UMSocket(accept)";
+        [self reportStatus:@"accept () successful"];
+        /* TODO: start SSL if required here */
+        *ret = UMSocketError_no_error;
+        return newcon;
     }
+    *ret = [UMSocket umerrFromErrno:errno];
+    return nil;
 }
 
 
@@ -907,7 +905,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     events |= POLLRDHUP;
 #endif
     
-    [_controlLock lock];
     memset(pollfds,0,sizeof(pollfds));
     pollfds[0].fd = _sock;
     pollfds[0].events = events;
@@ -919,13 +916,13 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     NSLog(@"calling poll (timeout =%dms,socket=%d)",timeoutInMs,_sock);
 #endif
 
+    [_controlLock lock];
     ret1 = poll(pollfds, 1, timeoutInMs);
+    [_controlLock unlock];
 
 #if (ULIBSCTP_CONFIG==Debug)
     NSLog(@" poll returns %d (%d:%s)",ret1,errno,strerror(errno));
 #endif
-
-    [_controlLock unlock];
 
     if (ret1 < 0)
     {
@@ -1043,39 +1040,35 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 - (UMSocketError) listen: (int) backlog
 {
     [self updateName];
+    int err;
+    
+    [self reportStatus:@"caling listen()"];
+    if (self.isListening == 1)
+    {
+        [self reportStatus:@"- already listening"];
+        return UMSocketError_already_listening;
+    }
+    self.isListening = 0;
+    
     [_controlLock lock];
-    @try
+    err = listen(_sock,backlog);
+    [_controlLock unlock];
+
+    direction = direction | UMSOCKET_DIRECTION_INBOUND;
+    if(err)
     {
-        int err;
-        
-        [self reportStatus:@"caling listen()"];
-        if (self.isListening == 1)
-        {
-            [self reportStatus:@"- already listening"];
-            return UMSocketError_already_listening;
-        }
-        self.isListening = 0;
-        
-        err = listen(_sock,backlog);
-        
-        direction = direction | UMSOCKET_DIRECTION_INBOUND;
-        if(err)
-        {
-            int eno = errno;
-            return [UMSocket umerrFromErrno:eno];
-        }
-        self.isListening = 1;
+        int eno = errno;
+        return [UMSocket umerrFromErrno:eno];
+    }
+    self.isListening = 1;
 #if defined(SCTP_LISTEN_FIX)
-        int flag=1;
-        setsockopt(_sock,IPPROTO_SCTP,SCTP_LISTEN_FIX,&flag,sizeof(flag));
+    int flag=1;
+    [_controlLock lock];
+    setsockopt(_sock,IPPROTO_SCTP,SCTP_LISTEN_FIX,&flag,sizeof(flag));
+    [_controlLock unlock];
 #endif
-        [self reportStatus:@"isListening=1"];
-        return UMSocketError_no_error;
-    }
-    @finally
-    {
-        [_controlLock unlock];
-    }
+    [self reportStatus:@"isListening=1"];
+    return UMSocketError_no_error;
 }
 
 
