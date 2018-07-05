@@ -699,6 +699,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     send_info.snd_context = 0;
     send_info.snd_assoc_id = *assocptr;
     int flags = 0;
+
     sp = sctp_sendv(_sock,
                     iov,
                     iovcnt,
@@ -711,7 +712,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #else
 
     int count=0;
-
     int flags=0;
     int timetolive=2000;
     int context=0;
