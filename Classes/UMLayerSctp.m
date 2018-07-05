@@ -857,10 +857,10 @@
     }
     else if(snp->sn_assoc_change.sac_state==SCTP_CANT_STR_ASSOC)
     {
-        [logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_CANT_STR_ASSOC->OFF"];
-        self.status=SCTP_STATUS_OFF;
+        [logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_CANT_STR_ASSOC"];
+        self.status=SCTP_STATUS_OOS;
         [self reportStatus];
-        [self powerdownInReceiverThread];
+        //[self powerdownInReceiverThread];
 #if (ULIBSCTP_CONFIG==Debug)
         if(logLevel <= UMLOG_DEBUG)
         {
@@ -868,7 +868,6 @@
         }
 #endif
         [_reconnectTimer start];
-
     }
     else if(snp->sn_assoc_change.sac_error!=0)
     {
