@@ -22,7 +22,7 @@
     {
         _outboundLayers = [[NSMutableArray alloc]init];
         _listeners      = [[NSMutableArray alloc]init];
-        _lock           = [[UMMutex alloc]initWithName:@"socket-sctp-receiver-lock"];
+        //_lock           = [[UMMutex alloc]initWithName:@"socket-sctp-receiver-lock"];
         _timeoutInMs    = 100;
         _registry       = r;
     }
@@ -80,7 +80,6 @@
     struct pollfd *pollfds = calloc(listeners_count+1,sizeof(struct pollfd));
     NSAssert(pollfds !=0,@"can not allocate memory for poll()");
     memset(pollfds, 0x00,listeners_count+1  * sizeof(struct pollfd));
-
     int events = POLLIN | POLLPRI | POLLERR | POLLHUP | POLLNVAL;
 
 #ifdef POLLRDBAND
@@ -105,6 +104,9 @@
 //#endif
 
     int ret1 = poll(pollfds, j, _timeoutInMs);
+
+    UMMicroSec poll_time = ulib_microsecondTime();
+
 //#if (ULIBSCTP_CONFIG==Debug)
 //    NSLog(@"poll returns: %d %s",errno,strerror(errno));
 //#endif
@@ -176,7 +178,10 @@
             if(revent_has_data)
             {
                 UMSocketSCTPReceivedPacket *rx = [socket receiveSCTP];
+                rx.rx_time = ulib_microsecondTime();
+                rx.poll_time = poll_time;
                 [listener processReceivedData:rx];
+                rx.process_time = ulib_microsecondTime();
             }
             if(revent_hup)
             {

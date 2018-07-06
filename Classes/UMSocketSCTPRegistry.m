@@ -20,7 +20,7 @@
     {
         _entries = [[NSMutableDictionary alloc]init];
         _assocs = [[NSMutableDictionary alloc]init];
-        _lock = [[UMMutex alloc]init];
+        _lock = [[UMMutex alloc]initWithName:@"umsocket-sctp-registry"];
         _receiver = [[UMSocketSCTPReceiver alloc]initWithRegistry:self];
         _outgoingLayers = [[NSMutableArray alloc]init];
         _incomingListeners = [[NSMutableArray alloc]init];
