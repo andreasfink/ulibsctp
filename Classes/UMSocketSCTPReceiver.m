@@ -21,10 +21,10 @@
     if(self)
     {
         _outboundLayers = [[NSMutableArray alloc]init];
-        _listeners = [[NSMutableArray alloc]init];
-        _lock = [[UMMutex alloc]init];
-        _timeoutInMs = 4000;
-        _registry = r;
+        _listeners      = [[NSMutableArray alloc]init];
+        _lock           = [[UMMutex alloc]initWithName:@"socket-sctp-receiver-lock"];
+        _timeoutInMs    = 100;
+        _registry       = r;
     }
     return self;
 }
@@ -73,15 +73,9 @@
 
 - (UMSocketError) waitAndHandleData
 {
-    
     UMSocketError returnValue = UMSocketError_generic_error;
-    
-    [_lock lock];
-    //NSArray *outboundLayers = [_registry allOutboundLayers];
     NSArray *listeners = [_registry allListeners];
     NSUInteger listeners_count = listeners.count;
-
-    [_lock unlock];
 
     struct pollfd *pollfds = calloc(listeners_count+1,sizeof(struct pollfd));
     NSAssert(pollfds !=0,@"can not allocate memory for poll()");

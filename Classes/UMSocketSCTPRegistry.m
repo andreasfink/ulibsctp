@@ -22,7 +22,6 @@
         _assocs = [[NSMutableDictionary alloc]init];
         _lock = [[UMMutex alloc]init];
         _receiver = [[UMSocketSCTPReceiver alloc]initWithRegistry:self];
-        
         _outgoingLayers = [[NSMutableArray alloc]init];
         _incomingListeners = [[NSMutableArray alloc]init];
         _outgoingLayersByIpsAndPorts = [[NSMutableDictionary alloc]init];
