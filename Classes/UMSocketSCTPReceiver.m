@@ -130,6 +130,7 @@
     else /* ret1 > 0 */
     {
         /* we have some event to handle. */
+        returnValue = UMSocketError_no_error;
 
 //        UMLayerSctp *outbound = NULL;
         UMSocketSCTPListener *listener = NULL;
@@ -182,6 +183,7 @@
                 rx.poll_time = poll_time;
                 [listener processReceivedData:rx];
                 rx.process_time = ulib_microsecondTime();
+                returnValue = UMSocketError_has_data;
             }
             if(revent_hup)
             {
