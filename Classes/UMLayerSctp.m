@@ -289,6 +289,7 @@
         _listenerStarted = YES;
         sleep(1);
         _assoc = 0;
+        [_registry unregisterLayer:self];
         if(self.isPassive==NO)
         {
 #if (ULIBSCTP_CONFIG==Debug)
@@ -624,6 +625,7 @@
     [receiverThread shutdownBackgroundTask];
     self.status = SCTP_STATUS_OOS;
     self.status = SCTP_STATUS_OFF;
+    [_registry unregisterLayer:self];
 }
 
 - (void) powerdownInReceiverThread
@@ -636,6 +638,8 @@
 #endif
     self.status = SCTP_STATUS_OOS;
     self.status = SCTP_STATUS_OFF;
+
+    [_registry unregisterLayer:self];
 }
 
 
@@ -1519,10 +1523,14 @@
     }
 #endif
     [_reconnectTimer stop];
-    [_listener.umsocket connectToAddresses:configured_remote_addresses
-                                            port:configured_remote_port
-                                           assoc:&_assoc];
-    [_registry registerLayer:self forAssoc:@(_assoc)];
+    if(_status != SCTP_STATUS_IS)
+    {
+        [_registry unregisterLayer:self];
+        [_listener.umsocket connectToAddresses:configured_remote_addresses
+                                                port:configured_remote_port
+                                               assoc:&_assoc];
+        [_registry registerLayer:self forAssoc:@(_assoc)];
+    }
 }
 
 
