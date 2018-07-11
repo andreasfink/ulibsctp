@@ -657,10 +657,18 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         err = [self connectToAddresses:addrs
                                   port:remotePort
                                  assoc:assocptr];
+        if(err==UMSocketError_is_already_connected)
+        {
+            err = UMSocketError_no_error;
+            *err2 =err;
+        }
         if(err!= UMSocketError_is_already_connected)
         {
             err = UMSocketError_no_error;
-            *err2 = err;
+            if(err2)
+            {
+                *err2 = err;
+            }
         }
         else if((err != UMSocketError_no_error) && (err != UMSocketError_in_progress) )
         {
