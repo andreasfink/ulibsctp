@@ -298,12 +298,6 @@
     [s appendFormat:@"        <td class=\"object_value\">%d</th>\r\n",(int)_outgoingLayers.count];
     [s appendString:@"    </tr>\r\n"];
 
-
-    [s appendString:@"    <tr>\r\n"];
-    [s appendFormat:@"        <td class=\"object_name\">_outgoingLayers</td>\r\n"];
-    [s appendFormat:@"        <td class=\"object_value\">%d</th>\r\n",(int)_outgoingLayers.count];
-    [s appendString:@"    </tr>\r\n"];
-
     [s appendString:@"    <tr>\r\n"];
     [s appendFormat:@"        <td class=\"object_name\">_incomingListeners</td>\r\n"];
     [s appendFormat:@"        <td class=\"object_value\">%d</th>\r\n",(int)_incomingListeners.count];
