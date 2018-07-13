@@ -322,7 +322,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         else
         {
 #if (ULIBSCTP_CONFIG==Debug)
-            NSLog(@"calling sctp_bindx for '%@'",addr);
+            NSLog(@"calling sctp_bindx for '%@:%d'",addr,port);
 #endif
             int err = sctp_bindx(_sock, localAddress,1,SCTP_BINDX_ADD_ADDR);
             if(err==0)
