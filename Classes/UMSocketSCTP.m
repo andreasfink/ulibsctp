@@ -199,7 +199,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         }
         if(j==0)
         {
-            NSLog(@"no valid local IP addresses found");
+            NSLog(@"prepareLocalAddresses: no valid local IP addresses found");
             free(local_addresses6);
         }
         else
