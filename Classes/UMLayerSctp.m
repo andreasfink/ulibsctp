@@ -290,7 +290,6 @@
         sleep(1);
         _assocId = -1;
         _assocIdPresent = NO;
-        [_registry unregisterLayer:self];
         if(self.isPassive==NO)
         {
 #if (ULIBSCTP_CONFIG==Debug)
@@ -313,13 +312,11 @@
                 [self logDebug:[NSString stringWithFormat:@"returns %d %@",err,e]];
             }
         }
+        [_registry registerLayer:self];
+
         if(_assocIdPresent)
         {
-            [_registry registerLayer:self forAssoc:@(_assocId)];
-        }
-        else
-        {
-            [_registry registerLayer:self];
+            [_registry registerAssoc:@(_assocId) forLayer:self];
         }
         [_registry startReceiver];
         sleep(2);
@@ -637,7 +634,6 @@
     [receiverThread shutdownBackgroundTask];
     self.status = SCTP_STATUS_OOS;
     self.status = SCTP_STATUS_OFF;
-    [_registry unregisterLayer:self];
 }
 
 - (void) powerdownInReceiverThread
@@ -650,8 +646,6 @@
 #endif
     self.status = SCTP_STATUS_OOS;
     self.status = SCTP_STATUS_OFF;
-
-    [_registry unregisterLayer:self];
 }
 
 
@@ -1540,17 +1534,14 @@
     [_reconnectTimer stop];
     if(_status != SCTP_STATUS_IS)
     {
-        [_registry unregisterLayer:self];
+        _assocId = -1;
         [_listener.umsocket connectToAddresses:configured_remote_addresses
                                                 port:configured_remote_port
                                                assoc:&_assocId];
-        if(_assocIdPresent)
+        if(_assocId != -1)
         {
-            [_registry registerLayer:self forAssoc:@(_assocId)];
-        }
-        else
-        {
-            [_registry registerLayer:self];
+            _assocIdPresent = YES;
+            [_registry registerAssoc:@(_assocId) forLayer:self];
         }
     }
 }

@@ -36,7 +36,8 @@
 - (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId;
 
 - (void)registerLayer:(UMLayerSctp *)layer;
-- (void)registerLayer:(UMLayerSctp *)sctp forAssoc:(NSNumber *)assocId;
+- (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer;
+
 - (void)unregisterLayer:(UMLayerSctp *)sctp;
 - (UMLayerSctp *)layerForLocalIp:(NSString *)ip1
                        localPort:(int)port1

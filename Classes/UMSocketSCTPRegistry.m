@@ -195,7 +195,44 @@
 
 - (void)registerLayer:(UMLayerSctp *)layer
 {
-    return [self registerLayer:layer forAssoc:NULL];
+    if(layer)
+    {
+
+        [_lock lock];
+
+        /* we register every local IP / remote IP pair combination */
+
+        NSArray *localAddrs = layer.configured_local_addresses;
+        NSArray *remoteAddrs = layer.configured_remote_addresses;
+        for(NSString *localAddr in localAddrs)
+        {
+            for(NSString *remoteAddr in remoteAddrs)
+            {
+                NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d",
+                                 localAddr,
+                                 layer.configured_local_port,
+                                 remoteAddr,
+                                 layer.configured_remote_port];
+                NSLog(@"registerLayer:%@",layer.layerName);
+                NSLog(@" key=%@",key);
+                _outgoingLayersByIpsAndPorts[key] = layer;
+            }
+        }
+
+        [_outgoingLayers removeObject:layer];
+        [_outgoingLayers addObject:layer];
+        [_lock unlock];
+    }
+}
+
+- (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer
+{
+    if(assocId)
+    {
+        /* an active outbound connection */
+        NSLog(@"registerAssoc %@ forLayer:%@",assocId,layer.layerName);
+        _assocs[assocId] = layer;
+    }
 }
 
 - (void)registerLayer:(UMLayerSctp *)layer forAssoc:(NSNumber *)assocId;
