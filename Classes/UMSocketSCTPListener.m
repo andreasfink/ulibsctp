@@ -186,6 +186,9 @@
 
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx
 {
+    rx.localPort = _port;
+    rx.localAddress = _localIp;
+
 #if (ULIBSCTP_CONFIG==Debug)
     NSLog(@"Processing received data: \n%@",rx);
 #endif
@@ -194,7 +197,7 @@
         if(rx.assocId)
         {
 #if (ULIBSCTP_CONFIG==Debug)
-            NSLog(@"Lookign into registry: %@",_registry);
+            NSLog(@"Looking into registry: %@",_registry);
 #endif
             UMLayerSctp *layer =  [_registry layerForAssoc:rx.assocId];
             if(layer)
@@ -205,19 +208,16 @@
             {
                 /* we have not seen this association id before */
                 /* lets find it by source / destination IP */
-                for(NSString *localIp in _localIps)
+
+                layer = [_registry layerForLocalIp:rx.localAddress
+                                         localPort:rx.localPort
+                                          remoteIp:rx.remoteAddress
+                                        remotePort:rx.remotePort];
+                if(layer)
                 {
-                    layer = [_registry layerForLocalIp:localIp
-                                             localPort:_port
-                                              remoteIp:rx.remoteAddress
-                                            remotePort:rx.remotePort];
-                    if(layer)
-                    {
-                        [layer processReceivedData:rx];
-                        break;
-                    }
+                    [layer processReceivedData:rx];
                 }
-                if(layer == NULL)
+                else
                 {
                     /* we have not found anyone listening to this so we send abort */
                     NSLog(@"should abort here for %@ %d",rx.remoteAddress,rx.remotePort);
