@@ -288,7 +288,8 @@
         [_listener startListening];
         _listenerStarted = YES;
         sleep(1);
-        _assoc = 0;
+        _assocId = -1;
+        _assocIdPresent = NO;
         [_registry unregisterLayer:self];
         if(self.isPassive==NO)
         {
@@ -301,14 +302,21 @@
 #endif
             err = [_listener connectToAddresses:configured_remote_addresses
                                            port:configured_remote_port
-                                          assoc:&_assoc];
+                                          assoc:&_assocId];
+            if(_assocId!= -1)
+            {
+                _assocIdPresent = YES;
+            }
             if(logLevel <= UMLOG_DEBUG)
             {
                 NSString *e = [UMSocket getSocketErrorString:err];
                 [self logDebug:[NSString stringWithFormat:@"returns %d %@",err,e]];
             }
         }
-        [_registry registerLayer:self forAssoc:@(_assoc)];
+        if(_assocIdPresent)
+        {
+            [_registry registerLayer:self forAssoc:@(_assocId)];
+        }
         [_registry startReceiver];
         sleep(2);
     }
@@ -392,7 +400,7 @@
 
         ssize_t sent_packets = [_listener.umsocket sendToAddresses:configured_remote_addresses
                                                               port:configured_remote_port
-                                                             assoc:&_assoc
+                                                             assoc:&_assocId
                                                               data:task.data
                                                             stream:task.streamId
                                                           protocol:task.protocolId
@@ -660,9 +668,10 @@
 
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx
 {
-    if(_assoc == 0)
+    if(_assocId <= 0)
     {
-        _assoc = [rx.assocId unsignedIntValue];
+        _assocId = [rx.assocId unsignedIntValue];
+        _assocIdPresent = YES;
     }
 
     if(rx.err==UMSocketError_try_again)
@@ -838,6 +847,8 @@
         [self logDebug:[NSString stringWithFormat:@"  sac_assoc_id: %d",         (int)snp->sn_assoc_change.sac_assoc_id]];
     }
 #endif
+    _assocId = snp->sn_assoc_change.sac_assoc_id;
+    _assocIdPresent=YES;
     if((snp->sn_assoc_change.sac_state==SCTP_COMM_UP) && (snp->sn_assoc_change.sac_error== 0))
     {
         [logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS"];
@@ -1528,8 +1539,8 @@
         [_registry unregisterLayer:self];
         [_listener.umsocket connectToAddresses:configured_remote_addresses
                                                 port:configured_remote_port
-                                               assoc:&_assoc];
-        [_registry registerLayer:self forAssoc:@(_assoc)];
+                                               assoc:&_assocId];
+        [_registry registerLayer:self forAssoc:@(_assocId)];
     }
 }
 

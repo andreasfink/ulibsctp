@@ -56,11 +56,13 @@
     BOOL    _listenerStarted;
     UMTimer          *_reconnectTimer;
     NSTimeInterval  _reconnectTimerValue;
-    NSNumber        *_assocId;
+    //NSNumber        *_assocId;
+    sctp_assoc_t        _assocId;
+    BOOL                _assocIdPresent;
 }
 
 //@property(readwrite,strong) UMSocketSCTP    *sctpSocket;
-@property(readwrite,strong) NSNumber          *assocId;
+//@property(readwrite,strong) NSNumber          *assocId;
 @property(readwrite,strong) NSDate          *startButtonPressed;
 @property(readwrite,strong) NSDate          *stopButtonPressed;
 
@@ -87,7 +89,8 @@
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputBytes;
 @property(readwrite,strong) UMSocketSCTPRegistry *registry;
 @property(readwrite,strong) UMSocketSCTPListener *listener;
-@property(readwrite,assign) sctp_assoc_t        assoc;
+@property(readwrite,assign) sctp_assoc_t        assocId;
+@property(readwrite,assign) BOOL assocIdPresent;
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq;
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name;

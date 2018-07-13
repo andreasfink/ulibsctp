@@ -236,9 +236,9 @@
     if(layer)
     {
         [_lock lock];
-        if(layer.assocId)
+        if(layer.assocIdPresent)
         {
-            [_assocs removeObjectForKey:layer.assocId];
+            [_assocs removeObjectForKey:@(layer.assocId)];
         }
         /* we unregister every local IP / remote IP pair combination */
         
