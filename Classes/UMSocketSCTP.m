@@ -135,24 +135,22 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     _msg_notification_mask = _global_msg_notification_mask;
 }
 
-- (void)dealloc
-{
-    if(_local_addresses)
-    {
-        free(_local_addresses);
-        _local_addresses=NULL;
-    }
-}
 
 
 
 
 - (void)prepareLocalAddresses
 {
-    if(_local_addresses_prepared)
+    if((_localAddressesSockaddr==NULL) || ( _localAddressesSockaddrCount==0))
     {
-        return;
+        int  _localAddressesSockaddrCount;
+        _localAddressesSockaddr = [UMSocketSCTP sockaddrFromAddresses:_requestedLocalAddresses
+                                                                 port:requestedLocalPort
+                                                                count:&_localAddressesSockaddrCount /* returns struct sockaddr data in NSData */
+                                                         socketFamily:AF_INET6];
     }
+
+#if 0
     struct sockaddr_in6 *local_addresses6;
     struct sockaddr_in *local_addresses4;
     
@@ -254,24 +252,46 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             _local_addresses_prepared=YES;
         }
     }
+#endif
 }
 
 - (UMSocketError) bind
 {
     NSMutableArray *useable_local_addr = [[NSMutableArray alloc]init];
-
+#if 0
     if(!_local_addresses_prepared)
     {
         [self prepareLocalAddresses];
     }
+#endif
+
+    if((_localAddressesSockaddr==NULL) || ( _localAddressesSockaddrCount==0))
+    {
+        _localAddressesSockaddr = [UMSocketSCTP sockaddrFromAddresses:_requestedLocalAddresses
+                                                                 port:requestedLocalPort
+                                                                count:&_localAddressesSockaddrCount /* returns struct sockaddr data in NSData */
+                                                         socketFamily:_socketFamily];
+    }
+
     /* at this point usable_addresses contains strings which are in _socketFamily specific formats */
     /* invalid IP's have been remvoed */
     int usable_ips = -1;
     
-    for(int i=0;i<_local_addresses_count;i++)
+    for(int i=0;i<_localAddressesSockaddrCount;i++)
     {
-        NSString *addr = [UMSocket addressOfSockAddr:&_local_addresses[i]];
-        int port = [UMSocket portOfSockAddr:&_local_addresses[i]];
+        struct sockaddr *localAddress = NULL;
+        if(_socketFamily == AF_INET6)
+        {
+            struct sockaddr_in6 *local_addresses=(struct sockaddr_in6 *)_localAddressesSockaddr.bytes;
+            localAddress = (struct sockaddr *)&local_addresses[i];
+        }
+        else
+        {
+            struct sockaddr_in *local_addresses=(struct sockaddr_in *)_localAddressesSockaddr.bytes;
+            localAddress = (struct sockaddr *)&local_addresses[i];
+        }
+        NSString *addr = [UMSocket addressOfSockAddr:localAddress];
+        int port = [UMSocket portOfSockAddr:localAddress];
         if(usable_ips == -1)
         {
 #if (ULIBSCTP_CONFIG==Debug)
@@ -280,11 +300,11 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             int err;
             if(_socketFamily == AF_INET6)
             {
-                err = bind(_sock, &_local_addresses[i],sizeof(struct sockaddr_in6));
+                err = bind(_sock, localAddress,sizeof(struct sockaddr_in6));
             }
             else
             {
-                err = bind(_sock, &_local_addresses[i],sizeof(struct sockaddr_in));
+                err = bind(_sock, localAddress,sizeof(struct sockaddr_in));
             }
             if(err==0)
             {
@@ -304,7 +324,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #if (ULIBSCTP_CONFIG==Debug)
             NSLog(@"calling sctp_bindx for '%@'",addr);
 #endif
-            int err = sctp_bindx(_sock, &_local_addresses[i],1,SCTP_BINDX_ADD_ADDR);
+            int err = sctp_bindx(_sock, localAddress,1,SCTP_BINDX_ADD_ADDR);
             if(err==0)
             {
 #if (ULIBSCTP_CONFIG==Debug)

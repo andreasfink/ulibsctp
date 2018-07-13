@@ -45,10 +45,12 @@
 
     UMSocketSCTPListener *_listener;
     BOOL            _continuousConnectionAttempts;
-    
-    struct sockaddr     *_local_addresses;
-    int                 _local_addresses_count;
-    BOOL                _local_addresses_prepared;
+
+    NSData              *_localAddressesSockaddr;
+    int                 _localAddressesSockaddrCount;
+//    struct sockaddr     *_local_addresses;
+//    int                 _local_addresses_count;
+//    BOOL                _local_addresses_prepared;
   //  sctp_assoc_t        assoc;
 }
 
