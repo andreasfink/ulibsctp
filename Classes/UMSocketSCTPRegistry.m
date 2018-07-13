@@ -193,6 +193,11 @@
     return layer;
 }
 
+- (void)registerLayer:(UMLayerSctp *)layer
+{
+    return [self registerLayer:layer forAssoc:NULL];
+}
+
 - (void)registerLayer:(UMLayerSctp *)layer forAssoc:(NSNumber *)assocId;
 {
     if(layer)

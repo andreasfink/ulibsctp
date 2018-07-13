@@ -35,6 +35,7 @@
 
 - (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId;
 
+- (void)registerLayer:(UMLayerSctp *)layer;
 - (void)registerLayer:(UMLayerSctp *)sctp forAssoc:(NSNumber *)assocId;
 - (void)unregisterLayer:(UMLayerSctp *)sctp;
 - (UMLayerSctp *)layerForLocalIp:(NSString *)ip1

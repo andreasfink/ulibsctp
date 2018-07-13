@@ -317,6 +317,10 @@
         {
             [_registry registerLayer:self forAssoc:@(_assocId)];
         }
+        else
+        {
+            [_registry registerLayer:self];
+        }
         [_registry startReceiver];
         sleep(2);
     }
@@ -1540,7 +1544,14 @@
         [_listener.umsocket connectToAddresses:configured_remote_addresses
                                                 port:configured_remote_port
                                                assoc:&_assocId];
-        [_registry registerLayer:self forAssoc:@(_assocId)];
+        if(_assocIdPresent)
+        {
+            [_registry registerLayer:self forAssoc:@(_assocId)];
+        }
+        else
+        {
+            [_registry registerLayer:self];
+        }
     }
 }
 
