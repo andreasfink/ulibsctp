@@ -13,16 +13,16 @@
 
 @implementation UMSocketSCTPListener
 
-- (UMSocketSCTPListener *)initWithPort:(int)localPort localIpAddress:(NSString *)address
+- (UMSocketSCTPListener *)initWithPort:(int)localPort localIpAddresses:(NSArray *)addresses
 {
     self = [super init];
     if(self)
     {
         _port = localPort;
-        _localIp = address;
+        _localIpAddresses = addresses;
         _isListening = NO;
         _listeningCount = 0;
-        _name = [NSString stringWithFormat:@"sctp-listener[%@]:%d",_localIp,_port];
+        _name = [NSString stringWithFormat:@"sctp-listener[%@]:%d",[_localIpAddresses componentsJoinedByString:@","],_port];
     }
     return self;
 }
@@ -59,7 +59,7 @@
             _umsocket = [[UMSocketSCTP alloc]init];
             _umsocket = [[UMSocketSCTP alloc]initWithType:UMSOCKET_TYPE_SCTP name:_name];
 
-            _umsocket.requestedLocalAddresses = _localIps;
+            _umsocket.requestedLocalAddresses = _localIpAddresses;
             _umsocket.requestedLocalPort = _port;
 
             [_umsocket switchToNonBlocking];
@@ -186,9 +186,6 @@
 
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx
 {
-    rx.localPort = _port;
-    rx.localAddress = _localIp;
-
 #if (ULIBSCTP_CONFIG==Debug)
     NSLog(@"Processing received data: \n%@",rx);
 #endif
@@ -208,11 +205,17 @@
             {
                 /* we have not seen this association id before */
                 /* lets find it by source / destination IP */
-
-                layer = [_registry layerForLocalIp:rx.localAddress
-                                         localPort:rx.localPort
-                                          remoteIp:rx.remoteAddress
-                                        remotePort:rx.remotePort];
+                for(NSString *ip in _localIpAddresses)
+                {
+                    layer = [_registry layerForLocalIp:ip
+                                             localPort:_port
+                                              remoteIp:rx.remoteAddress
+                                            remotePort:rx.remotePort];
+                    if(layer)
+                    {
+                        break;
+                    }
+                }
                 if(layer)
                 {
                     [layer processReceivedData:rx];

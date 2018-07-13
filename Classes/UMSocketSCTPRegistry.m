@@ -59,19 +59,40 @@
     return s;
 }
 
++ (NSString *)keyForPort:(int)port ip:(NSString *)addr
+{
+    return [NSString stringWithFormat:@"%d,%@",port,addr];
+}
+
 
 - (UMSocketSCTPListener *)listenerForPort:(int)port localIps:(NSArray *)ips;
 {
-    NSString *key = [UMSocketSCTPRegistry keyForPort:port  ips:ips];
     [_lock lock];
-    UMSocketSCTPListener *e = _entries[key];
+
+    NSString *key1 =[UMSocketSCTPRegistry keyForPort:port ips:ips];
+    UMSocketSCTPListener *e = _entries[key1];
     if(e == NULL)
     {
         for(NSString *ip in ips)
         {
-            e = [[UMSocketSCTPListener alloc]initWithPort:port localIpAddress:ip];
+            NSString *key2 =[UMSocketSCTPRegistry keyForPort:port ip:ip];
+            e = _entries[key2];
+            if(e)
+            {
+                break;
+            }
+        }
+        if(e==NULL)
+        {
+            e = [[UMSocketSCTPListener alloc]initWithPort:port localIpAddresses:ips];
             e.registry = self;
-            _entries[key]=e;
+            NSString *key1 =[UMSocketSCTPRegistry keyForPort:port ips:ips];
+            _entries[key1]=e;
+            for(NSString *ip in ips)
+            {
+                NSString *key2 =[UMSocketSCTPRegistry keyForPort:port ip:ip];
+                _entries[key2]=e;
+            }
             [_incomingListeners addObject:e];
         }
     }
@@ -133,8 +154,13 @@
 - (void)unregisterListener:(UMSocketSCTPListener *)e
 {
     [_lock lock];
-    NSString *key = [UMSocketSCTPRegistry keyForPort:e.port  ips:e.localIps];
-    [_entries removeObjectForKey:key];
+    NSString *key1 = [UMSocketSCTPRegistry keyForPort:e.port  ips:e.localIpAddresses];
+    [_entries removeObjectForKey:key1];
+    for(NSString *ip in e.localIpAddresses)
+    {
+        NSString *key2 = [UMSocketSCTPRegistry keyForPort:e.port  ip:ip];
+        [_entries removeObjectForKey:key2];
+    }
     [_incomingListeners removeObject:e];
     [_lock unlock];
 }
