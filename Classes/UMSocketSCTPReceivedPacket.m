@@ -22,6 +22,8 @@
     [s appendFormat:@".assocId =  %@\n",_assocId];
     [s appendFormat:@".remoteAddress = %@\n",_remoteAddress];
     [s appendFormat:@".rempotePort =  %d\n",_remotePort];
+    [s appendFormat:@".localAddress = %@\n",_localAddress];
+    [s appendFormat:@".localPort =  %d\n",_localPort];
     [s appendFormat:@".isNotification =  %@\n",_isNotification ? @"YES" : @"NO"];
     [s appendFormat:@".flags =  %d\n",_flags];
     [s appendFormat:@".data =  %@\n",[_data hexString]];
