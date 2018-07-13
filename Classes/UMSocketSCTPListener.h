@@ -14,7 +14,7 @@
 @interface UMSocketSCTPListener : UMObject
 {
     int         _port;
-    NSArray *   _localIps;
+    NSString *   _localIp;
     UMSocketSCTP *_umsocket;
     BOOL        _isListening;
     UMMutex     *_lock;
@@ -29,7 +29,7 @@
 @property(readwrite,strong) UMSocketSCTPRegistry *registry;
 @property(readwrite,strong) NSString *name;
 
-- (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses;
+- (UMSocketSCTPListener *)initWithPort:(int)port localIpAddress:(NSString *)address;
 - (void)startListening;
 - (void)stopListening;
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx;

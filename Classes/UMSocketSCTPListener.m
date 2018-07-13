@@ -13,16 +13,16 @@
 
 @implementation UMSocketSCTPListener
 
-- (UMSocketSCTPListener *)initWithPort:(int)localPort localIpAddresses:(NSArray *)addresses
+- (UMSocketSCTPListener *)initWithPort:(int)localPort localIpAddress:(NSString *)address
 {
     self = [super init];
     if(self)
     {
         _port = localPort;
-        _localIps = addresses;
+        _localIp = address;
         _isListening = NO;
         _listeningCount = 0;
-        _name = [NSString stringWithFormat:@"sctp-listener[%@]:%d",[addresses componentsJoinedByString:@","],_port];
+        _name = [NSString stringWithFormat:@"sctp-listener[%@]:%d",_localIp,_port];
     }
     return self;
 }

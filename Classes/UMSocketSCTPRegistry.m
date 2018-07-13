@@ -67,10 +67,13 @@
     UMSocketSCTPListener *e = _entries[key];
     if(e == NULL)
     {
-        e = [[UMSocketSCTPListener alloc]initWithPort:port localIpAddresses:ips];
-        e.registry = self;
-        _entries[key]=e;
-        [_incomingListeners addObject:e];
+        for(NSString *ip in ips)
+        {
+            e = [[UMSocketSCTPListener alloc]initWithPort:port localIpAddress:ip];
+            e.registry = self;
+            _entries[key]=e;
+            [_incomingListeners addObject:e];
+        }
     }
     [_lock unlock];
     return e;
