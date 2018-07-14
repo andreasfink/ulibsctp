@@ -450,12 +450,11 @@
         }
         else
         {
+            NSLog(@"Error %d %s",errno,strerror(errno));
             if(errno!=EISCONN)
             {
                 NSLog(@"still connected");
             }
-            [self powerdown];
-            [self reportStatus];
             switch(errno)
             {
                 case 0:
@@ -526,7 +525,7 @@
                                                  userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
                     break;
             }
-            [self powerdown];
+            //[self powerdown];
             [self reportStatus];
         }
     }

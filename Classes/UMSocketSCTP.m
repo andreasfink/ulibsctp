@@ -316,7 +316,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             }
             else
             {
-                NSLog(@" bind returns error %d %s",errno,strerror(errno));
+                NSLog(@" bind returns error %d %s for %@",errno,strerror(errno),addr);
             }
         }
         else
