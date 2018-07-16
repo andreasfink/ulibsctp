@@ -285,8 +285,8 @@
             [self logDebug:[NSString stringWithFormat:@"asking listener %@ to start",_listener]];
         }
 
-        [_listener startListening];
-        _listenerStarted = YES;
+        [_listener startListening]; /* FIXME: what if we have an error */
+        _listenerStarted = _listener.isListening;
         sleep(1);
         _assocId = -1;
         _assocIdPresent = NO;
@@ -399,19 +399,13 @@
 #endif
         UMSocketError err = UMSocketError_no_error;
 
-        ssize_t sent_packets = [_listener.umsocket sendToAddresses:configured_remote_addresses
+        ssize_t sent_packets = [_listener sendToAddresses:configured_remote_addresses
                                                               port:configured_remote_port
                                                              assoc:&_assocId
                                                               data:task.data
                                                             stream:task.streamId
                                                           protocol:task.protocolId
                                                              error:&err];
-/*
-        ssize_t sent_packets = [_listener.umsocket sendSCTP:task.data
-                                              stream:task.streamId
-                                            protocol:task.protocolId
-                                               error:&err];
- */
         [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
         [_outboundThroughputPackets increaseBy:(uint32_t)sent_packets];
 
@@ -1534,9 +1528,9 @@
     if(_status != SCTP_STATUS_IS)
     {
         _assocId = -1;
-        [_listener.umsocket connectToAddresses:configured_remote_addresses
-                                                port:configured_remote_port
-                                               assoc:&_assocId];
+        [_listener connectToAddresses:configured_remote_addresses
+                                 port:configured_remote_port
+                                assoc:&_assocId];
         if(_assocId != -1)
         {
             _assocIdPresent = YES;

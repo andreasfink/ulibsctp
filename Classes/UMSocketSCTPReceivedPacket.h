@@ -23,11 +23,9 @@
     int         _flags;
     BOOL        _isNotification;
 
-
     UMMicroSec  _poll_time;
     UMMicroSec  _rx_time;
     UMMicroSec  _process_time;
-
 }
 
 @property(readwrite,atomic,assign)  UMSocketError err;
@@ -41,9 +39,9 @@
 @property(readwrite,atomic,strong)  NSString *localAddress;
 @property(readwrite,atomic,assign)  int localPort;
 @property(readwrite,atomic,assign)  int flags;
-@property(readwrite,atomic,assign) BOOL isNotification;
-@property(readwrite,atomic,assign) UMMicroSec  poll_time;
-@property(readwrite,atomic,assign) UMMicroSec  rx_time;
-@property(readwrite,atomic,assign) UMMicroSec  process_time;
+@property(readwrite,atomic,assign)  BOOL isNotification;
+@property(readwrite,atomic,assign)  UMMicroSec  poll_time;
+@property(readwrite,atomic,assign)  UMMicroSec  rx_time;
+@property(readwrite,atomic,assign)  UMMicroSec  process_time;
 
 @end

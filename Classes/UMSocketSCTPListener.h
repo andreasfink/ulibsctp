@@ -28,6 +28,7 @@
 @property(readwrite,strong) UMSocketSCTP *umsocket;
 @property(readwrite,strong) UMSocketSCTPRegistry *registry;
 @property(readwrite,strong) NSString *name;
+@property(readwrite,assign) BOOL        isListening;
 
 - (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses;
 - (void)startListening;
@@ -37,4 +38,11 @@
 - (void)processHangUp;
 - (void)processInvalidSocket;
 - (UMSocketError) connectToAddresses:(NSArray *)addrs port:(int)port assoc:(sctp_assoc_t *)assoc;
+- (ssize_t) sendToAddresses:(NSArray *)addrs
+                       port:(int)remotePort
+                      assoc:(sctp_assoc_t *)assocptr
+                       data:(NSData *)data
+                     stream:(uint16_t)streamId
+                   protocol:(u_int32_t)protocolId
+                      error:(UMSocketError *)err2;
 @end

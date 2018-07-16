@@ -50,116 +50,112 @@
     }
     else
     {
-        if(_umsocket==NULL)
+        if(_umsocket)
         {
-            if(_umsocket)
-            {
-                [_umsocket close];
-            }
-            _umsocket = [[UMSocketSCTP alloc]init];
-            _umsocket = [[UMSocketSCTP alloc]initWithType:UMSOCKET_TYPE_SCTP name:_name];
-
-            _umsocket.requestedLocalAddresses = _localIpAddresses;
-            _umsocket.requestedLocalPort = _port;
-
-            [_umsocket switchToNonBlocking];
-
-            UMSocketError err = [_umsocket setNoDelay];
-            if(err!=UMSocketError_no_error)
-            {
-                [self logMinorError:[NSString stringWithFormat:@"can not set NODELAY option on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
-            }
-            else
-            {
-                [self logDebug:[NSString stringWithFormat:@"%@: setting NODELAY successful",_name]];
-            }
-
-            err = [_umsocket setIPDualStack];
-            if(err!=UMSocketError_no_error)
-            {
-                [self logMinorError:[NSString stringWithFormat:@"can not disable IPV6_V6ONLY option on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
-            }
-            else
-            {
-                [self logDebug:[NSString stringWithFormat:@"%@:  setIPDualStack successful",_name]];
-            }
-
-            err = [_umsocket setLinger];
-            if(err!=UMSocketError_no_error)
-            {
-                [self logMinorError:[NSString stringWithFormat:@"can not set SO_LINGER option on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
-            }
-            else
-            {
-                [self logDebug:[NSString stringWithFormat:@"%@:  setLinger successful",_name]];
-            }
-
-            err = [_umsocket setReuseAddr];
-            if(err!=UMSocketError_no_error)
-            {
-                [self logMinorError:[NSString stringWithFormat:@"can not set SO_REUSEADDR option on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
-            }
-            else
-            {
-                [self logDebug:[NSString stringWithFormat:@"%@:  setReuseAddr successful",_name]];
-            }
-            if(_umsocket.socketType != SOCK_SEQPACKET)
-            {
-                err = [_umsocket setReusePort];
-                if(err!=UMSocketError_no_error)
-                {
-                    [self logMinorError:[NSString stringWithFormat:@"can not set SCTP_REUSE_PORT option on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
-                }
-                else
-                {
-                    [self logDebug:[NSString stringWithFormat:@"%@:  setReusePort successful",_name]];
-                }
-            }
-            err = [_umsocket enableEvents];
-            if(err!=UMSocketError_no_error)
-            {
-                [self logMinorError:[NSString stringWithFormat:@"can not enable sctp events on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
-                return;
-            }
-            else
-            {
-                [self logDebug:[NSString stringWithFormat:@"%@:  enableEvents successful",_name]];
-            }
-
-            err = [_umsocket enableFutureAssoc];
-            if(err!=UMSocketError_no_error)
-            {
-                [self logMinorError:[NSString stringWithFormat:@"can not enableFutureAssocon %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
-                return;
-            }
-            else
-            {
-                [self logDebug:[NSString stringWithFormat:@"%@:  enableFutureAssoc successful",_name]];
-            }
-
-            err = [_umsocket bind];
-            if(err!=UMSocketError_no_error)
-            {
-                [self logMajorError:[NSString stringWithFormat:@"can not bind on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
-                return;
-            }
-            else
-            {
-                [self logDebug:[NSString stringWithFormat:@"%@:  bind successful",_name]];
-            }
-            err = [_umsocket listen:128];
-            if(err!=UMSocketError_no_error)
-            {
-                [self logMinorError:[NSString stringWithFormat:@"can not enable sctp events on sctp-listener port %d: %d %@",_port,err,[UMSocket getSocketErrorString:err]]];
-                return;
-            }
-            else
-            {
-                [self logDebug:[NSString stringWithFormat:@"%@:  listen successful",_name]];
-            }
-            _isListening = YES;
-            _listeningCount++;
+            [_umsocket close];
         }
+        _umsocket = [[UMSocketSCTP alloc]initWithType:UMSOCKET_TYPE_SCTP name:_name];
+
+        _umsocket.requestedLocalAddresses = _localIpAddresses;
+        _umsocket.requestedLocalPort = _port;
+
+        [_umsocket switchToNonBlocking];
+
+        UMSocketError err = [_umsocket setNoDelay];
+        if(err!=UMSocketError_no_error)
+        {
+            [self logMinorError:[NSString stringWithFormat:@"can not set NODELAY option on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
+        }
+        else
+        {
+            [self logDebug:[NSString stringWithFormat:@"%@: setting NODELAY successful",_name]];
+        }
+
+        err = [_umsocket setIPDualStack];
+        if(err!=UMSocketError_no_error)
+        {
+            [self logMinorError:[NSString stringWithFormat:@"can not disable IPV6_V6ONLY option on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
+        }
+        else
+        {
+            [self logDebug:[NSString stringWithFormat:@"%@:  setIPDualStack successful",_name]];
+        }
+
+        err = [_umsocket setLinger];
+        if(err!=UMSocketError_no_error)
+        {
+            [self logMinorError:[NSString stringWithFormat:@"can not set SO_LINGER option on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
+        }
+        else
+        {
+            [self logDebug:[NSString stringWithFormat:@"%@:  setLinger successful",_name]];
+        }
+
+        err = [_umsocket setReuseAddr];
+        if(err!=UMSocketError_no_error)
+        {
+            [self logMinorError:[NSString stringWithFormat:@"can not set SO_REUSEADDR option on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
+        }
+        else
+        {
+            [self logDebug:[NSString stringWithFormat:@"%@:  setReuseAddr successful",_name]];
+        }
+        if(_umsocket.socketType != SOCK_SEQPACKET)
+        {
+            err = [_umsocket setReusePort];
+            if(err!=UMSocketError_no_error)
+            {
+                [self logMinorError:[NSString stringWithFormat:@"can not set SCTP_REUSE_PORT option on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
+            }
+            else
+            {
+                [self logDebug:[NSString stringWithFormat:@"%@:  setReusePort successful",_name]];
+            }
+        }
+        err = [_umsocket enableEvents];
+        if(err!=UMSocketError_no_error)
+        {
+            [self logMinorError:[NSString stringWithFormat:@"can not enable sctp events on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
+            return;
+        }
+        else
+        {
+            [self logDebug:[NSString stringWithFormat:@"%@:  enableEvents successful",_name]];
+        }
+
+        err = [_umsocket enableFutureAssoc];
+        if(err!=UMSocketError_no_error)
+        {
+            [self logMinorError:[NSString stringWithFormat:@"can not enableFutureAssocon %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
+            return;
+        }
+        else
+        {
+            [self logDebug:[NSString stringWithFormat:@"%@:  enableFutureAssoc successful",_name]];
+        }
+
+        err = [_umsocket bind];
+        if(err!=UMSocketError_no_error)
+        {
+            [self logMajorError:[NSString stringWithFormat:@"can not bind on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
+            return;
+        }
+        else
+        {
+            [self logDebug:[NSString stringWithFormat:@"%@:  bind successful",_name]];
+        }
+        err = [_umsocket listen:128];
+        if(err!=UMSocketError_no_error)
+        {
+            [self logMinorError:[NSString stringWithFormat:@"can not enable sctp events on sctp-listener port %d: %d %@",_port,err,[UMSocket getSocketErrorString:err]]];
+            return;
+        }
+        else
+        {
+            [self logDebug:[NSString stringWithFormat:@"%@:  listen successful",_name]];
+        }
+        _isListening = YES;
+        _listeningCount++;
     }
     [_lock unlock];
 }
@@ -248,11 +244,36 @@
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs port:(int)port assoc:(sctp_assoc_t *)assocptr
 {
-    if(_umsocket==NULL)
+    if(_isListening==NO)
     {
-        return UMSocketError_file_descriptor_not_open;
+        [self startListening];
     }
     UMSocketError err = [_umsocket connectToAddresses:addrs port:port assoc:assocptr];
     return err;
 }
+
+- (ssize_t) sendToAddresses:(NSArray *)addrs
+                       port:(int)remotePort
+                      assoc:(sctp_assoc_t *)assocptr
+                       data:(NSData *)data
+                     stream:(uint16_t)streamId
+                   protocol:(u_int32_t)protocolId
+                      error:(UMSocketError *)err2
+{
+    ssize_t r = -1;
+    if(_isListening==NO)
+    {
+        [self startListening];
+    }
+    r = [_umsocket sendToAddresses:addrs
+                              port:remotePort
+                             assoc:assocptr
+                              data:data
+                            stream:streamId
+                          protocol:protocolId
+                             error:err2];
+    return r;
+}
+
+
 @end
