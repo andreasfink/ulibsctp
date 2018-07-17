@@ -95,6 +95,8 @@
         _outboundThroughputBytes    = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
         _reconnectTimerValue = 10.0;
         _reconnectTimer = [[UMTimer alloc]initWithTarget:self selector:@selector(reconnectTimerFires) object:NULL seconds:_reconnectTimerValue name:@"reconnect-timer" repeats:NO];
+        _linkLock = [[UMMutex alloc]init];
+
     }
     return self;
 }
@@ -246,6 +248,8 @@
 
 - (void)_openTask:(UMSctpTask_Open *)task
 {
+    [_linkLock lock];
+
     @try
     {
         if(self.status == SCTP_STATUS_M_FOOS)
@@ -339,11 +343,13 @@
         }
         [self powerdown];
     }
+    [_linkLock unlock];
     [self reportStatus];
 }
 
 - (void)_closeTask:(UMSctpTask_Close *)task
 {
+    [_linkLock lock];
 #if (ULIBSCTP_CONFIG==Debug)
     if(logLevel <=UMLOG_DEBUG)
     {
@@ -352,12 +358,13 @@
     }
 #endif
     [self powerdown];
-    [self reportStatus];
     if(_listenerStarted==YES)
     {
         [_listener stopListeningFor:self];
     }
     _listener = NULL;
+    [_linkLock unlock];
+    [self reportStatus];
 }
 
 
@@ -389,6 +396,7 @@
 #endif
         UMSocketError err = UMSocketError_no_error;
 
+        [_linkLock lock];
         ssize_t sent_packets = [_listener sendToAddresses:configured_remote_addresses
                                                      port:configured_remote_port
                                                     assoc:&_assocId
@@ -397,6 +405,8 @@
                                                  protocol:task.protocolId
                                                     error:&err
                                                     layer:self];
+        [_linkLock unlock];
+
         if(sent_packets>0)
         {
             [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
@@ -547,6 +557,7 @@
 
 - (void)_foosTask:(UMSctpTask_Manual_ForceOutOfService *)task
 {
+    [_linkLock lock];
     [self powerdown];
     self.status = SCTP_STATUS_M_FOOS;
 #if (ULIBSCTP_CONFIG==Debug)
@@ -555,6 +566,7 @@
         [self logDebug:@"FOOS"];
     }
 #endif
+    [_linkLock unlock];
     [self reportStatus];
 }
 

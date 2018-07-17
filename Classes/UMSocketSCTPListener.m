@@ -24,6 +24,7 @@
         _listeningCount = 0;
         _layers = [[UMSynchronizedDictionary alloc]init];
         _name = [NSString stringWithFormat:@"sctp-listener[%@]:%d",[_localIpAddresses componentsJoinedByString:@","],_port];
+        _lock = [[UMMutex alloc]init];
     }
     return self;
 }

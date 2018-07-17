@@ -59,6 +59,7 @@
     //NSNumber        *_assocId;
     sctp_assoc_t        _assocId;
     BOOL                _assocIdPresent;
+    UMMutex           *_linkLock;
 }
 
 //@property(readwrite,strong) UMSocketSCTP    *sctpSocket;
