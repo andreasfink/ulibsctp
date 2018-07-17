@@ -22,10 +22,12 @@
         _localIpAddresses = addresses;
         _isListening = NO;
         _listeningCount = 0;
+        _layers = [[UMSynchronizedDictionary alloc]init];
         _name = [NSString stringWithFormat:@"sctp-listener[%@]:%d",[_localIpAddresses componentsJoinedByString:@","],_port];
     }
     return self;
 }
+
 - (void)logMinorError:(NSString *)s
 {
     NSLog(@"%@",s);
@@ -41,21 +43,24 @@
     NSLog(@"%@",s);
 }
 
-- (void)startListening
+- (void)startListeningFor:(UMLayerSctp *)layer
 {
+    /* multiple UMLayerSctp objects can call startListening and ask a listener to listen for incoming
+     packets on a specific port. Only the first such request is actually starting a listening process
+     the subsequents just increase the counter. When a layer stops listening then the counter is decreased.
+     If all layers stop listening, then the counter reaches zero and the socket is closed.
+    */
     [_lock lock];
     if(_isListening)
     {
-        _listeningCount++;
+        _layers[layer.layerName] =layer;
+        _listeningCount = _layers.count;
     }
     else
     {
-        if(_umsocket)
-        {
-            [_umsocket close];
-        }
-        _umsocket = [[UMSocketSCTP alloc]initWithType:UMSOCKET_TYPE_SCTP name:_name];
+        NSAssert(_umsocket == NULL,@"calling startListening with _umsocket already existing");
 
+        _umsocket = [[UMSocketSCTP alloc]initWithType:UMSOCKET_TYPE_SCTP name:_name];
         _umsocket.requestedLocalAddresses = _localIpAddresses;
         _umsocket.requestedLocalPort = _port;
 
@@ -116,54 +121,47 @@
         if(err!=UMSocketError_no_error)
         {
             [self logMinorError:[NSString stringWithFormat:@"can not enable sctp events on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
-            return;
         }
         else
         {
             [self logDebug:[NSString stringWithFormat:@"%@:  enableEvents successful",_name]];
+            err = [_umsocket bind];
+            if(err!=UMSocketError_no_error)
+            {
+                [self logMajorError:[NSString stringWithFormat:@"can not bind on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
+            }
+            else
+            {
+                [self logDebug:[NSString stringWithFormat:@"%@:  bind successful",_name]];
+                err = [_umsocket listen:128];
+                if(err!=UMSocketError_no_error)
+                {
+                    [self logMinorError:[NSString stringWithFormat:@"can not enable sctp events on sctp-listener port %d: %d %@",_port,err,[UMSocket getSocketErrorString:err]]];
+                }
+                else
+                {
+                    [self logDebug:[NSString stringWithFormat:@"%@:  listen successful",_name]];
+                    _isListening = YES;
+                    _listeningCount++;
+                }
+            }
         }
-
-        err = [_umsocket enableFutureAssoc];
-        if(err!=UMSocketError_no_error)
-        {
-            [self logMinorError:[NSString stringWithFormat:@"can not enableFutureAssocon %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
-            return;
-        }
-        else
-        {
-            [self logDebug:[NSString stringWithFormat:@"%@:  enableFutureAssoc successful",_name]];
-        }
-
-        err = [_umsocket bind];
-        if(err!=UMSocketError_no_error)
-        {
-            [self logMajorError:[NSString stringWithFormat:@"can not bind on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
-            return;
-        }
-        else
-        {
-            [self logDebug:[NSString stringWithFormat:@"%@:  bind successful",_name]];
-        }
-        err = [_umsocket listen:128];
-        if(err!=UMSocketError_no_error)
-        {
-            [self logMinorError:[NSString stringWithFormat:@"can not enable sctp events on sctp-listener port %d: %d %@",_port,err,[UMSocket getSocketErrorString:err]]];
-            return;
-        }
-        else
-        {
-            [self logDebug:[NSString stringWithFormat:@"%@:  listen successful",_name]];
-        }
-        _isListening = YES;
-        _listeningCount++;
+    }
+    if(_isListening==NO)
+    {
+        [_umsocket close];
+        _umsocket = NULL;
     }
     [_lock unlock];
 }
 
-- (void)stopListening
+- (void)stopListeningFor:(UMLayerSctp *)layer
 {
+    
+
     [_lock lock];
-    _listeningCount--;
+    [_layers removeObjectForKey:layer.layerName];
+    _listeningCount = _layers.count;
     if(_listeningCount<=0)
     {
         [_registry unregisterListener:self];
@@ -229,24 +227,29 @@
 - (void)processError:(UMSocketError)err
 {
     /* FIXME */
+    NSLog(@"processError %d %@ received in listener %@",err, [UMSocket getSocketErrorString:err], _name);
 }
 
 - (void)processHangUp
 {
     /* FIXME */
+    NSLog(@"processHangUp received in listener %@",_name);
 }
 
 - (void)processInvalidSocket
 {
     /* FIXME */
+    NSLog(@"processInvalidSocket received in listener %@",_name);
 }
 
-
-- (UMSocketError) connectToAddresses:(NSArray *)addrs port:(int)port assoc:(sctp_assoc_t *)assocptr
+- (UMSocketError) connectToAddresses:(NSArray *)addrs
+                                port:(int)port
+                               assoc:(sctp_assoc_t *)assocptr
+                               layer:(UMLayerSctp *)layer
 {
     if(_isListening==NO)
     {
-        [self startListening];
+        [self startListeningFor:layer];
     }
     UMSocketError err = [_umsocket connectToAddresses:addrs port:port assoc:assocptr];
     return err;
@@ -259,12 +262,10 @@
                      stream:(uint16_t)streamId
                    protocol:(u_int32_t)protocolId
                       error:(UMSocketError *)err2
+                      layer:(UMLayerSctp *)layer
 {
     ssize_t r = -1;
-    if(_isListening==NO)
-    {
-        [self startListening];
-    }
+    [self startListeningFor:layer];
     r = [_umsocket sendToAddresses:addrs
                               port:remotePort
                              assoc:assocptr

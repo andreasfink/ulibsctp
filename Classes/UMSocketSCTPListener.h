@@ -10,17 +10,19 @@
 #import "UMSocketSCTP.h"
 
 @class UMSocketSCTPRegistry;
+@class UMLayerSctp;
 
 @interface UMSocketSCTPListener : UMObject
 {
-    int         _port;
-    NSArray *   _localIpAddresses;
-    UMSocketSCTP *_umsocket;
-    BOOL        _isListening;
-    UMMutex     *_lock;
-    int         _listeningCount;
-    UMSocketSCTPRegistry *_registry;
-    NSString    *_name;
+    int                         _port;
+    NSArray *                   _localIpAddresses;
+    UMSocketSCTP                *_umsocket;
+    BOOL                        _isListening;
+    UMMutex                     *_lock;
+    NSInteger                   _listeningCount;
+    UMSocketSCTPRegistry        *_registry;
+    NSString                    *_name;
+    UMSynchronizedDictionary    *_layers;
 }
 
 @property(readwrite,assign) int port;
@@ -31,18 +33,24 @@
 @property(readwrite,assign) BOOL        isListening;
 
 - (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses;
-- (void)startListening;
-- (void)stopListening;
+- (void)startListeningFor:(UMLayerSctp *)layer;
+- (void)stopListeningFor:(UMLayerSctp *)layer;
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx;
 - (void)processError:(UMSocketError)err;
 - (void)processHangUp;
 - (void)processInvalidSocket;
-- (UMSocketError) connectToAddresses:(NSArray *)addrs port:(int)port assoc:(sctp_assoc_t *)assoc;
+
+- (UMSocketError) connectToAddresses:(NSArray *)addrs
+                                port:(int)port
+                               assoc:(sctp_assoc_t *)assoc
+                               layer:(UMLayerSctp *)layer;
+
 - (ssize_t) sendToAddresses:(NSArray *)addrs
                        port:(int)remotePort
                       assoc:(sctp_assoc_t *)assocptr
                        data:(NSData *)data
                      stream:(uint16_t)streamId
                    protocol:(u_int32_t)protocolId
-                      error:(UMSocketError *)err2;
+                      error:(UMSocketError *)err2
+                      layer:(UMLayerSctp *)layer;
 @end

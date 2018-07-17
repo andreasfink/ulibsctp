@@ -162,7 +162,6 @@
                                     streamId:sid
                                   protocolId:pid
                                   ackRequest:ack];
-    //[task main];
     [self queueFromUpper:task];
 }
 
@@ -285,7 +284,7 @@
             [self logDebug:[NSString stringWithFormat:@"asking listener %@ to start",_listener]];
         }
 
-        [_listener startListening]; /* FIXME: what if we have an error */
+        [_listener startListeningFor:self]; /* FIXME: what if we have an error */
         _listenerStarted = _listener.isListening;
         sleep(1);
         _assocId = -1;
@@ -301,7 +300,8 @@
 #endif
             err = [_listener connectToAddresses:configured_remote_addresses
                                            port:configured_remote_port
-                                          assoc:&_assocId];
+                                          assoc:&_assocId
+                                          layer:self];
             if(_assocId!= -1)
             {
                 _assocIdPresent = YES;
@@ -355,7 +355,7 @@
     [self reportStatus];
     if(_listenerStarted==YES)
     {
-        [_listener stopListening];
+        [_listener stopListeningFor:self];
     }
     _listener = NULL;
 }
@@ -377,16 +377,6 @@
 
     @try
     {
-        /*
-        if(self.status == SCTP_STATUS_M_FOOS)
-        {
-            @throw([NSException exceptionWithName:@"FOOS" reason:@"Link out of service" userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-        }
-        if(self.status != SCTP_STATUS_IS)
-        {
-            @throw([NSException exceptionWithName:@"NOT_IS" reason:@"trying to send data on non open link" userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-        }
-         */
         if(task.data == NULL)
         {
             @throw([NSException exceptionWithName:@"NULL" reason:@"trying to send NULL data" userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
@@ -400,15 +390,18 @@
         UMSocketError err = UMSocketError_no_error;
 
         ssize_t sent_packets = [_listener sendToAddresses:configured_remote_addresses
-                                                              port:configured_remote_port
-                                                             assoc:&_assocId
-                                                              data:task.data
-                                                            stream:task.streamId
-                                                          protocol:task.protocolId
-                                                             error:&err];
-        [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
-        [_outboundThroughputPackets increaseBy:(uint32_t)sent_packets];
-
+                                                     port:configured_remote_port
+                                                    assoc:&_assocId
+                                                     data:task.data
+                                                   stream:task.streamId
+                                                 protocol:task.protocolId
+                                                    error:&err
+                                                    layer:self];
+        if(sent_packets>0)
+        {
+            [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
+            [_outboundThroughputPackets increaseBy:(uint32_t)sent_packets];
+        }
         NSArray *usrs = [_users arrayCopy];
         for(UMLayerSctpUser *u in usrs)
         {
@@ -1511,7 +1504,7 @@
 {
     if(_listenerStarted==YES)
     {
-        [_listener stopListening];
+        [_listener stopListeningFor:self];
     }
     _listener = NULL;
 }
@@ -1530,7 +1523,8 @@
         _assocId = -1;
         [_listener connectToAddresses:configured_remote_addresses
                                  port:configured_remote_port
-                                assoc:&_assocId];
+                                assoc:&_assocId
+                                layer:self];
         if(_assocId != -1)
         {
             _assocIdPresent = YES;
