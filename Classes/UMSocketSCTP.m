@@ -878,13 +878,17 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     assoc = sinfo.sinfo_assoc_id;
     if(!(flags & MSG_NOTIFICATION))
     {
+#if (ULIBSCTP_CONFIG==Debug)
         NSLog(@"Data for protocolId %d received",protocolId);
+#endif
     }
 #endif
 
     if(bytes_read <= 0)
     {
+#if (ULIBSCTP_CONFIG==Debug)
         NSLog(@"errno %d %s",errno,strerror(errno));
+#endif
         rx.err = [UMSocket umerrFromErrno:errno];
     }
     else
