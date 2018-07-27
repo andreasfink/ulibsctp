@@ -99,7 +99,7 @@
         j++;
     }
     /* we could add a wakeup pipe here if we want */
-//#if (ULIBSCTP_CONFIG==Debug)
+//#if defined(ULIBSCTP_CONFIG_DEBUG)
 //    NSLog(@"calling poll(timeout=%8.2fs)",((double)_timeoutInMs)/1000.0);
 //#endif
 
@@ -107,7 +107,7 @@
 
     UMMicroSec poll_time = ulib_microsecondTime();
 
-//#if (ULIBSCTP_CONFIG==Debug)
+//#if defined(ULIBSCTP_CONFIG_DEBUG)
 //    NSLog(@"poll returns: %d %s",errno,strerror(errno));
 //#endif
 

@@ -182,14 +182,14 @@
 
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx
 {
-#if (ULIBSCTP_CONFIG==Debug)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
     NSLog(@"Processing received data: \n%@",rx);
 #endif
     if(rx.err == UMSocketError_no_error)
     {
         if(rx.assocId)
         {
-#if (ULIBSCTP_CONFIG==Debug)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
             NSLog(@"Looking into registry: %@",_registry);
 #endif
             UMLayerSctp *layer =  [_registry layerForAssoc:rx.assocId];

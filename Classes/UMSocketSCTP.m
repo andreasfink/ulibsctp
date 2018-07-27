@@ -291,10 +291,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             localAddress = (struct sockaddr *)&local_addresses[i];
         }
         NSString *addr = [UMSocket addressOfSockAddr:localAddress];
-        int port = [UMSocket portOfSockAddr:localAddress];
         if(usable_ips == -1)
         {
-#if (ULIBSCTP_CONFIG==Debug)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+            int port = [UMSocket portOfSockAddr:localAddress];
             NSLog(@"calling bind for '%@:%d' on socket %d",addr,port,_sock);
 #endif
             int err;
@@ -308,7 +308,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             }
             if(err==0)
             {
-#if (ULIBSCTP_CONFIG==Debug)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
                 NSLog(@" bind succeeds for %@",addr);
 #endif
                 usable_ips = 1;
@@ -321,13 +321,13 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         }
         else
         {
-#if (ULIBSCTP_CONFIG==Debug)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
             NSLog(@"calling sctp_bindx for '%@:%d'",addr,port);
 #endif
             int err = sctp_bindx(_sock, localAddress,1,SCTP_BINDX_ADD_ADDR);
             if(err==0)
             {
-#if (ULIBSCTP_CONFIG==Debug)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
                 NSLog(@" sctp_bindx succeeds for %@",addr);
 #endif
                 usable_ips++;
@@ -341,7 +341,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
     if(usable_ips <= 0)
     {
-#if (ULIBSCTP_CONFIG==Debug)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"bind(SCTP): usable_ips=%d",usable_ips);
 #endif
         return UMSocketError_address_not_available;
@@ -534,12 +534,12 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
     else
     {
-#if (ULIBSCTP_CONFIG==Debug)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"calling sctp_connectx (%@)", [addrs componentsJoinedByString:@" "]);
 #endif
         memset(assocptr,0,sizeof(sctp_assoc_t));
         int err =  sctp_connectx(_sock,(struct sockaddr *)remote_sockaddr.bytes,count,assocptr);
-#if (ULIBSCTP_CONFIG==Debug)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"sctp_connectx: returns %d. errno = %d %s assoc=%lu",err,errno,strerror(errno),(unsigned long)*assocptr);
 #endif
         if (err < 0)
@@ -878,7 +878,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     assoc = sinfo.sinfo_assoc_id;
     if(!(flags & MSG_NOTIFICATION))
     {
-#if (ULIBSCTP_CONFIG==Debug)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"Data for protocolId %d received",protocolId);
 #endif
     }
@@ -886,7 +886,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     if(bytes_read <= 0)
     {
-#if (ULIBSCTP_CONFIG==Debug)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"errno %d %s",errno,strerror(errno));
 #endif
         rx.err = [UMSocket umerrFromErrno:errno];
@@ -944,7 +944,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     //    UMAssert(timeoutInMs>0,@"timeout should be larger than 0");
     UMAssert(timeoutInMs<200000,@"timeout should be smaller than 20seconds");
     
-#if (ULIBSCTP_CONFIG==Debug)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
     NSLog(@"calling poll (timeout =%dms,socket=%d)",timeoutInMs,_sock);
 #endif
 
@@ -952,13 +952,13 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     ret1 = poll(pollfds, 1, timeoutInMs);
     [_controlLock unlock];
 
-#if (ULIBSCTP_CONFIG==Debug)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
     NSLog(@" poll returns %d (%d:%s)",ret1,errno,strerror(errno));
 #endif
 
     if (ret1 < 0)
     {
-#if (ULIBSCTP_CONFIG==Debug)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"poll: %d %s",errno,strerror(errno));
 #endif
         eno = errno;
@@ -979,7 +979,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     {
         /* we have some event to handle. */
         ret2 = pollfds[0].revents;
-#if (ULIBSCTP_CONFIG==Debug)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"pollfds[0].revents = %d",ret2);
 #endif
         if(ret2 & POLLERR)
