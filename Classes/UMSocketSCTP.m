@@ -295,7 +295,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             int port = [UMSocket portOfSockAddr:localAddress];
-            NSLog(@"calling bind for '%@:%d' on socket %d",addr,port,_sock);
+            NSLog(@"calling bind for '%@:%d' on socket %d",addr,port,_sock);namedlist_contains
 #endif
             int err;
             if(_socketFamily == AF_INET6)
