@@ -970,8 +970,8 @@
                  streamId:(uint32_t)streamId
                protocolId:(uint16_t)protocolId
 {
-    const union sctp_notification *snp;
-    snp = event.bytes;
+    //const union sctp_notification *snp;
+    //snp = event.bytes;
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1054,8 +1054,8 @@
                   streamId:(uint32_t)streamId
                 protocolId:(uint16_t)protocolId
 {
-    const union sctp_notification *snp;
-    snp = event.bytes;
+    //const union sctp_notification *snp;
+    //snp = event.bytes;
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1089,8 +1089,8 @@
                        streamId:(uint32_t)streamId
                      protocolId:(uint16_t)protocolId
 {
-    const union sctp_notification *snp;
-    snp = event.bytes;
+    //const union sctp_notification *snp;
+    //snp = event.bytes;
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1122,8 +1122,8 @@
                          streamId:(uint32_t)streamId
                        protocolId:(uint16_t)protocolId
 {
-    const union sctp_notification *snp;
-    snp = event.bytes;
+    //const union sctp_notification *snp;
+    //snp = event.bytes;
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1159,8 +1159,8 @@
                         streamId:(uint32_t)streamId
                       protocolId:(uint16_t)protocolId
 {
-    const union sctp_notification *snp;
-    snp = event.bytes;
+    //const union sctp_notification *snp;
+    //snp = event.bytes;
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1206,8 +1206,8 @@
                      streamId:(uint32_t)streamId
                    protocolId:(uint16_t)protocolId
 {
-    const union sctp_notification *snp;
-    snp = event.bytes;
+    //const union sctp_notification *snp;
+    //snp = event.bytes;
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1239,8 +1239,8 @@
                    streamId:(uint32_t)streamId
                  protocolId:(uint16_t)protocolId
 {
-    const union sctp_notification *snp;
-    snp = event.bytes;
+    //const union sctp_notification *snp;
+    //snp = event.bytes;
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
