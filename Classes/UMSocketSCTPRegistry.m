@@ -189,7 +189,7 @@
     //NSLog(@" key=%@",key);
     UMLayerSctp *layer = _outgoingLayersByIpsAndPorts[key] ;
     [_lock unlock];
-    //NSLog(@" leyer=%@",layer.layerName);
+    //NSLog(@" layer=%@",layer.layerName);
     return layer;
 }
 
