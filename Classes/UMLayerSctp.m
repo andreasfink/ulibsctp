@@ -1417,7 +1417,7 @@
     if (cfg[@"reconnect-timer"])
     {
         _reconnectTimerValue = [cfg[@"reconnect-timer"] doubleValue];
-        _reconnectTimer.duration = (UMMicroSec) (_reconnectTimerValue * 1000000.0);
+        _reconnectTimer.seconds = _reconnectTimerValue;
     }
 #ifdef ULIB_SCTP_DEBUG
     NSLog(@"configured_local_addresses=%@",configured_local_addresses);
