@@ -30,7 +30,7 @@
 {
     //UMSocketSCTP    *_sctpSocket;
     UMSynchronizedArray *_users;
-    
+
     SCTP_Status     _status;
     UMBackgrounder  *receiverThread;
     NSArray         *configured_local_addresses;
@@ -60,6 +60,7 @@
     sctp_assoc_t        _assocId;
     BOOL                _assocIdPresent;
     UMMutex           *_linkLock;
+    int                _mtu;
 }
 
 //@property(readwrite,strong) UMSocketSCTP    *sctpSocket;
@@ -92,6 +93,7 @@
 @property(readwrite,strong) UMSocketSCTPListener *listener;
 @property(readwrite,assign) sctp_assoc_t        assocId;
 @property(readwrite,assign) BOOL assocIdPresent;
+@property(readwrite,assign) int mtu;
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq;
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name;

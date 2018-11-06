@@ -52,6 +52,7 @@
 //    int                 _local_addresses_count;
 //    BOOL                _local_addresses_prepared;
   //  sctp_assoc_t        assoc;
+    int         _mtu;
 }
 
 @property(readwrite,strong) NSArray        *requestedLocalAddresses;
@@ -64,6 +65,7 @@
 @property(readwrite,strong) id<UMSocketSCTP_dataDelegate>           dataDelegate;
 @property(readwrite,assign) BOOL            continuousConnectionAttempts;
 @property(readwrite,assign) NSTimeInterval  connectionRepeatTimer;
+@property(readwrite,assign) int mtu;
 
 - (UMSocketError) bind;
 - (UMSocketError) enableEvents;

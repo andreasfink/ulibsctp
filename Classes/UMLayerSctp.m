@@ -283,7 +283,8 @@
         }
 
         _listener = [_registry listenerForPort:configured_local_port localIps:configured_local_addresses];
-
+        _listener.mtu = _mtu;
+    
         if(logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"asking listener %@ to start",_listener]];
@@ -1419,6 +1420,12 @@
         _reconnectTimerValue = [cfg[@"reconnect-timer"] doubleValue];
         _reconnectTimer.seconds = _reconnectTimerValue;
     }
+
+    if (cfg[@"mtu"])
+    {
+        _mtu = [cfg[@"mtu"] intValue];
+    }
+
 #ifdef ULIB_SCTP_DEBUG
     NSLog(@"configured_local_addresses=%@",configured_local_addresses);
     NSLog(@"configured_remote_addresses=%@",configured_remote_addresses);
@@ -1438,7 +1445,7 @@
     config[@"heartbeat"] = @(_heartbeatSeconds);
     config[@"reconnect-timer"] = @(_reconnectTimerValue);
     config[@"heartbeat"] = @(_heartbeatSeconds);
-
+    config[@"mtu"] = @(_mtu);
     return config;
 }
 
@@ -1489,6 +1496,7 @@
     d[@"is-passive"] = isPassive ? @(YES) : @(NO);
     d[@"poll-timeout-in-ms"] = @(timeoutInMs);
     d[@"heartbeat"] = @(_heartbeatSeconds);
+    d[@"mtu"] = @(_mtu);
     return d;
 }
 

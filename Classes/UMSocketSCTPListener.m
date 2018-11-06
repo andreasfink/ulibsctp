@@ -45,6 +45,21 @@
     NSLog(@"%@",s);
 }
 
+- (int)mtu
+{
+    if(_umsocket)
+    {
+        return _umsocket.mtu;
+    }
+    return _configuredMtu;
+}
+
+- (void)setMtu:(int)mtu
+{
+    _configuredMtu = mtu;
+    _umsocket.mtu = mtu;
+}
+
 - (void)startListeningFor:(UMLayerSctp *)layer
 {
     /* multiple UMLayerSctp objects can call startListening and ask a listener to listen for incoming
@@ -65,6 +80,7 @@
         _umsocket = [[UMSocketSCTP alloc]initWithType:UMSOCKET_TYPE_SCTP name:_name];
         _umsocket.requestedLocalAddresses = _localIpAddresses;
         _umsocket.requestedLocalPort = _port;
+        _umsocket.mtu = _configuredMtu;
 
         [_umsocket switchToNonBlocking];
 

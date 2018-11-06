@@ -23,6 +23,7 @@
     UMSocketSCTPRegistry        *_registry;
     NSString                    *_name;
     UMSynchronizedDictionary    *_layers;
+    int                         _configuredMtu;
 }
 
 @property(readwrite,assign) int port;
@@ -30,7 +31,8 @@
 @property(readwrite,strong) UMSocketSCTP *umsocket;
 @property(readwrite,strong) UMSocketSCTPRegistry *registry;
 @property(readwrite,strong) NSString *name;
-@property(readwrite,assign) BOOL        isListening;
+@property(readwrite,assign) BOOL    isListening;
+@property(readwrite,assign) int     mtu;
 
 - (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses;
 - (void)startListeningFor:(UMLayerSctp *)layer;
