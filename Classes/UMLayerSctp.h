@@ -28,9 +28,7 @@
 
 @interface UMLayerSctp : UMLayer
 {
-    //UMSocketSCTP    *_sctpSocket;
     UMSynchronizedArray *_users;
-
     SCTP_Status     _status;
     UMBackgrounder  *receiverThread;
     NSArray         *configured_local_addresses;

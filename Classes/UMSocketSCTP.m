@@ -633,6 +633,14 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     return returnValue;
 }
 
+
+
+/* overloading accept */
+- (UMSocketSCTP *) accept:(UMSocketError *)ret
+{
+    return [self acceptSCTP:ret];
+}
+
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret
 {
     int           newsock = -1;

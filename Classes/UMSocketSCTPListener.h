@@ -24,6 +24,7 @@
     NSString                    *_name;
     UMSynchronizedDictionary    *_layers;
     int                         _configuredMtu;
+    BOOL                        _refreshMtu;
 }
 
 @property(readwrite,assign) int port;
@@ -33,6 +34,7 @@
 @property(readwrite,strong) NSString *name;
 @property(readwrite,assign) BOOL    isListening;
 @property(readwrite,assign) int     mtu;
+@property(readwrite,assign) BOOL    refreshMtu;
 
 - (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses;
 - (void)startListeningFor:(UMLayerSctp *)layer;

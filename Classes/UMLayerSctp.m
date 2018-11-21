@@ -717,10 +717,10 @@
     {
         if(rx.isNotification)
         {
+
             [self handleEvent:rx.data
                      streamId:rx.streamId
                    protocolId:rx.protocolId];
-
         }
         else
         {
@@ -819,6 +819,8 @@
         {
             case SCTP_COMM_UP:
                 state =@"SCTP_COMM_UP";
+                _listener.refreshMtu=YES;
+                [socket]
                 break;
             case SCTP_COMM_LOST:
                 state =@"SCTP_COMM_LOST";

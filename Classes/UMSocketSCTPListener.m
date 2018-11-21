@@ -80,7 +80,7 @@
         _umsocket = [[UMSocketSCTP alloc]initWithType:UMSOCKET_TYPE_SCTP name:_name];
         _umsocket.requestedLocalAddresses = _localIpAddresses;
         _umsocket.requestedLocalPort = _port;
-        _umsocket.mtu = _configuredMtu;
+        [_umsocket updateMtu:_configuredMtu];
 
         [_umsocket switchToNonBlocking];
 
@@ -284,6 +284,12 @@
 {
     ssize_t r = -1;
     [self startListeningFor:layer];
+
+    if(_refreshMtu)
+    {
+        [_umsocket updateMtu:_configuredMtu];
+        _refreshMtu = NO;
+    }
     r = [_umsocket sendToAddresses:addrs
                               port:remotePort
                              assoc:assocptr
