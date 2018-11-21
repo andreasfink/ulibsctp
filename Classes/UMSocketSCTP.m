@@ -444,6 +444,24 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
 }
 
+
+- (void)updateMtu:(int)newMtu
+{
+/* to mitigate kernel panic in some versions
+     https://www.spinics.net/lists/netdev/msg534371.html
+*/
+    if(newMtu==0)
+    {
+        [self setMtu:1500];
+        [self setMtu:0];
+    }
+    else
+    {
+        [self setMtu:0];
+        [self setMtu:newMtu];
+    }
+}
+
 - (UMSocketError) enableFutureAssoc
 {
 #if defined(SCTP_FUTURE_ASSOC) && defined(SCTP_ADAPTATION_INDICATION)
@@ -702,7 +720,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         newcon.connectedRemoteAddress = remoteAddress;
         newcon.connectedRemotePort = remotePort;
         newcon.useSSL = useSSL;
-        newcon.mtu = _mtu;
+        [newcon updateMtu:_mtu];
         [newcon updateName];
         newcon.objectStatisticsName = @"UMSocket(accept)";
         [self reportStatus:@"accept () successful"];

@@ -105,5 +105,6 @@
 - (UMSocketError) getSocketError;
 - (UMSocketError) setReusePort;
 - (UMSocketError) setNoDelay;
+- (void)updateMtu:(int)newMtu;
 
 @end
