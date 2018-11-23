@@ -15,6 +15,12 @@
 #include <poll.h>
 @implementation UMSocketSCTPReceiver
 
+- (UMSocketSCTPReceiver *)init
+{
+    NSAssert(0, @"use [UMSocketSCTPReceiver initWithRegistry:]");
+    return NULL;
+}
+
 - (UMSocketSCTPReceiver *)initWithRegistry:(UMSocketSCTPRegistry *)r;
 {
     self = [super init];
@@ -23,7 +29,7 @@
         _outboundLayers = [[NSMutableArray alloc]init];
         _listeners      = [[NSMutableArray alloc]init];
         //_lock           = [[UMMutex alloc]initWithName:@"socket-sctp-receiver-lock"];
-        _timeoutInMs    = 100;
+        _timeoutInMs    = 500;
         _registry       = r;
     }
     return self;
@@ -79,9 +85,9 @@
 
     struct pollfd *pollfds = calloc(listeners_count+1,sizeof(struct pollfd));
     NSAssert(pollfds !=0,@"can not allocate memory for poll()");
+
     memset(pollfds, 0x00,listeners_count+1  * sizeof(struct pollfd));
     int events = POLLIN | POLLPRI | POLLERR | POLLHUP | POLLNVAL;
-
 #ifdef POLLRDBAND
     events |= POLLRDBAND;
 #endif
@@ -102,6 +108,8 @@
 //#if defined(ULIBSCTP_CONFIG_DEBUG)
 //    NSLog(@"calling poll(timeout=%8.2fs)",((double)_timeoutInMs)/1000.0);
 //#endif
+
+    NSAssert(_timeoutInMs > 100,@"UMSocketSCTP Receiver: _timeoutInMs is smaller than 100ms");
 
     int ret1 = poll(pollfds, j, _timeoutInMs);
 
@@ -207,6 +215,12 @@
             /* if poll returns an error, we will not have hit the timeout. Hence we risk a busy loop */
             sleep(1);
             break;
+    }
+
+    if(pollfds)
+    {
+        free(pollfds);
+        pollfds=NULL;
     }
     return returnValue;
 }
