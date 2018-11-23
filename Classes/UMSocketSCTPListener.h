@@ -25,6 +25,7 @@
     UMSynchronizedDictionary    *_layers;
     int                         _configuredMtu;
     BOOL                        _refreshMtu;
+    BOOL                        _isInvalid;
 }
 
 @property(readwrite,assign) int port;
@@ -35,6 +36,7 @@
 @property(readwrite,assign) BOOL    isListening;
 @property(readwrite,assign) int     mtu;
 @property(readwrite,assign) BOOL    refreshMtu;
+@property(readwrite,assign) BOOL    isInvalid;
 
 - (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses;
 - (void)startListeningFor:(UMLayerSctp *)layer;

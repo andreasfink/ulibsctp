@@ -51,14 +51,15 @@
     NSDate          *_stopButtonPressed;
     UMSocketSCTPRegistry *_registry;
     UMSocketSCTPListener *_listener;
-    BOOL    _listenerStarted;
-    UMTimer          *_reconnectTimer;
-    NSTimeInterval  _reconnectTimerValue;
+    BOOL                _listenerStarted;
+    UMTimer             *_reconnectTimer;
+    NSTimeInterval      _reconnectTimerValue;
     //NSNumber        *_assocId;
     sctp_assoc_t        _assocId;
     BOOL                _assocIdPresent;
-    UMMutex           *_linkLock;
-    int                _mtu;
+    UMMutex             *_linkLock;
+    int                 _mtu;
+    BOOL                _isInvalid;
 }
 
 //@property(readwrite,strong) UMSocketSCTP    *sctpSocket;

@@ -737,6 +737,7 @@
 
 - (void)processInvalidSocket
 {
+    _isInvalid = YES;
 }
 
 -(void) handleEvent:(NSData *)event

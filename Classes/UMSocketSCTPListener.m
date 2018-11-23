@@ -258,6 +258,7 @@
 {
     /* FIXME */
     NSLog(@"processInvalidSocket received in listener %@",_name);
+    _isInvalid = YES;
 }
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs

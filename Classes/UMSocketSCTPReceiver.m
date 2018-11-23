@@ -100,11 +100,14 @@
     for(NSUInteger i=0;i<listeners_count;i++)
     {
         UMSocketSCTPListener *listener = listeners[i];
-        pollfds[j].fd = listener.umsocket.fileDescriptor;
-        pollfds[j].events = events;
-        j++;
+        if(listener.isInvalid==NO)
+        {
+            pollfds[j].fd = listener.umsocket.fileDescriptor;
+            pollfds[j].events = events;
+            j++;
+        }
     }
-    /* we could add a wakeup pipe here if we want */
+    /* we could add a wakeup pipe here if we want. thats why the size of pollfds is +1 */
 //#if defined(ULIBSCTP_CONFIG_DEBUG)
 //    NSLog(@"calling poll(timeout=%8.2fs)",((double)_timeoutInMs)/1000.0);
 //#endif
