@@ -149,110 +149,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                                                                 count:&_localAddressesSockaddrCount /* returns struct sockaddr data in NSData */
                                                          socketFamily:AF_INET6];
     }
-
-#if 0
-    struct sockaddr_in6 *local_addresses6;
-    struct sockaddr_in *local_addresses4;
-    
-    int count = (int)_requestedLocalAddresses.count;
-    
-    int i;
-    int j=0;
-    if(_socketFamily==AF_INET6)
-    {
-        local_addresses6 = calloc(count,sizeof(struct sockaddr_in6));
-        for(i=0;i<count;i++)
-        {
-            NSString *address = [_requestedLocalAddresses objectAtIndex:i];
-            NSString *address2 = [UMSocket deunifyIp:address];
-            if(address2.length>0)
-            {
-                address = address2;
-            }
-            if([address isIPv4])
-            {
-                /* we have a IPV6 socket but the local addres is in IPV4 format so we must use the IPv6 representation of it */
-                address =[NSString stringWithFormat:@"::ffff:%@",address];
-            }
-            int result = inet_pton(AF_INET6,address.UTF8String, &local_addresses6[j].sin6_addr);
-            if(result==1)
-            {
-#ifdef HAVE_SOCKADDR_SIN_LEN
-                local_addresses6[i].sin6_len = sizeof(struct sockaddr_in6);
-#endif
-                local_addresses6[j].sin6_family = AF_INET6;
-                local_addresses6[j].sin6_port = htons(requestedLocalPort);
-                j++;
-            }
-            else
-            {
-                NSLog(@"%@ is not a valid IP address. skipped ",address);
-            }
-        }
-        _local_addresses_count = j;
-        if(_local_addresses)
-        {
-            free(_local_addresses);
-            _local_addresses = NULL;
-        }
-        if(j==0)
-        {
-            NSLog(@"prepareLocalAddresses: no valid local IP addresses found");
-            free(local_addresses6);
-        }
-        else
-        {
-            if(j<i)
-            {
-                local_addresses6 = realloc(local_addresses6,sizeof(struct sockaddr_in6)*j);
-            }
-            _local_addresses = (struct sockaddr *)local_addresses6;
-            _local_addresses_prepared=YES;
-        }
-    }
-    else if(_socketFamily==AF_INET)
-    {
-        local_addresses4 = calloc(count,sizeof(struct sockaddr_in));
-        for(int i=0;i<count;i++)
-        {
-            NSString *address = [_requestedRemoteAddresses objectAtIndex:i];
-            NSString *address2 = [UMSocket deunifyIp:address];
-            if(address2.length>0)
-            {
-                address = address2;
-            }
-            int result = inet_pton(AF_INET,address.UTF8String, &local_addresses4[j].sin_addr);
-            if(result==1)
-            {
-#ifdef HAVE_SOCKADDR_SIN_LEN
-                local_addresses4[i].sin_len = sizeof(struct sockaddr_in);
-#endif
-                local_addresses4[j].sin_family = AF_INET;
-                local_addresses4[j].sin_port = htons(requestedRemotePort);
-                j++;
-            }
-            else
-            {
-                NSLog(@"'%@' is not a valid IP address. skipped ",address);
-            }
-        }
-        _local_addresses_count = j;
-        if(j==0)
-        {
-            NSLog(@"no valid local IPv4 addresses found");
-            free(local_addresses4);
-        }
-        else
-        {
-            if(j<count)
-            {
-                local_addresses4 = realloc(local_addresses4,sizeof(struct sockaddr_in)*j);
-            }
-            _local_addresses = (struct sockaddr *)local_addresses4;
-            _local_addresses_prepared=YES;
-        }
-    }
-#endif
 }
 
 - (UMSocketError) bind
@@ -486,8 +382,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                             count:(int *)count_out /* returns struct sockaddr data in NSData */
                      socketFamily:(int)socketFamily
 {
-    struct sockaddr_in6 *addresses6;
-    struct sockaddr_in  *addresses4;
+    struct sockaddr_in6 *addresses6=NULL;
+    struct sockaddr_in  *addresses4=NULL;
     struct sockaddr     *addresses46 = NULL;
     size_t              addresses46_len = 0;
 
