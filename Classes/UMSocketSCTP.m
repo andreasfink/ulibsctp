@@ -172,7 +172,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     /* at this point usable_addresses contains strings which are in _socketFamily specific formats */
     /* invalid IP's have been remvoed */
     int usable_ips = -1;
-    
+
     for(int i=0;i<_localAddressesSockaddrCount;i++)
     {
         struct sockaddr *localAddress = NULL;
