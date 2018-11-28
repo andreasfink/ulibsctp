@@ -629,7 +629,7 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(logLevel <= UMLOG_DEBUG)
     {
-        [logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
+        [self.logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
     }
 #endif
     [receiverThread shutdownBackgroundTask];
@@ -642,7 +642,7 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(logLevel <= UMLOG_DEBUG)
     {
-        [logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
+        [self.logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
     }
 #endif
     self.status = SCTP_STATUS_OOS;
@@ -787,10 +787,10 @@
 #endif
 
         default:
-            [logFeed majorErrorText:[NSString stringWithFormat:@"SCTP unknown event type: %hu", snp->sn_header.sn_type]];
-            [logFeed majorErrorText:[NSString stringWithFormat:@" RX-STREAM: %d",streamId]];
-            [logFeed majorErrorText:[NSString stringWithFormat:@" RX-PROTO: %d", protocolId]];
-            [logFeed majorErrorText:[NSString stringWithFormat:@" RX-DATA: %@",event.description]];
+            [self.logFeed majorErrorText:[NSString stringWithFormat:@"SCTP unknown event type: %hu", snp->sn_header.sn_type]];
+            [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-STREAM: %d",streamId]];
+            [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-PROTO: %d", protocolId]];
+            [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-DATA: %@",event.description]];
     }
 }
 
@@ -811,7 +811,7 @@
 #endif
     if(len < sizeof (struct sctp_assoc_change))
     {
-        [logFeed majorErrorText:@" Size Mismatch in SCTP_ASSOC_CHANGE"];
+        [self.logFeed majorErrorText:@" Size Mismatch in SCTP_ASSOC_CHANGE"];
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(logLevel <= UMLOG_DEBUG)
@@ -853,14 +853,14 @@
     _assocIdPresent=YES;
     if((snp->sn_assoc_change.sac_state==SCTP_COMM_UP) && (snp->sn_assoc_change.sac_error== 0))
     {
-        [logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS"];
+        [self.logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS"];
         self.status=SCTP_STATUS_IS;
         [_reconnectTimer stop];
         [self reportStatus];
     }
     else if(snp->sn_assoc_change.sac_state==SCTP_COMM_LOST)
     {
-        [logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF"];
+        [self.logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF"];
         self.status=SCTP_STATUS_OFF;
         [self reportStatus];
         [self powerdownInReceiverThread];
@@ -875,7 +875,7 @@
     }
     else if(snp->sn_assoc_change.sac_state==SCTP_CANT_STR_ASSOC)
     {
-        [logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_CANT_STR_ASSOC"];
+        [self.logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_CANT_STR_ASSOC"];
         //self.status=SCTP_STATUS_OOS;
         //[self reportStatus];
         //[self powerdownInReceiverThread];
@@ -889,7 +889,7 @@
     }
     else if(snp->sn_assoc_change.sac_error!=0)
     {
-        [logFeed majorError:snp->sn_assoc_change.sac_error withText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)->OFF"];
+        [self.logFeed majorError:snp->sn_assoc_change.sac_error withText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)->OFF"];
         self.status=SCTP_STATUS_OFF;
         [self powerdownInReceiverThread];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -925,7 +925,7 @@
 #endif
     if(len < sizeof (struct sctp_paddr_change))
     {
-        [logFeed majorErrorText:@" Size Mismatch in SCTP_PEER_ADDR_CHANGE"];
+        [self.logFeed majorErrorText:@" Size Mismatch in SCTP_PEER_ADDR_CHANGE"];
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(logLevel <= UMLOG_DEBUG)
@@ -987,7 +987,7 @@
 #endif
     if(len < sizeof (struct sctp_remote_error))
     {
-        [logFeed majorErrorText:@" Size Mismatch in SCTP_REMOTE_ERROR"];
+        [self.logFeed majorErrorText:@" Size Mismatch in SCTP_REMOTE_ERROR"];
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(logLevel <= UMLOG_DEBUG)
@@ -1024,11 +1024,11 @@
 #endif
     if(len < sizeof (struct sctp_send_failed))
     {
-        [logFeed majorErrorText:@" Size Mismatch in SCTP_SEND_FAILED"];
+        [self.logFeed majorErrorText:@" Size Mismatch in SCTP_SEND_FAILED"];
         [self powerdownInReceiverThread];
         return UMSocketError_not_supported_operation;
     }
-    [logFeed majorErrorText:@"SCTP_SEND_FAILED"];
+    [self.logFeed majorErrorText:@"SCTP_SEND_FAILED"];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(logLevel <= UMLOG_DEBUG)
     {
@@ -1049,7 +1049,7 @@
         [self logDebug:[NSString stringWithFormat:@"  ssf_assoc_id: %d",    (int)snp->sn_send_failed.ssf_assoc_id]];
     }
 #endif
-    [logFeed majorErrorText:[NSString stringWithFormat:@"SCTP sendfailed: len=%u err=%d\n", snp->sn_send_failed.ssf_length,snp->sn_send_failed.ssf_error]];
+    [self.logFeed majorErrorText:[NSString stringWithFormat:@"SCTP sendfailed: len=%u err=%d\n", snp->sn_send_failed.ssf_length,snp->sn_send_failed.ssf_error]];
     [self powerdownInReceiverThread];
     return -1;
 }
@@ -1071,7 +1071,7 @@
 #endif
     if(len < sizeof (struct sctp_shutdown_event))
     {
-        [logFeed majorErrorText:@" Size Mismatch in SCTP_SHUTDOWN_EVENT"];
+        [self.logFeed majorErrorText:@" Size Mismatch in SCTP_SHUTDOWN_EVENT"];
         [self powerdownInReceiverThread];
         return UMSocketError_not_supported_operation;
     }
@@ -1084,7 +1084,7 @@
         [self logDebug:[NSString stringWithFormat:@"  sse_assoc_id: %d", (int)snp->sn_shutdown_event.sse_assoc_id]];
     }
 #endif
-    [logFeed warningText:@"SCTP_SHUTDOWN_EVENT->POWERDOWN"];
+    [self.logFeed warningText:@"SCTP_SHUTDOWN_EVENT->POWERDOWN"];
     [self powerdownInReceiverThread];
     return -1;
 }
@@ -1106,7 +1106,7 @@
 #endif
     if(len < sizeof(struct sctp_adaptation_event))
     {
-        [logFeed majorErrorText:@" Size Mismatch in SCTP_ADAPTATION_INDICATION"];
+        [self.logFeed majorErrorText:@" Size Mismatch in SCTP_ADAPTATION_INDICATION"];
         [self powerdownInReceiverThread];
         return UMSocketError_not_supported_operation;
     }
@@ -1139,7 +1139,7 @@
 #endif
     if(len < sizeof(struct sctp_pdapi_event))
     {
-        [logFeed majorErrorText:@" Size Mismatch in SCTP_PARTIAL_DELIVERY_EVENT"];
+        [self.logFeed majorErrorText:@" Size Mismatch in SCTP_PARTIAL_DELIVERY_EVENT"];
         [self powerdownInReceiverThread];
         return UMSocketError_not_supported_operation;
     }
@@ -1176,7 +1176,7 @@
 #endif
     if(len < sizeof(struct sctp_authkey_event))
     {
-        [logFeed majorErrorText:@" Size Mismatch in SCTP_AUTHENTICATION_EVENT"];
+        [self.logFeed majorErrorText:@" Size Mismatch in SCTP_AUTHENTICATION_EVENT"];
         [self powerdownInReceiverThread];
         return UMSocketError_not_supported_operation;
     }
@@ -1223,7 +1223,7 @@
 #endif
     if(len < sizeof(struct sctp_stream_reset_event))
     {
-        [logFeed majorErrorText:@" Size Mismatch in SCTP_STREAM_RESET_EVENT"];
+        [self.logFeed majorErrorText:@" Size Mismatch in SCTP_STREAM_RESET_EVENT"];
         [self powerdownInReceiverThread];
         return UMSocketError_not_supported_operation;
     }
@@ -1256,7 +1256,7 @@
 #endif
     if(len < sizeof(struct sctp_sender_dry_event))
     {
-        [logFeed majorErrorText:@" Size Mismatch in SCTP_SENDER_DRY_EVENT"];
+        [self.logFeed majorErrorText:@" Size Mismatch in SCTP_SENDER_DRY_EVENT"];
         [self powerdownInReceiverThread];
         return UMSocketError_not_supported_operation;
     }
