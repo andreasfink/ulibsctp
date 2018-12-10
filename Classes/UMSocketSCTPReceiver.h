@@ -18,9 +18,9 @@
 
 @interface UMSocketSCTPReceiver : UMBackgrounder
 {
-    NSMutableArray<UMLayerSctp *> *_outboundLayers;
-    NSMutableArray<UMSocketSCTPListener *> *_listeners;
-    int _timeoutInMs;
+    NSMutableArray<UMLayerSctp *>           *_outboundLayers;
+    NSMutableArray<UMSocketSCTPListener *>  *_listeners;
+    int                                     _timeoutInMs;
     UMSocketSCTPRegistry *_registry;
 }
 
