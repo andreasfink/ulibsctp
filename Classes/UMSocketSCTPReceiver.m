@@ -62,7 +62,7 @@
         [self.workSleeper prepare];
     }
     self.runningStatus = UMBackgrounder_running;
-    [control_sleeper wakeUp:UMSleeper_StartupCompletedSignal];
+    [self.control_sleeper wakeUp:UMSleeper_StartupCompletedSignal];
     
     [self backgroundInit];
 
@@ -74,7 +74,7 @@
     [self backgroundExit];
     self.runningStatus = UMBackgrounder_notRunning;
     self.workSleeper = NULL;
-    [control_sleeper wakeUp:UMSleeper_ShutdownCompletedSignal];
+    [self.control_sleeper wakeUp:UMSleeper_ShutdownCompletedSignal];
 }
 
 - (UMSocketError) waitAndHandleData
