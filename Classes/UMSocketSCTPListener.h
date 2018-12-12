@@ -24,7 +24,7 @@
     NSString                    *_name;
     UMSynchronizedDictionary    *_layers;
     int                         _configuredMtu;
-    BOOL                        _refreshMtu;
+    BOOL                        _firstMessage;
     BOOL                        _isInvalid;
 }
 
@@ -35,7 +35,7 @@
 @property(readwrite,strong) NSString *name;
 @property(readwrite,assign) BOOL    isListening;
 @property(readwrite,assign) int     mtu;
-@property(readwrite,assign) BOOL    refreshMtu;
+@property(readwrite,assign) BOOL    firstMessage;
 @property(readwrite,assign) BOOL    isInvalid;
 
 - (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses;

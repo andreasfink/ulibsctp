@@ -79,7 +79,7 @@
     self = [super initWithTaskQueueMulti:NULL name:@""];
     if(self)
     {
-
+        _newDestination = YES;
     }
     return self;
 }
@@ -99,7 +99,7 @@
         _heartbeatSeconds = 30.0;
         _users = [[UMSynchronizedArray alloc]init];
         self.status = SCTP_STATUS_OFF;
-
+        _newDestination = YES;
         _inboundThroughputPackets   = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
         _inboundThroughputBytes     = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
         _outboundThroughputPackets  = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
@@ -304,6 +304,7 @@
 
         [_listener startListeningFor:self]; /* FIXME: what if we have an error */
         _listenerStarted = _listener.isListening;
+        _newDestination = YES;
         sleep(1);
         _assocId = -1;
         _assocIdPresent = NO;

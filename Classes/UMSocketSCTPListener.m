@@ -182,8 +182,6 @@
 
 - (void)stopListeningFor:(UMLayerSctp *)layer
 {
-    
-
     [_lock lock];
     [_layers removeObjectForKey:layer.layerName];
     _listeningCount = _layers.count;
@@ -293,10 +291,18 @@
     ssize_t r = -1;
     [self startListeningFor:layer];
 
-    if(_refreshMtu)
+    if(layer.newDestination==YES)
     {
+        /* we get here when we have a new connection and we send packets for the first time */
         [_umsocket updateMtu:_configuredMtu];
-        _refreshMtu = NO;
+        UMSocketError err = [_umsocket setHeartbeat:YES];
+        if(err!=UMSocketError_no_error)
+        {
+            NSString *estr = [UMSocket getSocketErrorString:err];
+            NSString *s = [NSString stringWithFormat:@"%@:  can not enable heartbeat %@",_name,estr];
+            [self logMinorError:s];
+        }
+        layer.newDestination = NO;
     }
     r = [_umsocket sendToAddresses:addrs
                               port:remotePort

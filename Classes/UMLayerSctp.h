@@ -60,6 +60,7 @@
     UMMutex             *_linkLock;
     int                 _mtu;
     BOOL                _isInvalid;
+    BOOL                _newDestination;
 }
 
 //@property(readwrite,strong) UMSocketSCTP    *sctpSocket;
@@ -93,6 +94,7 @@
 @property(readwrite,assign) sctp_assoc_t        assocId;
 @property(readwrite,assign) BOOL assocIdPresent;
 @property(readwrite,assign) int mtu;
+@property(readwrite,assign) BOOL newDestination;
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq;
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name;
