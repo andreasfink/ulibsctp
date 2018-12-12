@@ -342,7 +342,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 }
 
 
-- (void)setHeartbeat:(BOOL)enable
+- (UMSocketError)setHeartbeat:(BOOL)enable
 {
     struct sctp_paddrparams params;
     socklen_t len = sizeof(params);
@@ -370,6 +370,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         }
         if(enable)
         {
+            [self setKeepalive:enable];
             params.spp_flags &= ~SPP_HB_DISABLE;
             params.spp_flags |= SPP_HB_ENABLE;
         }
@@ -378,7 +379,12 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             params.spp_flags &= ~SPP_HB_ENABLE;
             params.spp_flags |= SPP_HB_DISABLE;
         }
+        if(setsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, len) == 0)
+        {
+            return [UMSocket umerrFromErrno:errno];
+        }
     }
+    return UMSocketError_no_error;
 }
 
 

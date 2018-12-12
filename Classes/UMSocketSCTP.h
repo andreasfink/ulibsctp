@@ -110,6 +110,6 @@
 - (UMSocketError) setReusePort;
 - (UMSocketError) setNoDelay;
 - (void)updateMtu:(int)newMtu;
-- (void)setHeartbeat:(BOOL)enable;
+- (UMSocketError)setHeartbeat:(BOOL)enable;
 
 @end

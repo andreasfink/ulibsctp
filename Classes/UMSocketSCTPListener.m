@@ -164,7 +164,13 @@
                 }
             }
         }
-        [_umsocket setHeartbeat:YES];
+        err =[_umsocket setHeartbeat:YES];
+        if(err!=UMSocketError_no_error)
+        {
+            NSString *estr = [UMSocket getSocketErrorString:err];
+            NSString *s = [NSString stringWithFormat:@"%@:  can not enable heartbeat %@",_name,estr];
+            [self logMinorError:s];
+        }
     }
     if(_isListening==NO)
     {
