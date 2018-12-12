@@ -52,7 +52,8 @@
 //    int                 _local_addresses_count;
 //    BOOL                _local_addresses_prepared;
   //  sctp_assoc_t        assoc;
-    int         _mtu;
+    int _mtu;
+    int _maxseg;
 }
 
 @property(readwrite,strong) NSArray        *requestedLocalAddresses;
@@ -66,6 +67,9 @@
 @property(readwrite,assign) BOOL            continuousConnectionAttempts;
 @property(readwrite,assign) NSTimeInterval  connectionRepeatTimer;
 @property(readwrite,assign) int mtu;
+
+- (int)maxSegment;
+- (void)setMaxSegment:(int)newMaxSeg;
 
 - (UMSocketError) bind;
 - (UMSocketError) enableEvents;
@@ -106,5 +110,6 @@
 - (UMSocketError) setReusePort;
 - (UMSocketError) setNoDelay;
 - (void)updateMtu:(int)newMtu;
+- (void)setHeartbeat:(BOOL)enable;
 
 @end

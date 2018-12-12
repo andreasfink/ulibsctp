@@ -74,6 +74,12 @@
     return logLevel;
 }
 
+- (UMLayerSctp *)init
+{
+    self = [super initWithTaskQueueMulti:NULL name:@""];
+}
+
+
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq
 {
     return [self initWithTaskQueueMulti:tq name:@""];

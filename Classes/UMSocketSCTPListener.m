@@ -164,6 +164,7 @@
                 }
             }
         }
+        [_umsocket setHeartbeat:YES];
     }
     if(_isListening==NO)
     {

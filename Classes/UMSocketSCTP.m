@@ -323,6 +323,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             params.spp_flags &= ~SPP_PMTUD_DISABLE;
             params.spp_flags |= SPP_PMTUD_ENABLE;
         }
+
         if(setsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, len) == 0)
         {
             if(getsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, &len) == 0)
@@ -341,6 +342,69 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 }
 
 
+- (void)setHeartbeat:(BOOL)enable
+{
+    struct sctp_paddrparams params;
+    socklen_t len = sizeof(params);
+    if(getsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, &len) == 0)
+    {
+        if(_socketFamily == AF_INET)
+        {
+            struct sockaddr_in *sa = (struct sockaddr_in *)&params.spp_address;
+            memset(sa,0x00,sizeof(struct sockaddr_in));
+            sa->sin_family = AF_INET;
+#ifdef    HAS_SOCKADDR_LEN
+            sa->sin_len = sizeof(struct sockaddr_in);
+#endif
+            sa->sin_addr.s_addr = htonl(INADDR_ANY);
+        }
+        else if(_socketFamily == AF_INET6)
+        {
+            struct sockaddr_in6 *sa6 = (struct sockaddr_in6 *)&params.spp_address;
+            memset(sa6,0x00,sizeof(struct sockaddr_in6));
+            sa6->sin6_family = AF_INET6;
+#ifdef    HAS_SOCKADDR_LEN
+            sa6->sin6_len = sizeof(struct sockaddr_in6);
+#endif
+            sa6->sin6_addr = in6addr_any;
+        }
+        if(enable)
+        {
+            params.spp_flags &= ~SPP_HB_DISABLE;
+            params.spp_flags |= SPP_HB_ENABLE;
+        }
+        else
+        {
+            params.spp_flags &= ~SPP_HB_ENABLE;
+            params.spp_flags |= SPP_HB_DISABLE;
+        }
+    }
+}
+
+
+- (int)maxSegment
+{
+    return _maxSeg;
+}
+
+- (void)setMaxSegment:(int)newMaxSeg
+{
+    int on;
+    if(newMaxSeg > 0)
+    {
+        on=1;
+        setsockopt(_sock,SCTP_DISABLE_FRAGMENTS, &on, sizeof(int));
+        setsockopt(_sock,SCTP_MAXSEG, &maxSegment, sizeof(int));
+    }
+    else
+    {
+        on=0;
+        maxSegment=1416;
+        setsockopt(_sock,SCTP_DISABLE_FRAGMENTS, &on, sizeof(int));
+    }
+    _maxSeg = newMaxSeg;
+}
+
 - (void)updateMtu:(int)newMtu
 {
 /* to mitigate kernel panic in some versions
@@ -356,6 +420,11 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         [self setMtu:0];
         [self setMtu:newMtu];
     }
+}
+
+- (void)updateMaxSeg:(int)newMaxSeg
+{
+    [self setMaxSeg:newMaxSeg];
 }
 
 - (UMSocketError) enableFutureAssoc
