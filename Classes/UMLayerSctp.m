@@ -77,6 +77,11 @@
 - (UMLayerSctp *)init
 {
     self = [super initWithTaskQueueMulti:NULL name:@""];
+    if(self)
+    {
+
+    }
+    return self;
 }
 
 

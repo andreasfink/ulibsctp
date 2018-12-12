@@ -389,19 +389,13 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (void)setMaxSegment:(int)newMaxSeg
 {
-    int on;
+    int disableFragments = 0;
     if(newMaxSeg > 0)
     {
-        on=1;
-        setsockopt(_sock,SCTP_DISABLE_FRAGMENTS, &on, sizeof(int));
-        setsockopt(_sock,SCTP_MAXSEG, &maxSegment, sizeof(int));
+        disableFragments = 1;
     }
-    else
-    {
-        on=0;
-        maxSegment=1416;
-        setsockopt(_sock,SCTP_DISABLE_FRAGMENTS, &on, sizeof(int));
-    }
+    setsockopt(_sock,IPPROTO_SCTP,SCTP_DISABLE_FRAGMENTS, &disableFragments, sizeof(int));
+    setsockopt(_sock,IPPROTO_SCTP,SCTP_MAXSEG, &newMaxSeg, sizeof(int));
     _maxSeg = newMaxSeg;
 }
 
@@ -420,11 +414,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         [self setMtu:0];
         [self setMtu:newMtu];
     }
-}
-
-- (void)updateMaxSeg:(int)newMaxSeg
-{
-    [self setMaxSeg:newMaxSeg];
 }
 
 - (UMSocketError) enableFutureAssoc

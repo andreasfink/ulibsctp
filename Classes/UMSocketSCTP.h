@@ -53,7 +53,7 @@
 //    BOOL                _local_addresses_prepared;
   //  sctp_assoc_t        assoc;
     int _mtu;
-    int _maxseg;
+    int _maxSeg;
 }
 
 @property(readwrite,strong) NSArray        *requestedLocalAddresses;
