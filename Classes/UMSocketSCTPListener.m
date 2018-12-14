@@ -293,9 +293,18 @@
 
     if(layer.newDestination==YES)
     {
-        /* we get here when we have a new connection and we send packets for the first time */
+        UMSocketError err = [_umsocket connectToAddresses:addrs
+                                                   port:remotePort
+                                                  assoc:assocptr];
+        if(err!=UMSocketError_no_error)
+        {
+            NSString *estr = [UMSocket getSocketErrorString:err];
+            NSString *s = [NSString stringWithFormat:@"%@:  can not connectx: %@ %@",_name,estr];
+            [self logMinorError:s];
+        }
+
         [_umsocket updateMtu:_configuredMtu];
-        UMSocketError err = [_umsocket setHeartbeat:YES];
+        err = [_umsocket setHeartbeat:YES];
         if(err!=UMSocketError_no_error)
         {
             NSString *estr = [UMSocket getSocketErrorString:err];

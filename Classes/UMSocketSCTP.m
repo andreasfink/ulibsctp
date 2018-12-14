@@ -344,45 +344,24 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (UMSocketError)setHeartbeat:(BOOL)enable
 {
-    struct sctp_paddrparams params;
-    socklen_t len = sizeof(params);
-    if(getsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, &len) == 0)
+    struct sctp_paddrparams heartbeat;
+
+    if(enable)
     {
-        if(_socketFamily == AF_INET)
-        {
-            struct sockaddr_in *sa = (struct sockaddr_in *)&params.spp_address;
-            memset(sa,0x00,sizeof(struct sockaddr_in));
-            sa->sin_family = AF_INET;
-#ifdef    HAS_SOCKADDR_LEN
-            sa->sin_len = sizeof(struct sockaddr_in);
-#endif
-            sa->sin_addr.s_addr = htonl(INADDR_ANY);
-        }
-        else if(_socketFamily == AF_INET6)
-        {
-            struct sockaddr_in6 *sa6 = (struct sockaddr_in6 *)&params.spp_address;
-            memset(sa6,0x00,sizeof(struct sockaddr_in6));
-            sa6->sin6_family = AF_INET6;
-#ifdef    HAS_SOCKADDR_LEN
-            sa6->sin6_len = sizeof(struct sockaddr_in6);
-#endif
-            sa6->sin6_addr = in6addr_any;
-        }
-        if(enable)
-        {
-            [self setKeepalive:enable];
-            params.spp_flags &= ~SPP_HB_DISABLE;
-            params.spp_flags |= SPP_HB_ENABLE;
-        }
-        else
-        {
-            params.spp_flags &= ~SPP_HB_ENABLE;
-            params.spp_flags |= SPP_HB_DISABLE;
-        }
-        if(setsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, len) == 0)
-        {
-            return [UMSocket umerrFromErrno:errno];
-        }
+        heartbeat.spp_flags = SPP_HB_ENABLE;
+        heartbeat.spp_hbinterval = 5000;
+        heartbeat.spp_pathmaxrxt = 1;
+    }
+    else
+    {
+        heartbeat.spp_flags = SPP_HB_DISABLE;
+        heartbeat.spp_hbinterval = 5000;
+        heartbeat.spp_pathmaxrxt = 1;
+    }
+
+    if(setsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS , &heartbeat, sizeof(heartbeat)) != 0)
+    {
+        return [UMSocket umerrFromErrno:errno];
     }
     return UMSocketError_no_error;
 }
@@ -1164,6 +1143,32 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     [self reportStatus:@"isListening=1"];
     return UMSocketError_no_error;
 }
+
+
+- (NSArray *)getRemoteIpAddressesForAssoc:(sctp_assoc_t)assoc
+{
+    NSMutableArray *arr = [[NSMutableArray alloc]init];
+    struct sockaddr *addrs=NULL;
+    int e = sctp_getpaddrs(_sock, assoc, &addrs);
+    if(e<0)
+    {
+        if(addrs)
+        {
+            sctp_freepaddrs(addrs);
+        }
+        return NULL;
+    }
+    for(int i=0;i<e;i++)
+    {
+        NSString *a = [UMSocket addressOfSockAddr:&addrs[i]];
+        if(a)
+        {
+            [arr addObject:a];
+        }
+    }
+    return arr;
+}
+
 
 
 @end
