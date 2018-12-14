@@ -299,7 +299,7 @@
         if(err!=UMSocketError_no_error)
         {
             NSString *estr = [UMSocket getSocketErrorString:err];
-            NSString *s = [NSString stringWithFormat:@"%@:  can not connectx: %@ %@",_name,estr];
+            NSString *s = [NSString stringWithFormat:@"%@:  can not connectx: %@",_name,estr];
             [self logMinorError:s];
         }
 

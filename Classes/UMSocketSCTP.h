@@ -111,6 +111,7 @@
 - (UMSocketError) setNoDelay;
 - (void)updateMtu:(int)newMtu;
 - (UMSocketError)setHeartbeat:(BOOL)enable;
-- (NSArray *)getRemoteIpAddresses;
+- (NSArray *)getRemoteIpAddressesForAssoc:(sctp_assoc_t)assoc;
+
 
 @end

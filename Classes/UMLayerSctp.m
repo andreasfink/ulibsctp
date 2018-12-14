@@ -530,7 +530,10 @@
                                                    reason:@"connection is reset by peer."
                                                  userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
                     break;
-
+                case EADDRNOTAVAIL:
+                    @throw([NSException exceptionWithName:@"EADDRNOTAVAIL"
+                                                   reason:@"address is no available"
+                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
                 default:
                     @throw([NSException exceptionWithName:[NSString stringWithFormat:@"ERROR %d",errno]
                                                    reason:[NSString stringWithFormat:@"unknown error %d %s",errno,strerror(errno)]
