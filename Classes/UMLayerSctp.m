@@ -61,19 +61,6 @@
 @synthesize isPassive;
 @synthesize defaultUser;
 
-- (void)setLogLevel:(UMLogLevel )newLevel
-{
-    logLevel = newLevel;
-    if(newLevel <= UMLOG_DEBUG)
-    {
-        NSLog(@"SCTP LogLevel is now DEBUG");
-    }
-}
-- (UMLogLevel)logLevel
-{
-    return logLevel;
-}
-
 - (UMLayerSctp *)init
 {
     self = [super initWithTaskQueueMulti:NULL name:@""];
@@ -288,7 +275,7 @@
 #endif
         UMSocketError err;
 
-        if(logLevel <= UMLOG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
         {
             NSString *addrs = [configured_local_addresses componentsJoinedByString:@","];
             [self logDebug:[NSString stringWithFormat:@"getting listener on %@ on port %d",addrs,configured_local_port]];
@@ -297,7 +284,7 @@
         _listener = [_registry listenerForPort:configured_local_port localIps:configured_local_addresses];
         _listener.mtu = _mtu;
     
-        if(logLevel <= UMLOG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"asking listener %@ to start",_listener]];
         }
@@ -325,7 +312,7 @@
             {
                 _assocIdPresent = YES;
             }
-            if(logLevel <= UMLOG_DEBUG)
+            if(self.logLevel <= UMLOG_DEBUG)
             {
                 NSString *e = [UMSocket getSocketErrorString:err];
                 [self logDebug:[NSString stringWithFormat:@"returns %d %@",err,e]];
@@ -955,7 +942,7 @@
         //struct sockaddr_in *sin;
         sin = (struct sockaddr_in *)&snp->sn_paddr_change.spc_aaddr;
         ap = inet_ntop(AF_INET, &sin->sin_addr, addrbuf, INET6_ADDRSTRLEN);
-        if(logLevel <= UMLOG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"  spc_aaddr: ipv4:%s", ap]];
         }
@@ -964,7 +951,7 @@
     {
         sin6 = (struct sockaddr_in6 *)&snp->sn_paddr_change.spc_aaddr;
         ap = inet_ntop(AF_INET6, &sin6->sin6_addr, addrbuf, INET6_ADDRSTRLEN);
-        if(logLevel <= UMLOG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"  spc_aaddr: ipv6:%s", ap]];
         }
