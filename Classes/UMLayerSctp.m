@@ -823,8 +823,6 @@
         {
             case SCTP_COMM_UP:
                 state =@"SCTP_COMM_UP";
-                _listener.refreshMtu=YES;
-                [socket]
                 break;
             case SCTP_COMM_LOST:
                 state =@"SCTP_COMM_LOST";
@@ -851,6 +849,13 @@
         [self logDebug:[NSString stringWithFormat:@"  sac_assoc_id: %d",         (int)snp->sn_assoc_change.sac_assoc_id]];
     }
 #endif
+    switch(snp->sn_assoc_change.sac_state)
+    {
+        case SCTP_COMM_UP:
+            _listener.firstMessage=YES;
+        default:
+            break;
+    }
     _assocId = snp->sn_assoc_change.sac_assoc_id;
     _assocIdPresent=YES;
     if((snp->sn_assoc_change.sac_state==SCTP_COMM_UP) && (snp->sn_assoc_change.sac_error== 0))
@@ -869,7 +874,7 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
-            [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",(_reconnectTimer.duration / 1000000.0)]];
+            [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",_reconnectTimer.seconds]];
         }
 #endif
 
@@ -884,7 +889,7 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
-            [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",(_reconnectTimer.duration / 1000000.0)]];
+            [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",_reconnectTimer.seconds]];
         }
 #endif
         [_reconnectTimer start];
@@ -897,7 +902,7 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
-            [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",(_reconnectTimer.duration / 1000000.0)]];
+            [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",_reconnectTimer.seconds]];
         }
 #endif
 
@@ -977,8 +982,10 @@
                  streamId:(uint32_t)streamId
                protocolId:(uint16_t)protocolId
 {
-    //const union sctp_notification *snp;
-    //snp = event.bytes;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    const union sctp_notification *snp;
+    snp = event.bytes;
+#endif
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -992,6 +999,7 @@
         [self.logFeed majorErrorText:@" Size Mismatch in SCTP_REMOTE_ERROR"];
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
+
     if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"  sre_type: %d",             (int)snp->sn_remote_error.sre_type]];
@@ -1061,8 +1069,10 @@
                   streamId:(uint32_t)streamId
                 protocolId:(uint16_t)protocolId
 {
-    //const union sctp_notification *snp;
-    //snp = event.bytes;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    const union sctp_notification *snp;
+    snp = event.bytes;
+#endif
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1096,8 +1106,10 @@
                        streamId:(uint32_t)streamId
                      protocolId:(uint16_t)protocolId
 {
-    //const union sctp_notification *snp;
-    //snp = event.bytes;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    const union sctp_notification *snp;
+    snp = event.bytes;
+#endif
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1129,8 +1141,10 @@
                          streamId:(uint32_t)streamId
                        protocolId:(uint16_t)protocolId
 {
-    //const union sctp_notification *snp;
-    //snp = event.bytes;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    const union sctp_notification *snp;
+    snp = event.bytes;
+#endif
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1166,8 +1180,10 @@
                         streamId:(uint32_t)streamId
                       protocolId:(uint16_t)protocolId
 {
-    //const union sctp_notification *snp;
-    //snp = event.bytes;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    const union sctp_notification *snp;
+    snp = event.bytes;
+#endif
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1213,8 +1229,10 @@
                      streamId:(uint32_t)streamId
                    protocolId:(uint16_t)protocolId
 {
-    //const union sctp_notification *snp;
-    //snp = event.bytes;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    const union sctp_notification *snp;
+    snp = event.bytes;
+#endif
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1246,8 +1264,10 @@
                    streamId:(uint32_t)streamId
                  protocolId:(uint16_t)protocolId
 {
-    //const union sctp_notification *snp;
-    //snp = event.bytes;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    const union sctp_notification *snp;
+    snp = event.bytes;
+#endif
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
