@@ -291,20 +291,32 @@
     ssize_t r = -1;
     [self startListeningFor:layer];
 
-    if(layer.newDestination==YES)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    if(layer.newDestination)
+    {
+        [self logDebug:@" layer.newDestination=YES"];
+    }
+    else
+    {
+        [self logDebug:@" layer.newDestination=NO"];
+    }
+#endif
+    if(layer.status != SCTP_STATUS_IS)
     {
         UMSocketError err = [_umsocket connectToAddresses:addrs
-                                                   port:remotePort
-                                                  assoc:assocptr];
+                                                     port:remotePort
+                                                    assoc:assocptr];
         if(err!=UMSocketError_no_error)
         {
             NSString *estr = [UMSocket getSocketErrorString:err];
             NSString *s = [NSString stringWithFormat:@"%@:  can not connectx: %@",_name,estr];
             [self logMinorError:s];
         }
-
+    }
+    if(layer.newDestination==YES)
+    {
         [_umsocket updateMtu:_configuredMtu];
-        err = [_umsocket setHeartbeat:YES];
+        UMSocketError err = [_umsocket setHeartbeat:YES];
         if(err!=UMSocketError_no_error)
         {
             NSString *estr = [UMSocket getSocketErrorString:err];

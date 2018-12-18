@@ -45,7 +45,7 @@
 
     UMSocketSCTPListener *_listener;
     BOOL            _continuousConnectionAttempts;
-
+    BOOL            _connectx_pending;
     NSData              *_localAddressesSockaddr;
     int                 _localAddressesSockaddrCount;
 //    struct sockaddr     *_local_addresses;

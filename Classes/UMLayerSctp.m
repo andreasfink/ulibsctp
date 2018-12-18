@@ -849,17 +849,11 @@
         [self logDebug:[NSString stringWithFormat:@"  sac_assoc_id: %d",         (int)snp->sn_assoc_change.sac_assoc_id]];
     }
 #endif
-    switch(snp->sn_assoc_change.sac_state)
-    {
-        case SCTP_COMM_UP:
-            _listener.firstMessage=YES;
-        default:
-            break;
-    }
-    _assocId = snp->sn_assoc_change.sac_assoc_id;
-    _assocIdPresent=YES;
     if((snp->sn_assoc_change.sac_state==SCTP_COMM_UP) && (snp->sn_assoc_change.sac_error== 0))
     {
+        _listener.firstMessage=YES;
+        _assocId = snp->sn_assoc_change.sac_assoc_id;
+        _assocIdPresent=YES;
         [self.logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS"];
         self.status=SCTP_STATUS_IS;
         [_reconnectTimer stop];
@@ -867,6 +861,8 @@
     }
     else if(snp->sn_assoc_change.sac_state==SCTP_COMM_LOST)
     {
+        _assocId = snp->sn_assoc_change.sac_assoc_id;
+        _assocIdPresent=YES;
         [self.logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF"];
         self.status=SCTP_STATUS_OFF;
         [self reportStatus];
