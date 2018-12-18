@@ -23,5 +23,10 @@
 @property (readwrite,assign)        uint32_t        protocolId;
 @property (readwrite,strong)        NSDictionary    *ackRequest;
 
-- (UMSctpTask_Data *)initWithReceiver:(UMLayerSctp *)rx sender:(id<UMLayerSctpUserProtocol>)tx data:(NSData *)d streamId:(uint16_t)sid protocolId:(uint32_t)pid ackRequest:(NSDictionary *)ack;
+- (UMSctpTask_Data *)initWithReceiver:(UMLayerSctp *)rx
+                               sender:(id<UMLayerSctpUserProtocol>)tx
+                                 data:(NSData *)d
+                             streamId:(uint16_t)sid
+                           protocolId:(uint32_t)pid
+                           ackRequest:(NSDictionary *)ack;
 @end
