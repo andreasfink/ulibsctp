@@ -218,6 +218,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         else
         {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
+            int port = [UMSocket portOfSockAddr:localAddress];
             NSLog(@"calling sctp_bindx for '%@:%d'",addr,port);
 #endif
             int err = sctp_bindx(_sock, localAddress,1,SCTP_BINDX_ADD_ADDR);

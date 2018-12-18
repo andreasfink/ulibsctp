@@ -187,7 +187,7 @@
 - (void)_adminInitTask:(UMSctpTask_AdminInit *)task
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"adminInit"]];
     }
@@ -197,7 +197,7 @@
 - (void)_adminSetConfigTask:(UMSctpTask_AdminSetConfig *)task
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"setConfig %@",task.config]];
     }
@@ -221,7 +221,7 @@
     }
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"attached %@",
                         user.layerName]];
@@ -268,7 +268,7 @@
             @throw([NSException exceptionWithName:@"IS" reason:@"status is IS so already up." userInfo:@{@"errno":@(EAGAIN),@"backtrace": UMBacktrace(NULL,0)}]);
         }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(logLevel <= UMLOG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"socket()"]];
         }
@@ -298,7 +298,7 @@
         if(self.isPassive==NO)
         {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            if(logLevel <= UMLOG_DEBUG)
+            if(self.logLevel <= UMLOG_DEBUG)
             {
                 NSString *addrs = [configured_remote_addresses componentsJoinedByString:@","];
                 [self logDebug:[NSString stringWithFormat:@"asking listener to connect to %@ on port %d",addrs,configured_remote_port]];
@@ -330,7 +330,7 @@
     @catch (NSException *exception)
     {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(logLevel <= UMLOG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"%@ %@",exception.name,exception.reason]];
         }
@@ -353,7 +353,7 @@
 {
     [_linkLock lock];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <=UMLOG_DEBUG)
+    if(self.logLevel <=UMLOG_DEBUG)
     {
         id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
         [self logDebug:[NSString stringWithFormat:@"closing for %@",user.layerName]];
@@ -375,7 +375,7 @@
     id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"DATA: %@",task.data]];
         [self logDebug:[NSString stringWithFormat:@" streamId: %u",task.streamId]];
@@ -391,7 +391,7 @@
             @throw([NSException exceptionWithName:@"NULL" reason:@"trying to send NULL data" userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
         }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(logLevel <= UMLOG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:@" Calling sctp_sendmsg"];
         }
@@ -429,7 +429,7 @@
         }
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(logLevel <= UMLOG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@" sent_packets: %ld",sent_packets]];
         }
@@ -566,7 +566,7 @@
     [self powerdown];
     self.status = SCTP_STATUS_M_FOOS;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <=UMLOG_DEBUG)
+    if(self.logLevel <=UMLOG_DEBUG)
     {
         [self logDebug:@"FOOS"];
     }
@@ -583,7 +583,7 @@
     {
         case SCTP_STATUS_M_FOOS:
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            if(logLevel <=UMLOG_DEBUG)
+            if(self.logLevel <=UMLOG_DEBUG)
             {
                 [self logDebug:@"manual M-FOOS->IS requested"];
             }
@@ -594,7 +594,7 @@
             break;
         case SCTP_STATUS_OFF:
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            if(logLevel <=UMLOG_DEBUG)
+            if(self.logLevel <=UMLOG_DEBUG)
             {
                 [self logDebug:@"manual OFF->IS requested"];
             }
@@ -603,7 +603,7 @@
             break;
         case SCTP_STATUS_OOS:
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            if(logLevel <=UMLOG_DEBUG)
+            if(self.logLevel <=UMLOG_DEBUG)
             {
                 [self logDebug:@"manual OOS->IS requested"];
             }
@@ -612,7 +612,7 @@
             break;
         case SCTP_STATUS_IS:
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            if(logLevel <=UMLOG_DEBUG)
+            if(self.logLevel <=UMLOG_DEBUG)
             {
                 [self logDebug:@"manual IS->IS requested"];
             }
@@ -629,7 +629,7 @@
 - (void) powerdown
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self.logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
     }
@@ -642,7 +642,7 @@
 - (void) powerdownInReceiverThread
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self.logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
     }
@@ -806,7 +806,7 @@
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:@"SCTP_ASSOC_CHANGE"];
     }
@@ -816,7 +816,7 @@
         [self.logFeed majorErrorText:@" Size Mismatch in SCTP_ASSOC_CHANGE"];
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         NSString *state = @"(UNKNOWN)";
         switch(snp->sn_assoc_change.sac_state)
@@ -867,7 +867,7 @@
         [self reportStatus];
         [self powerdownInReceiverThread];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(logLevel <= UMLOG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",(_reconnectTimer.duration / 1000000.0)]];
         }
@@ -882,7 +882,7 @@
         //[self reportStatus];
         //[self powerdownInReceiverThread];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(logLevel <= UMLOG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",(_reconnectTimer.duration / 1000000.0)]];
         }
@@ -895,7 +895,7 @@
         self.status=SCTP_STATUS_OFF;
         [self powerdownInReceiverThread];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(logLevel <= UMLOG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",(_reconnectTimer.duration / 1000000.0)]];
         }
@@ -920,7 +920,7 @@
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:@"SCTP_PEER_ADDR_CHANGE"];
     }
@@ -930,7 +930,7 @@
         [self.logFeed majorErrorText:@" Size Mismatch in SCTP_PEER_ADDR_CHANGE"];
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"  spc_type: %d",    (int)snp->sn_paddr_change.spc_type]];
         [self logDebug:[NSString stringWithFormat:@"  spc_flags: %d",   (int)snp->sn_paddr_change.spc_flags]];
@@ -957,7 +957,7 @@
         }
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"  spc_state: %d",   (int)snp->sn_paddr_change.spc_state]];
         [self logDebug:[NSString stringWithFormat:@"  spc_error: %d",   (int)snp->sn_paddr_change.spc_error]];
@@ -982,7 +982,7 @@
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:@"SCTP_REMOTE_ERROR"];
     }
@@ -992,7 +992,7 @@
         [self.logFeed majorErrorText:@" Size Mismatch in SCTP_REMOTE_ERROR"];
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"  sre_type: %d",             (int)snp->sn_remote_error.sre_type]];
         [self logDebug:[NSString stringWithFormat:@"  sre_flags: %d",            (int)snp->sn_remote_error.sre_flags]];
@@ -1019,7 +1019,7 @@
 
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:@"SCTP_SEND_FAILED"];
     }
@@ -1032,7 +1032,7 @@
     }
     [self.logFeed majorErrorText:@"SCTP_SEND_FAILED"];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"  ssf_type: %d",                (int)snp->sn_send_failed.ssf_type]];
         [self logDebug:[NSString stringWithFormat:@"  ssf_flags: %d",               (int)snp->sn_send_failed.ssf_flags]];
@@ -1066,7 +1066,7 @@
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:@"SCTP_SHUTDOWN_EVENT"];
     }
@@ -1078,7 +1078,7 @@
         return UMSocketError_not_supported_operation;
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"  sse_type: %d",     (int)snp->sn_shutdown_event.sse_type]];
         [self logDebug:[NSString stringWithFormat:@"  sse_flags: %d",    (int)snp->sn_shutdown_event.sse_flags]];
@@ -1101,7 +1101,7 @@
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:@"SCTP_ADAPTATION_INDICATION"];
     }
@@ -1113,7 +1113,7 @@
         return UMSocketError_not_supported_operation;
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"  sai_type: %d",           (int)snp->sn_adaptation_event.sai_type]];
         [self logDebug:[NSString stringWithFormat:@"  sai_flags: %d",          (int)snp->sn_adaptation_event.sai_flags]];
@@ -1134,7 +1134,7 @@
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:@"SCTP_PARTIAL_DELIVERY_EVENT"];
     }
@@ -1146,7 +1146,7 @@
         return UMSocketError_not_supported_operation;
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"  pdapi_type: %d",           (int)snp->sn_pdapi_event.pdapi_type]];
         [self logDebug:[NSString stringWithFormat:@"  pdapi_flags: %d",          (int)snp->sn_pdapi_event.pdapi_flags]];
@@ -1171,7 +1171,7 @@
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:@"SCTP_AUTHENTICATION_EVENT"];
     }
@@ -1183,7 +1183,7 @@
         return UMSocketError_not_supported_operation;
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
 #if defined(LINUX)
         [self logDebug:[NSString stringWithFormat:@"  auth_type: %d",           (int)snp->sn_authkey_event.auth_type]];
@@ -1218,7 +1218,7 @@
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:@"SCTP_STREAM_RESET_EVENT"];
     }
@@ -1230,7 +1230,7 @@
         return UMSocketError_not_supported_operation;
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"  strreset_type: %d",     (int)snp->sn_strreset_event.strreset_type]];
         [self logDebug:[NSString stringWithFormat:@"  strreset_flags: %d",    (int)snp->sn_strreset_event.strreset_flags]];
@@ -1251,7 +1251,7 @@
     NSUInteger len = event.length;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:@"SCTP_SENDER_DRY_EVENT"];
     }
@@ -1263,7 +1263,7 @@
         return UMSocketError_not_supported_operation;
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"  sender_dry_type: %d",     (int)snp->sn_sender_dry_event.sender_dry_type]];
         [self logDebug:[NSString stringWithFormat:@"  sender_dry_flags: %d",    (int)snp->sn_sender_dry_event.sender_dry_flags]];
@@ -1283,7 +1283,7 @@
     [_inboundThroughputPackets increaseBy:1];
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:[NSString stringWithFormat:@"RXT: got %u bytes on stream %u protocol_id: %u",
                         (unsigned int)data.length,
@@ -1302,7 +1302,7 @@
     if(self.status != SCTP_STATUS_IS)
     {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(logLevel <= UMLOG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"force change status to IS"]];
         }
@@ -1318,7 +1318,7 @@
            || [u.profile wantsStreamId:streamId])
         {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            if(logLevel <= UMLOG_DEBUG)
+            if(self.logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"passing data '%@' to USER[%@]",data.description,u.user.layerName]];
             }
@@ -1539,7 +1539,7 @@
 - (void)reconnectTimerFires
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(logLevel <= UMLOG_DEBUG)
+    if(self.logLevel <= UMLOG_DEBUG)
     {
         [self logDebug:@"reconnectTimerFires"];
     }
