@@ -213,8 +213,6 @@
                                  layer.configured_local_port,
                                  remoteAddr,
                                  layer.configured_remote_port];
-                NSLog(@"registerLayer:%@",layer.layerName);
-                NSLog(@" key=%@",key);
                 _outgoingLayersByIpsAndPorts[key] = layer;
             }
         }
