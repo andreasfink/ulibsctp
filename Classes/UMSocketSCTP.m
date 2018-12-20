@@ -346,25 +346,50 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 - (UMSocketError)setHeartbeat:(BOOL)enable
 {
     struct sctp_paddrparams heartbeat;
+    socklen_t len = sizeof(heartbeat);
 
-    if(enable)
+    memset((void *)&heartbeat,0x00, sizeof(struct sctp_paddrparams));
+    if(getsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &heartbeat, &len) == 0)
     {
-        heartbeat.spp_flags = SPP_HB_ENABLE;
-        heartbeat.spp_hbinterval = 5000;
-        heartbeat.spp_pathmaxrxt = 1;
+        if(_socketFamily == AF_INET)
+        {
+            struct sockaddr_in *sa = (struct sockaddr_in *)&heartbeat.spp_address;
+            memset(sa,0x00,sizeof(struct sockaddr_in));
+            sa->sin_family = AF_INET;
+#ifdef    HAS_SOCKADDR_LEN
+            sa->sin_len = sizeof(struct sockaddr_in);
+#endif
+            sa->sin_addr.s_addr = htonl(INADDR_ANY);
+        }
+        else if(_socketFamily == AF_INET6)
+        {
+            struct sockaddr_in6 *sa6 = (struct sockaddr_in6 *)&heartbeat.spp_address;
+            memset(sa6,0x00,sizeof(struct sockaddr_in6));
+            sa6->sin6_family = AF_INET6;
+#ifdef    HAS_SOCKADDR_LEN
+            sa6->sin6_len = sizeof(struct sockaddr_in6);
+#endif
+            sa6->sin6_addr = in6addr_any;
+        }
+        if(enable)
+        {
+            heartbeat.spp_flags = SPP_HB_ENABLE;
+            heartbeat.spp_hbinterval = 5000;
+            heartbeat.spp_pathmaxrxt = 1;
+        }
+        else
+        {
+            heartbeat.spp_flags = SPP_HB_DISABLE;
+            heartbeat.spp_hbinterval = 5000;
+            heartbeat.spp_pathmaxrxt = 1;
+        }
+        if(setsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS , &heartbeat, sizeof(heartbeat)) != 0)
+        {
+            return [UMSocket umerrFromErrno:errno];
+        }
+        return UMSocketError_no_error;
     }
-    else
-    {
-        heartbeat.spp_flags = SPP_HB_DISABLE;
-        heartbeat.spp_hbinterval = 5000;
-        heartbeat.spp_pathmaxrxt = 1;
-    }
-
-    if(setsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS , &heartbeat, sizeof(heartbeat)) != 0)
-    {
-        return [UMSocket umerrFromErrno:errno];
-    }
-    return UMSocketError_no_error;
+    return [UMSocket umerrFromErrno:errno];
 }
 
 
