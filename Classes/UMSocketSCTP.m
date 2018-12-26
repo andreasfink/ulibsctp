@@ -145,7 +145,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     {
         int  _localAddressesSockaddrCount;
         _localAddressesSockaddr = [UMSocketSCTP sockaddrFromAddresses:_requestedLocalAddresses
-                                                                 port:requestedLocalPort
+                                                                 port:self.requestedLocalPort
                                                                 count:&_localAddressesSockaddrCount /* returns struct sockaddr data in NSData */
                                                          socketFamily:AF_INET6];
     }
@@ -154,17 +154,11 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 - (UMSocketError) bind
 {
     NSMutableArray *useable_local_addr = [[NSMutableArray alloc]init];
-#if 0
-    if(!_local_addresses_prepared)
-    {
-        [self prepareLocalAddresses];
-    }
-#endif
 
     if((_localAddressesSockaddr==NULL) || ( _localAddressesSockaddrCount==0))
     {
         _localAddressesSockaddr = [UMSocketSCTP sockaddrFromAddresses:_requestedLocalAddresses
-                                                                 port:requestedLocalPort
+                                                                 port:self.requestedLocalPort
                                                                 count:&_localAddressesSockaddrCount /* returns struct sockaddr data in NSData */
                                                          socketFamily:_socketFamily];
     }
@@ -677,12 +671,12 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         newcon.type = type;
         newcon.direction =  direction;
         newcon.status=status;
-        newcon.localHost = localHost;
-        newcon.remoteHost = remoteHost;
+        newcon.localHost = self.localHost;
+        newcon.remoteHost = self.remoteHost;
         newcon.requestedLocalAddresses = _requestedLocalAddresses;
-        newcon.requestedLocalPort=requestedLocalPort;
+        newcon.requestedLocalPort=self.requestedLocalPort;
         newcon.requestedRemoteAddresses = _requestedRemoteAddresses;
-        newcon.requestedRemotePort=requestedRemotePort;
+        newcon.requestedRemotePort=self.requestedRemotePort;
         newcon.cryptoStream = [[UMCrypto alloc]initWithRelatedSocket:newcon];
         newcon.isBound=NO;
         newcon.isListening=NO;
