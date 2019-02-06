@@ -24,8 +24,10 @@
 
 #define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
 #define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
-//#define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
+#if defined __APPLE__
+#define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
 //#define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
+#endif
 
 #else
 #include <netinet/sctp.h>
@@ -798,7 +800,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     int context=0;
 
     NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
-
+    count= 1;
 /*
     struct sctp_sndrcvinfo sinfo;
     memset(&sinfo,0x00,sizeof(struct sctp_sndrcvinfo));
@@ -845,6 +847,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     if(sp<0)
     {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        NSLog(@"errno: %d %s",errno, strerror(errno));
+#endif
+
         err = [UMSocket umerrFromErrno:errno];
     }
     else if(sp==0)
