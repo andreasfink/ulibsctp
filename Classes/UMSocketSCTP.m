@@ -375,13 +375,13 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         if(enable)
         {
             heartbeat.spp_flags = SPP_HB_ENABLE;
-            heartbeat.spp_hbinterval = 5000;
+            heartbeat.spp_hbinterval = 30000;
             heartbeat.spp_pathmaxrxt = 1;
         }
         else
         {
             heartbeat.spp_flags = SPP_HB_DISABLE;
-            heartbeat.spp_hbinterval = 5000;
+            heartbeat.spp_hbinterval = 30000;
             heartbeat.spp_pathmaxrxt = 1;
         }
         if(setsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS , &heartbeat, sizeof(heartbeat)) != 0)
