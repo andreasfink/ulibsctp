@@ -9,6 +9,13 @@
 #import <ulib/ulib.h>
 #import "UMSocketSCTP.h"
 
+
+#ifdef	FREEBSD
+#ifndef sctp_assoc_t
+typedef uint32_t sctp_assoc_t;
+#endif
+#endif
+
 @class UMSocketSCTPRegistry;
 @class UMLayerSctp;
 
@@ -46,6 +53,7 @@
 - (void)processHangUp;
 - (void)processInvalidSocket;
 
+#if defined(ULIBSCTP_INTERNAL)
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)port
                                assoc:(sctp_assoc_t *)assoc
@@ -59,4 +67,6 @@
                    protocol:(u_int32_t)protocolId
                       error:(UMSocketError *)err2
                       layer:(UMLayerSctp *)layer;
+#endif
+
 @end

@@ -6,6 +6,8 @@
 //  Copyright © 2017 Andreas Fink (andreas@fink.org). All rights reserved.
 //
 
+#define ULIBSCTP_INTERNAL 1
+
 #import "UMLayerSctp.h"
 
 #import "UMSctpTask_AdminInit.h"

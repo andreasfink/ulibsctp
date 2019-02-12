@@ -84,6 +84,8 @@
                             count:(int *)count_out /* returns struct sockaddr data in NSData */
                      socketFamily:(int)socketFamily;
 
+#if defined(ULIBSCTP_INTERNAL)
+
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)remotePort
                                assoc:(sctp_assoc_t *)assoc;
@@ -95,6 +97,9 @@
                      stream:(uint16_t)streamId
                    protocol:(u_int32_t)protocolId
                       error:(UMSocketError *)err2;
+
+#endif
+
 /*
 - (ssize_t)sendSCTP:(NSData *)data
              stream:(uint16_t)streamId

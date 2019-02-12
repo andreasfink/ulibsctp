@@ -6,6 +6,8 @@
 //  Copyright © 2018 Andreas Fink (andreas@fink.org). All rights reserved.
 //
 
+#define ULIBSCTP_INTERNAL 1
+
 #import "UMSocketSCTPListener.h"
 #import "UMSocketSCTP.h"
 #import "UMLayerSctp.h"
