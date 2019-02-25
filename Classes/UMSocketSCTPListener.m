@@ -242,7 +242,7 @@
                 else
                 {
                     /* we have not found anyone listening to this so we send abort */
-                    NSLog(@"should abort here for %@ %d",rx.remoteAddress,rx.remotePort);
+                    NSLog(@"Incomning SCTP connection attempt from IP %@ port %d. (We should abort)",rx.remoteAddress,rx.remotePort);
                 }
             }
         }
