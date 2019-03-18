@@ -65,7 +65,19 @@
     return [NSString stringWithFormat:@"%d,%@",port,addr];
 }
 
+- (UMSocketSCTPListener *)getOrAddListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips
+{
+    [_lock lock];
+    UMSocketSCTPListener *listener = [self getListenerForPort:port localIps:ips];
 
+    if(listener == NULL)
+    {
+        listener = [[UMSocketSCTPListener alloc]initWithPort:port localIpAddresses:ips];
+        [self addListener:listener];
+    }
+    [_lock unlock];
+    return listener;
+}
 
 - (UMSocketSCTPListener *)getListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips
 {

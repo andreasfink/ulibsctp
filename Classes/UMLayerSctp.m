@@ -283,12 +283,7 @@
             [self logDebug:[NSString stringWithFormat:@"getting listener on %@ on port %d",addrs,configured_local_port]];
         }
 
-        _listener =  [_registry getListenerForPort:configured_local_port localIps:configured_local_addresses];
-        if(_listener == NULL)
-        {
-            _listener = [[UMSocketSCTPListener alloc]initWithPort:configured_local_port localIpAddresses:configured_local_addresses];
-            [_registry addListener:_listener];
-        }
+        _listener =  [_registry getOrAddListenerForPort:configured_local_port localIps:configured_local_addresses];
         _listener.mtu = _mtu;
     
         if(self.logLevel <= UMLOG_DEBUG)
