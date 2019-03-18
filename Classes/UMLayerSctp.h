@@ -30,17 +30,17 @@
 {
     UMSynchronizedArray *_users;
     SCTP_Status     _status;
-    UMBackgrounder  *receiverThread;
-    NSArray         *configured_local_addresses;
-    int             configured_local_port;
-    NSArray         *configured_remote_addresses;
-    int             configured_remote_port;
-    NSArray         *active_local_addresses;
-    int             active_local_port;
-    NSArray         *active_remote_addresses;
-    int             active_remote_port;
-    BOOL            isPassive;
-    int             timeoutInMs; /* poll timeout in receiver thread . Default 400ms */
+    UMBackgrounder  *_receiverThread;
+    NSArray         *_configured_local_addresses;
+    int             _configured_local_port;
+    NSArray         *_configured_remote_addresses;
+    int             _configured_remote_port;
+    NSArray         *_active_local_addresses;
+    int             _active_local_port;
+    NSArray         *_active_remote_addresses;
+    int             _active_remote_port;
+    BOOL            _isPassive;
+    int             _timeoutInMs; /* poll timeout in receiver thread . Default 400ms */
     NSTimeInterval  _heartbeatSeconds;
     UMThroughputCounter *_inboundThroughputPackets;
     UMThroughputCounter *_outboundThroughputPackets;

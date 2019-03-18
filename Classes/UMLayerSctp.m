@@ -49,20 +49,6 @@
 
 @implementation UMLayerSctp
 
-//@synthesize status;
-@synthesize receiverThread;
-@synthesize configured_local_addresses;
-@synthesize configured_local_port;
-@synthesize configured_remote_addresses;
-@synthesize configured_remote_port;
-
-@synthesize active_local_addresses;
-@synthesize active_local_port;
-@synthesize active_remote_addresses;
-@synthesize active_remote_port;
-@synthesize isPassive;
-@synthesize defaultUser;
-
 - (UMLayerSctp *)init
 {
     self = [super initWithTaskQueueMulti:NULL name:@""];
@@ -84,7 +70,7 @@
     self = [super initWithTaskQueueMulti:tq name:name];
     if(self)
     {
-        timeoutInMs = 2400;
+        _timeoutInMs = 2400;
         _heartbeatSeconds = 30.0;
         _users = [[UMSynchronizedArray alloc]init];
         self.status = SCTP_STATUS_OFF;
@@ -217,9 +203,9 @@
     u.userId                = task.userId;
 
     [_users addObject:u];
-    if(defaultUser==NULL)
+    if(_defaultUser==NULL)
     {
-        defaultUser = u;
+        _defaultUser = u;
     }
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -279,11 +265,11 @@
 
         if(self.logLevel <= UMLOG_DEBUG)
         {
-            NSString *addrs = [configured_local_addresses componentsJoinedByString:@","];
-            [self logDebug:[NSString stringWithFormat:@"getting listener on %@ on port %d",addrs,configured_local_port]];
+            NSString *addrs = [_configured_local_addresses componentsJoinedByString:@","];
+            [self logDebug:[NSString stringWithFormat:@"getting listener on %@ on port %d",addrs,_configured_local_port]];
         }
 
-        _listener =  [_registry getOrAddListenerForPort:configured_local_port localIps:configured_local_addresses];
+        _listener =  [_registry getOrAddListenerForPort:_configured_local_port localIps:_configured_local_addresses];
         _listener.mtu = _mtu;
     
         if(self.logLevel <= UMLOG_DEBUG)
@@ -302,12 +288,12 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <= UMLOG_DEBUG)
             {
-                NSString *addrs = [configured_remote_addresses componentsJoinedByString:@","];
-                [self logDebug:[NSString stringWithFormat:@"asking listener to connect to %@ on port %d",addrs,configured_remote_port]];
+                NSString *addrs = [_configured_remote_addresses componentsJoinedByString:@","];
+                [self logDebug:[NSString stringWithFormat:@"asking listener to connect to %@ on port %d",addrs,_configured_remote_port]];
             }
 #endif
-            err = [_listener connectToAddresses:configured_remote_addresses
-                                           port:configured_remote_port
+            err = [_listener connectToAddresses:_configured_remote_addresses
+                                           port:_configured_remote_port
                                           assoc:&_assocId
                                           layer:self];
             if(_assocId!= -1)
@@ -401,8 +387,8 @@
         UMSocketError err = UMSocketError_no_error;
 
         [_linkLock lock];
-        ssize_t sent_packets = [_listener sendToAddresses:configured_remote_addresses
-                                                     port:configured_remote_port
+        ssize_t sent_packets = [_listener sendToAddresses:_configured_remote_addresses
+                                                     port:_configured_remote_port
                                                     assoc:&_assocId
                                                      data:task.data
                                                    stream:task.streamId
@@ -636,7 +622,7 @@
         [self.logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
     }
 #endif
-    [receiverThread shutdownBackgroundTask];
+    [_receiverThread shutdownBackgroundTask];
     self.status = SCTP_STATUS_OOS;
     self.status = SCTP_STATUS_OFF;
 }
@@ -1309,7 +1295,7 @@
                         (unsigned int)protocolId]];
     }
 #endif
-    if(defaultUser == NULL)
+    if(_defaultUser == NULL)
     {
         [self logDebug:@"RXT: USER instance not found. Maybe not bound yet?"];
         [self powerdownInReceiverThread];
@@ -1400,7 +1386,7 @@
     }
     if (cfg[@"local-port"])
     {
-        configured_local_port = [cfg[@"local-port"] intValue];
+        _configured_local_port = [cfg[@"local-port"] intValue];
     }
     if (cfg[@"remote-ip"])
     {
@@ -1428,11 +1414,11 @@
     }
     if (cfg[@"remote-port"])
     {
-        configured_remote_port = [cfg[@"remote-port"] intValue];
+        _configured_remote_port = [cfg[@"remote-port"] intValue];
     }
     if (cfg[@"passive"])
     {
-        isPassive = [cfg[@"passive"] boolValue];
+        _isPassive = [cfg[@"passive"] boolValue];
     }
     if (cfg[@"heartbeat"])
     {
@@ -1460,11 +1446,11 @@
 {
     NSMutableDictionary *config = [[NSMutableDictionary alloc]init];
     [self addLayerConfig:config];
-    config[@"local-ip"] = [configured_local_addresses componentsJoinedByString:@" "];
-    config[@"local-port"] = @(configured_local_port);
-    config[@"remote-ip"] = [configured_remote_addresses componentsJoinedByString:@" "];
-    config[@"remote-port"] = @(configured_remote_port);
-    config[@"passive"] = isPassive ? @YES : @ NO;
+    config[@"local-ip"] = [_configured_local_addresses componentsJoinedByString:@" "];
+    config[@"local-port"] = @(_configured_local_port);
+    config[@"remote-ip"] = [_configured_remote_addresses componentsJoinedByString:@" "];
+    config[@"remote-port"] = @(_configured_remote_port);
+    config[@"passive"] = _isPassive ? @YES : @ NO;
     config[@"heartbeat"] = @(_heartbeatSeconds);
     config[@"reconnect-timer"] = @(_reconnectTimerValue);
     config[@"heartbeat"] = @(_heartbeatSeconds);
@@ -1495,29 +1481,29 @@
     }
     d[@"name"] = self.layerName;
     
-    d[@"configured-local-port"] = @(configured_local_port);
-    d[@"configured-remote-port"] = @(configured_remote_port);
-    d[@"active-local-port"] = @(active_local_port);
-    d[@"active-remote-port"] = @(active_remote_port);
+    d[@"configured-local-port"] = @(_configured_local_port);
+    d[@"configured-remote-port"] = @(_configured_remote_port);
+    d[@"active-local-port"] = @(_active_local_port);
+    d[@"active-remote-port"] = @(_active_remote_port);
 
-    if(configured_local_addresses.count > 0)
+    if(_configured_local_addresses.count > 0)
     {
-        d[@"configured-local-addresses"] = [configured_local_addresses copy];
+        d[@"configured-local-addresses"] = [_configured_local_addresses copy];
     }
-    if(configured_remote_addresses.count>0)
+    if(_configured_remote_addresses.count>0)
     {
-        d[@"configured-remote-addresses"] = [configured_remote_addresses copy];
+        d[@"configured-remote-addresses"] = [_configured_remote_addresses copy];
     }
-    if(active_local_addresses.count)
+    if(_active_local_addresses.count)
     {
-        d[@"active-local-addresses"] = [active_local_addresses copy];
+        d[@"active-local-addresses"] = [_active_local_addresses copy];
     }
-    if(active_remote_addresses.count)
+    if(_active_remote_addresses.count)
     {
-        d[@"active-remote-addresses"] = [active_remote_addresses copy];
+        d[@"active-remote-addresses"] = [_active_remote_addresses copy];
     }
-    d[@"is-passive"] = isPassive ? @(YES) : @(NO);
-    d[@"poll-timeout-in-ms"] = @(timeoutInMs);
+    d[@"is-passive"] = _isPassive ? @(YES) : @(NO);
+    d[@"poll-timeout-in-ms"] = @(_timeoutInMs);
     d[@"heartbeat"] = @(_heartbeatSeconds);
     d[@"mtu"] = @(_mtu);
     return d;
@@ -1565,8 +1551,8 @@
     if(_status != SCTP_STATUS_IS)
     {
         _assocId = -1;
-        [_listener connectToAddresses:configured_remote_addresses
-                                 port:configured_remote_port
+        [_listener connectToAddresses:_configured_remote_addresses
+                                 port:_configured_remote_port
                                 assoc:&_assocId
                                 layer:self];
         if(_assocId != -1)
