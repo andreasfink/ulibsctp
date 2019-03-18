@@ -29,38 +29,43 @@
 @interface UMLayerSctp : UMLayer
 {
     UMSynchronizedArray *_users;
-    SCTP_Status     _status;
-    UMBackgrounder  *_receiverThread;
-    NSArray         *_configured_local_addresses;
-    int             _configured_local_port;
-    NSArray         *_configured_remote_addresses;
-    int             _configured_remote_port;
-    NSArray         *_active_local_addresses;
-    int             _active_local_port;
-    NSArray         *_active_remote_addresses;
-    int             _active_remote_port;
-    BOOL            _isPassive;
-    int             _timeoutInMs; /* poll timeout in receiver thread . Default 400ms */
-    NSTimeInterval  _heartbeatSeconds;
+    UMBackgrounder      *_receiverThread;
+    UMMutex             *_linkLock;
     UMThroughputCounter *_inboundThroughputPackets;
     UMThroughputCounter *_outboundThroughputPackets;
     UMThroughputCounter *_inboundThroughputBytes;
     UMThroughputCounter *_outboundThroughputBytes;
-    /* these properties can be used by a gui to keep track of valid actions */
-    NSDate          *_startButtonPressed;
-    NSDate          *_stopButtonPressed;
     UMSocketSCTPRegistry *_registry;
     UMSocketSCTPListener *_listener;
-    BOOL                _listenerStarted;
+    NSDate               *_startButtonPressed;
+    NSDate               *_stopButtonPressed;
+
+    NSArray             *_configured_local_addresses;
+    NSArray             *_configured_remote_addresses;
+    NSArray             *_active_local_addresses;
+    NSArray             *_active_remote_addresses;
+
     UMTimer             *_reconnectTimer;
+
+    NSTimeInterval      _heartbeatSeconds;
     NSTimeInterval      _reconnectTimerValue;
-    //NSNumber        *_assocId;
-    sctp_assoc_t        _assocId;
-    BOOL                _assocIdPresent;
-    UMMutex             *_linkLock;
+
+    int                 _configured_local_port;
+    int                 _configured_remote_port;
+    int                 _active_local_port;
+    int                 _active_remote_port;
+    int                 _timeoutInMs; /* poll timeout in receiver thread . Default 400ms */
     int                 _mtu;
+
+    BOOL                _isPassive;
+    BOOL                _listenerStarted;
+    BOOL                _assocIdPresent;
     BOOL                _isInvalid;
     BOOL                _newDestination;
+
+    sctp_assoc_t        _assocId;
+    SCTP_Status         _status;
+
 }
 
 //@property(readwrite,strong) UMSocketSCTP    *sctpSocket;

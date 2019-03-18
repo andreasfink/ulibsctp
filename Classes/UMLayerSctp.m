@@ -62,7 +62,7 @@
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq
 {
-    return [self initWithTaskQueueMulti:tq name:@""];
+    return [self initWithTaskQueueMulti:tq name:@"(sctp)"];
 }
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name
