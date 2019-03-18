@@ -189,7 +189,7 @@
     _listeningCount = _layers.count;
     if(_listeningCount<=0)
     {
-        [_registry unregisterListener:self];
+        [_registry removeListener:self];
         [_umsocket close];
         _umsocket=NULL;
         _listeningCount = 0;
