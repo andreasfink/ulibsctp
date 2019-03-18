@@ -313,7 +313,6 @@
             [_registry registerAssoc:@(_assocId) forLayer:self];
         }
         [_registry startReceiver];
-        sleep(2);
     }
     @catch (NSException *exception)
     {
