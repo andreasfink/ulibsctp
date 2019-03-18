@@ -297,7 +297,7 @@
         sleep(1);
         _assocId = -1;
         _assocIdPresent = NO;
-        if(self.isPassive==NO)
+        if(!_isPassive)
         {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <= UMLOG_DEBUG)
