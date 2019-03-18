@@ -226,6 +226,9 @@
                 /* lets find it by source / destination IP */
                 for(NSString *ip in _localIpAddresses)
                 {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+                    NSLog(@"_registry\n\tlayerForLocalIp:%@\n\tlocalPort:%d\n\tremoteIp:%@\n\tremotePort:%d\n",ip,_port,rx.remoteAddress,rx.remotePort);
+#endif
                     layer = [_registry layerForLocalIp:ip
                                              localPort:_port
                                               remoteIp:rx.remoteAddress
