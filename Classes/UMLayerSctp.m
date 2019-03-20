@@ -238,6 +238,14 @@
 {
     sctp_assoc_t        tmp_assocId = -1;
 
+    id<UMLayerUserProtocol> caller = task.sender;
+
+    if(self.logLevel <= UMLOG_DEBUG)
+    {
+        NSString *s = [NSString stringWithFormat:@"%@ is asking us to start SCTP %@->%@",caller.layerName,_configured_local_addresses,_configured_remote_addresses];
+        [self logDebug:s];
+    }
+
     [_linkLock lock];
 
     @try
