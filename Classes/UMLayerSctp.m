@@ -236,6 +236,8 @@
 
 - (void)_openTask:(UMSctpTask_Open *)task
 {
+    sctp_assoc_t        tmp_assocId = -1;
+
     [_linkLock lock];
 
     @try
@@ -293,12 +295,11 @@
             }
 #endif
 
-            sctp_assoc_t        assocId;
             err = [_listener connectToAddresses:_configured_remote_addresses
                                            port:_configured_remote_port
-                                          assoc:&assocId
+                                          assoc:&tmp_assocId
                                           layer:self];
-            _assocId = assocId;
+            _assocId = tmp_assocId;
             if(_assocId!= -1)
             {
                 _assocIdPresent = YES;

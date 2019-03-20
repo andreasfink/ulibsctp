@@ -108,9 +108,9 @@
         }
     }
     /* we could add a wakeup pipe here if we want. thats why the size of pollfds is +1 */
-//#if defined(ULIBSCTP_CONFIG_DEBUG)
-//    NSLog(@"calling poll(timeout=%8.2fs)",((double)_timeoutInMs)/1000.0);
-//#endif
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    NSLog(@"calling poll(timeout=%8.2fs)",((double)_timeoutInMs)/1000.0);
+#endif
 
     NSAssert(_timeoutInMs > 100,@"UMSocketSCTP Receiver: _timeoutInMs is smaller than 100ms");
 
@@ -118,9 +118,9 @@
 
     UMMicroSec poll_time = ulib_microsecondTime();
 
-//#if defined(ULIBSCTP_CONFIG_DEBUG)
-//    NSLog(@"poll returns: %d %s",errno,strerror(errno));
-//#endif
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    NSLog(@"poll returns: %d %s",errno,strerror(errno));
+#endif
 
     if (ret1 < 0)
     {
