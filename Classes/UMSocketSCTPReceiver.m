@@ -29,7 +29,7 @@
         _outboundLayers = [[NSMutableArray alloc]init];
         _listeners      = [[NSMutableArray alloc]init];
         //_lock           = [[UMMutex alloc]initWithName:@"socket-sctp-receiver-lock"];
-        _timeoutInMs    = 500;
+        _timeoutInMs    = 5000;
         _registry       = r;
     }
     return self;
@@ -79,9 +79,13 @@
 
 - (UMSocketError) waitAndHandleData
 {
+    UMAssert(_registry!=NULL,@"_registry is NULL");
+
     UMSocketError returnValue = UMSocketError_generic_error;
     NSArray *listeners = [_registry allListeners];
     NSUInteger listeners_count = listeners.count;
+
+    UMAssert(listeners_count!=0,@"listeners_count is 0");
 
     struct pollfd *pollfds = calloc(listeners_count+1,sizeof(struct pollfd));
     NSAssert(pollfds !=0,@"can not allocate memory for poll()");
@@ -105,6 +109,9 @@
             pollfds[j].fd = listener.umsocket.fileDescriptor;
             pollfds[j].events = events;
             j++;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+            NSLog(@"pollfds[%d] = %d",j,listener.umsocket.fileDescriptor);
+#endif
         }
     }
     /* we could add a wakeup pipe here if we want. thats why the size of pollfds is +1 */
