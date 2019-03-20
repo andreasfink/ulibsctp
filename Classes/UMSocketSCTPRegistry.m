@@ -114,6 +114,8 @@
     listener.registry = self;
     NSString *key =[UMSocketSCTPRegistry keyForPort:port ip:ip];
     _entries[key]=listener;
+    [_incomingListeners removeObject:listener]; /* has to be added only once */
+    [_incomingListeners addObject:listener];
     [_lock unlock];
 }
 
@@ -135,6 +137,7 @@
     listener.registry = NULL;
     NSString *key =[UMSocketSCTPRegistry keyForPort:port ip:ip];
     [_entries removeObjectForKey:key];
+    [_incomingListeners removeObject:listener];
     [_lock unlock];
 }
 
