@@ -84,8 +84,12 @@
     UMSocketError returnValue = UMSocketError_generic_error;
     NSArray *listeners = [_registry allListeners];
     NSUInteger listeners_count = listeners.count;
-
-    UMAssert(listeners_count!=0,@"listeners_count is 0");
+    if(listeners_count == 0)
+    {
+        NSLog(@"listeners_count is 0");
+        sleep(1);
+        return UMSocketError_no_data;
+    }
 
     struct pollfd *pollfds = calloc(listeners_count+1,sizeof(struct pollfd));
     NSAssert(pollfds !=0,@"can not allocate memory for poll()");
@@ -110,7 +114,7 @@
             pollfds[j].events = events;
             j++;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"pollfds[%d] = %d",j,listener.umsocket.fileDescriptor);
+            NSLog(@"pollfds[%d] = %d",(int)j,(int)listener.umsocket.fileDescriptor);
 #endif
         }
     }
