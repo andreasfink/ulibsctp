@@ -292,10 +292,13 @@
                 [self logDebug:[NSString stringWithFormat:@"asking listener to connect to %@ on port %d",addrs,_configured_remote_port]];
             }
 #endif
+
+            sctp_assoc_t        assocId;
             err = [_listener connectToAddresses:_configured_remote_addresses
                                            port:_configured_remote_port
-                                          assoc:&_assocId
+                                          assoc:&assocId
                                           layer:self];
+            _assocId = assocId;
             if(_assocId!= -1)
             {
                 _assocIdPresent = YES;
