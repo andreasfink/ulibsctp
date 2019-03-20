@@ -3136,7 +3136,7 @@ fi
 if test "${enable_profiling+set}" = set; then :
   enableval=$enable_profiling;
 	echo Using Debuging+profiling target
-	CFLAGS="$CFLAGS -pg -g -O0 -D${CONFIG_DEFINE}=Debug"
+	CFLAGS="$CFLAGS -pg -g -O0 -D${CONFIG_DEFINE}=Debug -D${CONFIG_DEFINE}_DEBUG=1"
 	LDFLAGS="$LDFLAGS -g"
 	CONFIGURATION="-configuration Debug"
 	$as_echo "#define WS_DEBUG 1" >>confdefs.h
@@ -3149,7 +3149,7 @@ else
 if test "${enable_debug+set}" = set; then :
   enableval=$enable_debug;
 	echo Using Debuging target
-	CFLAGS="$CFLAGS -g -O0 -D${CONFIG_DEFINE}=Debug"
+	CFLAGS="$CFLAGS -g -O0 -D${CONFIG_DEFINE}=Debug -D${CONFIG_DEFINE}_DEBUG=1"
 	LDFLAGS="$LDFLAGS -g"
 	CONFIGURATION="-configuration Debug"
 	$as_echo "#define WS_DEBUG 1" >>confdefs.h
