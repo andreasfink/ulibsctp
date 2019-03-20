@@ -313,6 +313,19 @@
     }
 }
 
+- (void)unregisterAssoc:(NSNumber *)assocId
+{
+    if(assocId)
+    {
+        UMLayerSctp *layer = _assocs[assocId];
+        /* an active outbound connection */
+        NSLog(@"unregisterAssoc %@ forLayer:%@",assocId,layer.layerName);
+        [_assocs removeObjectForKey:assocId];
+    }
+}
+
+
+
 - (void)registerLayer:(UMLayerSctp *)layer forAssoc:(NSNumber *)assocId;
 {
     if(layer)

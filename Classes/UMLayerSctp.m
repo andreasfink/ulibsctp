@@ -636,6 +636,12 @@
     [_receiverThread shutdownBackgroundTask];
     self.status = SCTP_STATUS_OOS;
     self.status = SCTP_STATUS_OFF;
+    if(_assocIdPresent)
+    {
+        [_registry unregisterAssoc:@(_assocId)];
+        _assocId = -1;
+        _assocIdPresent = NO;
+    }
 }
 
 - (void) powerdownInReceiverThread
@@ -648,6 +654,13 @@
 #endif
     self.status = SCTP_STATUS_OOS;
     self.status = SCTP_STATUS_OFF;
+
+    if(_assocIdPresent)
+    {
+        [_registry unregisterAssoc:@(_assocId)];
+        _assocId = -1;
+        _assocIdPresent = NO;
+    }
 }
 
 
@@ -668,7 +681,7 @@
 
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx
 {
-    if(_assocId <= 0)
+    if(_assocIdPresent==NO)
     {
         _assocId = [rx.assocId unsignedIntValue];
         _assocIdPresent = YES;
@@ -1573,6 +1586,5 @@
         }
     }
 }
-
 
 @end
