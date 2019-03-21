@@ -28,6 +28,7 @@
         _name = [NSString stringWithFormat:@"sctp-listener[%@]:%d",[_localIpAddresses componentsJoinedByString:@","],_port];
         NSString *lockName = [NSString stringWithFormat:@"sctp-listener-lock[%@]:%d",[_localIpAddresses componentsJoinedByString:@","],_port];
         _lock = [[UMMutex alloc]initWithName:lockName];
+        _logLevel = UMLOG_MINOR;
     }
     return self;
 }

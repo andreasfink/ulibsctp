@@ -26,6 +26,8 @@
         _incomingListeners = [[NSMutableArray alloc]init];
         _outgoingLayersByIpsAndPorts = [[NSMutableDictionary alloc]init];
         _outgoingLayersByAssoc = [[NSMutableDictionary alloc]init];
+        _logLevel = UMLOG_MINOR;
+
     }
     return self;
 }
