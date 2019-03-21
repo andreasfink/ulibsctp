@@ -73,6 +73,7 @@
     if(listener == NULL)
     {
         listener = [[UMSocketSCTPListener alloc]initWithPort:port localIpAddresses:ips];
+        listener.logLevel = _logLevel;
         [self addListener:listener];
     }
     [_lock unlock];
@@ -305,6 +306,7 @@
 
 - (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer
 {
+    UMAssert(layer,@"layer is NULL");
     if(assocId)
     {
         /* an active outbound connection */

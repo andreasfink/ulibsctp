@@ -79,7 +79,7 @@
         _inboundThroughputBytes     = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
         _outboundThroughputPackets  = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
         _outboundThroughputBytes    = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
-        _reconnectTimerValue = 10.0;
+        _reconnectTimerValue = 6.0;
         _reconnectTimer = [[UMTimer alloc]initWithTarget:self selector:@selector(reconnectTimerFires) object:NULL seconds:_reconnectTimerValue name:@"reconnect-timer" repeats:NO runInForeground:YES];
         NSString *lockName = [NSString stringWithFormat:@"sctp-layer-link-lock(%@)",name];
         _linkLock = [[UMMutex alloc]initWithName:lockName];
@@ -866,7 +866,7 @@
         _listener.firstMessage=YES;
         _assocId = snp->sn_assoc_change.sac_assoc_id;
         _assocIdPresent=YES;
-        [self.logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS"];
+        [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS (assocID=%ld)",(long)_assocId]];
         self.status=SCTP_STATUS_IS;
         [_reconnectTimer stop];
         [self reportStatus];
@@ -875,7 +875,7 @@
     {
         _assocId = snp->sn_assoc_change.sac_assoc_id;
         _assocIdPresent=YES;
-        [self.logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF"];
+        [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF (assocID=%ld)",(long)_assocId]];
         self.status=SCTP_STATUS_OFF;
         [self reportStatus];
         [self powerdownInReceiverThread];
@@ -1574,14 +1574,15 @@
     [_reconnectTimer stop];
     if(_status != SCTP_STATUS_IS)
     {
-        _assocId = -1;
+        sctp_assoc_t xassocId = -1;
         [_listener connectToAddresses:_configured_remote_addresses
                                  port:_configured_remote_port
-                                assoc:&_assocId
+                                assoc:&xassocId
                                 layer:self];
-        if(_assocId != -1)
+        if(xassocId != -1)
         {
             _assocIdPresent = YES;
+            _assocId = xassocId;
             [_registry registerAssoc:@(_assocId) forLayer:self];
         }
     }

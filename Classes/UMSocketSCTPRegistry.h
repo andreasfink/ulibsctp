@@ -24,7 +24,10 @@
     UMMutex *_lock;
     UMSocketSCTPReceiver    *_receiver;
     BOOL                    _receiverStarted;
+    UMLogLevel              _logLevel;
 }
+
+@property (readwrite,assign,atomic)   UMLogLevel logLevel;
 
 - (NSString *)webStat;
 

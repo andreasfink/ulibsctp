@@ -276,11 +276,23 @@
                                assoc:(sctp_assoc_t *)assocptr
                                layer:(UMLayerSctp *)layer
 {
+
+    if(_logLevel == UMLOG_DEBUG)
+    {
+        NSLog(@"connectToAddresses:%@ port:%d",[addrs componentsJoinedByString:@","],port);
+    }
     if(_isListening==NO)
     {
         [self startListeningFor:layer];
     }
     UMSocketError err = [_umsocket connectToAddresses:addrs port:port assoc:assocptr];
+    if(assocptr)
+    {
+        if(_logLevel == UMLOG_DEBUG)
+        {
+            NSLog(@"   returns assoc=%ld",(long)*assocptr);
+        }
+    }
     return err;
 }
 
@@ -295,6 +307,8 @@
 {
     ssize_t r = -1;
     [self startListeningFor:layer];
+
+
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(layer.newDestination)

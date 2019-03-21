@@ -33,6 +33,7 @@ typedef uint32_t sctp_assoc_t;
     int                         _configuredMtu;
     BOOL                        _firstMessage;
     BOOL                        _isInvalid;
+    UMLogLevel                  _logLevel;
 }
 
 @property(readwrite,assign) int port;
@@ -44,6 +45,7 @@ typedef uint32_t sctp_assoc_t;
 @property(readwrite,assign) int     mtu;
 @property(readwrite,assign) BOOL    firstMessage;
 @property(readwrite,assign) BOOL    isInvalid;
+@property(readwrite,assign) UMLogLevel logLevel;
 
 - (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses;
 - (void)startListeningFor:(UMLayerSctp *)layer;
