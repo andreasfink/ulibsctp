@@ -86,7 +86,6 @@
     NSUInteger listeners_count = listeners.count;
     if(listeners_count == 0)
     {
-        NSLog(@"listeners_count is 0");
         sleep(1);
         return UMSocketError_no_data;
     }
