@@ -585,10 +585,15 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         NSLog(@"calling sctp_connectx (%@)", [addrs componentsJoinedByString:@" "]);
 #endif
         memset(assocptr,0,sizeof(sctp_assoc_t));
-        int err =  sctp_connectx(_sock,(struct sockaddr *)remote_sockaddr.bytes,count,assocptr);
+        sctp_assoc_t assoc = -1;
+        int err =  sctp_connectx(_sock,(struct sockaddr *)remote_sockaddr.bytes,count,&assoc);
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"sctp_connectx: returns %d. errno = %d %s assoc=%lu",err,errno,strerror(errno),(unsigned long)*assocptr);
 #endif
+        if(assocptr && assoc != -1)
+        {
+            *assocptr = assoc;
+        }
         if (err < 0)
         {
             returnValue = [UMSocket umerrFromErrno:errno];
@@ -601,8 +606,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
     return returnValue;
 }
-
-
 
 /* overloading accept */
 - (UMSocketSCTP *) accept:(UMSocketError *)ret
@@ -632,7 +635,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                             sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV))
             {
                 remoteAddress = @"ipv4:0.0.0.0";
-                remotePort = sa4.sin_port;
+                remotePort = 0;
             }
             else
             {
@@ -660,7 +663,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                             sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV))
             {
                 remoteAddress = @"ipv6:[::]";
-                remotePort = sa6.sin6_port;
+                remotePort = 0;
             }
             else
             {
@@ -709,6 +712,114 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     return nil;
 }
 
+- (UMSocketSCTP *) peelOffAssoc:(sctp_assoc_t)assoc
+                          error:(UMSocketError *)errptr
+{
+    int           newsock = -1;
+    UMSocketSCTP  *newcon =NULL;
+    NSString *remoteAddress=@"";
+    in_port_t remotePort=0;
+    if(type == UMSOCKET_TYPE_SCTP4ONLY)
+    {
+        struct    sockaddr_in sa4;
+        socklen_t slen4 = sizeof(sa4);
+        memset(&sa4,0x00,slen4);
+        [_controlLock lock];
+        newsock = sctp_peeloff(_sock,assoc);
+        [_controlLock unlock];
+
+        if(newsock >=0)
+        {
+            char hbuf[NI_MAXHOST];
+            char sbuf[NI_MAXSERV];
+            if (getnameinfo((struct sockaddr *)&sa4, slen4, hbuf, sizeof(hbuf), sbuf,
+                            sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV))
+            {
+                remoteAddress = @"ipv4:0.0.0.0";
+                remotePort = 0;
+            }
+            else
+            {
+                remoteAddress = @(hbuf);
+                remoteAddress = [NSString stringWithFormat:@"ipv4:%@", remoteAddress];
+                remotePort = sa4.sin_port;
+            }
+            TRACK_FILE_SOCKET(newsock,remoteAddress);
+            newcon.cryptoStream.fileDescriptor = newsock;
+        }
+    }
+    else
+    {
+        /* IPv6 or dual mode */
+        struct    sockaddr_in6        sa6;
+        socklen_t slen6 = sizeof(sa6);
+        memset(&sa6,0x00,slen6);
+
+        [_controlLock lock];
+        newsock = sctp_peeloff(_sock,assoc);
+        [_controlLock unlock];
+
+        if(newsock >= 0)
+        {
+            char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+            if (getnameinfo((struct sockaddr *)&sa6, slen6, hbuf, sizeof(hbuf), sbuf,
+                            sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV))
+            {
+                remoteAddress = @"ipv6:[::]";
+                remotePort = 0;
+            }
+            else
+            {
+                remoteAddress = @(hbuf);
+                remotePort = sa6.sin6_port;
+            }
+            /* this is a IPv4 style address packed into IPv6 */
+
+            remoteAddress = [UMSocket unifyIP:remoteAddress];
+            TRACK_FILE_SOCKET(newsock,remoteAddress);
+        }
+    }
+
+    if(newsock >= 0)
+    {
+        newcon = [[UMSocketSCTP alloc]init];
+        newcon.type = type;
+        newcon.direction =  direction;
+        newcon.status=status;
+        newcon.localHost = self.localHost;
+        newcon.remoteHost = self.remoteHost;
+        newcon.requestedLocalAddresses = _requestedLocalAddresses;
+        newcon.requestedLocalPort=self.requestedLocalPort;
+        newcon.requestedRemoteAddresses = _requestedRemoteAddresses;
+        newcon.requestedRemotePort=self.requestedRemotePort;
+        newcon.cryptoStream = [[UMCrypto alloc]initWithRelatedSocket:newcon];
+        newcon.isBound=NO;
+        newcon.isListening=NO;
+        newcon.isConnecting=NO;
+        newcon.isConnected=YES;
+        [newcon setSock: newsock];
+        [newcon switchToNonBlocking];
+        [newcon doInitReceiveBuffer];
+        newcon.connectedRemoteAddress = remoteAddress;
+        newcon.connectedRemotePort = remotePort;
+        newcon.useSSL = useSSL;
+        [newcon updateMtu:_mtu];
+        [newcon updateName];
+        newcon.objectStatisticsName = @"UMSocket(accept)";
+        [self reportStatus:@"accept () successful"];
+        /* TODO: start SSL if required here */
+        if(*errptr)
+        {
+            *errptr = UMSocketError_no_error;
+        }
+        return newcon;
+    }
+    if(*errptr)
+    {
+        *errptr = [UMSocket umerrFromErrno:errno];
+    }
+    return nil;
+}
 
 - (ssize_t) sendToAddresses:(NSArray *)addrs
                        port:(int)remotePort

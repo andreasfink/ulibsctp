@@ -286,7 +286,9 @@
     {
         [self startListeningFor:layer];
     }
-    UMSocketError err = [_umsocket connectToAddresses:addrs port:port assoc:assocptr];
+    UMSocketError err = [_umsocket connectToAddresses:addrs
+                                                 port:port
+                                                assoc:assocptr];
     if(assocptr)
     {
         if(_logLevel == UMLOG_DEBUG)
@@ -296,6 +298,12 @@
     }
     return err;
 }
+
+- (UMSocketSCTP *) peelOffAssoc:(sctp_assoc_t)assoc error:(UMSocketError *)errptr
+{
+    return [_umsocket peelOffAssoc:assoc error:errptr];
+}
+
 
 - (ssize_t) sendToAddresses:(NSArray *)addrs
                        port:(int)remotePort

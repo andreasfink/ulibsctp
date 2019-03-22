@@ -83,14 +83,16 @@
 
     UMSocketError returnValue = UMSocketError_generic_error;
     NSArray *listeners = [_registry allListeners];
+    NSArray *outbound_layers = [_registry allOutboundLayers];
     NSUInteger listeners_count = listeners.count;
-    if(listeners_count == 0)
+    NSUInteger outbound_count = outbound_layers.count;
+    if((listeners_count == 0) && (outbound_count==0))
     {
         sleep(1);
         return UMSocketError_no_data;
     }
 
-    struct pollfd *pollfds = calloc(listeners_count+1,sizeof(struct pollfd));
+    struct pollfd *pollfds = calloc(listeners_count+outbound_count+1,sizeof(struct pollfd));
     NSAssert(pollfds !=0,@"can not allocate memory for poll()");
 
     memset(pollfds, 0x00,listeners_count+1  * sizeof(struct pollfd));
@@ -113,7 +115,20 @@
             pollfds[j].events = events;
             j++;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"pollfds[%d] = %d",(int)j,(int)listener.umsocket.fileDescriptor);
+            NSLog(@"pollfds[%d] = %d  (listener)",(int)j,(int)listener.umsocket.fileDescriptor);
+#endif
+        }
+    }
+    for(NSUInteger i=0;i<outbound_count;i++)
+    {
+        UMLayerSctp *layer = outbound_layers[i];
+        if(layer.directSocket!=NULL)
+        {
+            pollfds[j].fd = layer.directSocket.fileDescriptor;
+            pollfds[j].events = events;
+            j++;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+            NSLog(@"pollfds[%d] = %d (direct)",(int)j,(int)layer.directSocket.fileDescriptor);
 #endif
         }
     }
@@ -153,66 +168,39 @@
         /* we have some event to handle. */
         returnValue = UMSocketError_no_error;
 
-//        UMLayerSctp *outbound = NULL;
+        UMLayerSctp *outbound = NULL;
         UMSocketSCTPListener *listener = NULL;
         UMSocketSCTP *socket = NULL;
-        for(int i=0;i<j;i++)
+
+        j = 0;
+        for(NSUInteger i=0;i<listeners_count;i++)
         {
             listener = listeners[i];
-            socket = listener.umsocket;
-
-            int revent = pollfds[i].revents;
-            int revent_error = UMSocketError_no_error;
-            int revent_hup = 0;
-            int revent_has_data = 0;
-            int revent_invalid = 0;
-            
-            if(revent & POLLERR)
+            if(listener.isInvalid==NO)
             {
-                revent_error = [socket getSocketError];
-                [listener processError:revent_error];
-
+                socket = listener.umsocket;
+                int revent = pollfds[j].revents;
+                UMSocketError r = [self handlePollResult:revent listener:listener layer:NULL socket:socket poll_time:poll_time];
+                if(r != UMSocketError_no_error)
+                {
+                    returnValue= r;
+                }
+                j++;
             }
-            if(revent & POLLHUP)
+        }
+        for(NSUInteger i=0;i<outbound_count;i++)
+        {
+            outbound = outbound_layers[i];
+            if(outbound.directSocket!=NULL)
             {
-                revent_hup = 1;
-            }
-#ifdef POLLRDHUP
-            if(revent & POLLRDHUP)
-            {
-                revent_hup = 1;
-            }
-#endif
-            if(revent & POLLNVAL)
-            {
-                revent_invalid = 1;
-            }
-#ifdef POLLRDBAND
-            if(revent & POLLRDBAND)
-            {
-                revent_has_data = 1;
-            }
-#endif
-            if(revent & (POLLIN | POLLPRI))
-            {
-                revent_has_data = 1;
-            }
-            if(revent_has_data)
-            {
-                UMSocketSCTPReceivedPacket *rx = [socket receiveSCTP];
-                rx.rx_time = ulib_microsecondTime();
-                rx.poll_time = poll_time;
-                [listener processReceivedData:rx];
-                rx.process_time = ulib_microsecondTime();
-                returnValue = UMSocketError_has_data;
-            }
-            if(revent_hup)
-            {
-                [listener processHangUp];
-            }
-            if(revent_invalid)
-            {
-                [listener processInvalidSocket];
+                socket = outbound.directSocket;
+                int revent = pollfds[j].revents;
+                UMSocketError r = [self handlePollResult:revent listener:NULL layer:outbound socket:socket poll_time:poll_time];
+                if(r != UMSocketError_no_error)
+                {
+                    returnValue = r;
+                }
+                j++;
             }
         }
     }
@@ -238,4 +226,64 @@
     return returnValue;
 }
 
+- (UMSocketError)handlePollResult:(int)revent listener:(UMSocketSCTPListener *)listener layer:(UMLayerSctp *)layer socket:(UMSocketSCTP *)socket poll_time:(UMMicroSec)poll_time
+{
+    UMSocketError returnValue = UMSocketError_no_error;
+
+    int revent_error = UMSocketError_no_error;
+    int revent_hup = 0;
+    int revent_has_data = 0;
+    int revent_invalid = 0;
+    if(revent & POLLERR)
+    {
+        revent_error = [socket getSocketError];
+        [layer processError:revent_error];
+        [listener processError:revent_error];
+    }
+    if(revent & POLLHUP)
+    {
+        revent_hup = 1;
+    }
+#ifdef POLLRDHUP
+    if(revent & POLLRDHUP)
+    {
+        revent_hup = 1;
+    }
+#endif
+    if(revent & POLLNVAL)
+    {
+        revent_invalid = 1;
+    }
+#ifdef POLLRDBAND
+        if(revent & POLLRDBAND)
+        {
+            revent_has_data = 1;
+        }
+#endif
+    if(revent & (POLLIN | POLLPRI))
+    {
+        revent_has_data = 1;
+    }
+    if(revent_has_data)
+    {
+        UMSocketSCTPReceivedPacket *rx = [socket receiveSCTP];
+        rx.rx_time = ulib_microsecondTime();
+        rx.poll_time = poll_time;
+        [layer processReceivedData:rx];
+        [listener processReceivedData:rx];
+        rx.process_time = ulib_microsecondTime();
+        returnValue = UMSocketError_has_data;
+    }
+    if(revent_hup)
+    {
+        [layer processHangUp];
+        [listener processHangUp];
+    }
+    if(revent_invalid)
+    {
+        [layer processInvalidSocket];
+        [listener processInvalidSocket];
+    }
+    return returnValue;
+}
 @end

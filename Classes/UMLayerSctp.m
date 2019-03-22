@@ -302,12 +302,33 @@
                 [self logDebug:[NSString stringWithFormat:@"asking listener to connect to %@ on port %d",addrs,_configured_remote_port]];
             }
 #endif
+            if(_directSocket==NULL)
+            {
+                tmp_assocId = -1;
+                err = [_listener connectToAddresses:_configured_remote_addresses
+                                               port:_configured_remote_port
+                                              assoc:&tmp_assocId
+                                              layer:self];
+                if(err == UMSocketError_no_error)
+                {
+                    if(tmp_assocId != -1)
+                    {
+                        _assocId = tmp_assocId;
+                        _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+                        if(err != UMSocketError_no_error)
+                        {
+                            _directSocket = NULL;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                err = [_directSocket connectToAddresses:_configured_remote_addresses
+                                               port:_configured_remote_port
+                                              assoc:&tmp_assocId];
+            }
 
-            err = [_listener connectToAddresses:_configured_remote_addresses
-                                           port:_configured_remote_port
-                                          assoc:&tmp_assocId
-                                          layer:self];
-            _assocId = tmp_assocId;
             if(_assocId!= -1)
             {
                 _assocIdPresent = YES;
@@ -319,7 +340,6 @@
             }
         }
         [_registry registerLayer:self];
-
         if(_assocIdPresent)
         {
             [_registry registerAssoc:@(_assocId) forLayer:self];
@@ -397,15 +417,30 @@
 #endif
         UMSocketError err = UMSocketError_no_error;
 
+        ssize_t sent_packets = 0;
         [_linkLock lock];
-        ssize_t sent_packets = [_listener sendToAddresses:_configured_remote_addresses
-                                                     port:_configured_remote_port
-                                                    assoc:&_assocId
-                                                     data:task.data
-                                                   stream:task.streamId
-                                                 protocol:task.protocolId
-                                                    error:&err
-                                                    layer:self];
+        if(_directSocket)
+        {
+            sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
+                                      port:_configured_remote_port
+                                     assoc:&_assocId
+                                      data:task.data
+                                    stream:task.streamId
+                                  protocol:task.protocolId
+                                     error:&err];
+
+        }
+        else
+        {
+            sent_packets = [_listener sendToAddresses:_configured_remote_addresses
+                                                 port:_configured_remote_port
+                                                assoc:&_assocId
+                                                 data:task.data
+                                               stream:task.streamId
+                                             protocol:task.protocolId
+                                                error:&err
+                                                layer:self];
+        }
         [_linkLock unlock];
 
         if(sent_packets>0)
@@ -633,7 +668,7 @@
         [self.logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
     }
 #endif
-    [_receiverThread shutdownBackgroundTask];
+    //[_receiverThread shutdownBackgroundTask];
     self.status = SCTP_STATUS_OOS;
     self.status = SCTP_STATUS_OFF;
     if(_assocIdPresent)
@@ -641,6 +676,8 @@
         [_registry unregisterAssoc:@(_assocId)];
         _assocId = -1;
         _assocIdPresent = NO;
+        [_directSocket close];
+        _directSocket = NULL;
     }
 }
 
@@ -660,6 +697,8 @@
         [_registry unregisterAssoc:@(_assocId)];
         _assocId = -1;
         _assocIdPresent = NO;
+        [_directSocket close];
+        _directSocket = NULL;
     }
 }
 
@@ -746,14 +785,6 @@
     }
 }
 
-- (void)processHangUp
-{
-}
-
-- (void)processInvalidSocket
-{
-    _isInvalid = YES;
-}
 
 -(void) handleEvent:(NSData *)event
            streamId:(uint32_t)streamId
@@ -1586,6 +1617,26 @@
             [_registry registerAssoc:@(_assocId) forLayer:self];
         }
     }
+}
+
+- (void)processError:(UMSocketError)err
+{
+    /* FIXME */
+    NSLog(@"processError %d %@ received in layer %@",err, [UMSocket getSocketErrorString:err], _layerName);
+}
+
+
+- (void)processHangUp
+{
+    /* FIXME */
+    NSLog(@"processHangUp received in listener %@",_layerName);
+}
+
+- (void)processInvalidSocket
+{
+    /* FIXME */
+    NSLog(@"processInvalidSocket received in listener %@",_layerName);
+    _isInvalid = YES;
 }
 
 @end

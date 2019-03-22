@@ -60,6 +60,7 @@ typedef uint32_t sctp_assoc_t;
                                 port:(int)port
                                assoc:(sctp_assoc_t *)assoc
                                layer:(UMLayerSctp *)layer;
+- (UMSocketSCTP *) peelOffAssoc:(sctp_assoc_t)assoc error:(UMSocketError *)errptr;
 
 - (ssize_t) sendToAddresses:(NSArray *)addrs
                        port:(int)remotePort
