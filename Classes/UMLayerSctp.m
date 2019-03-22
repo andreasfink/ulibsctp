@@ -878,7 +878,7 @@
         [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF (assocID=%ld)",(long)_assocId]];
         self.status=SCTP_STATUS_OFF;
         [self reportStatus];
-        [self powerdownInReceiverThread];
+        //[self powerdownInReceiverThread];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
@@ -892,7 +892,7 @@
     {
         [self.logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_CANT_STR_ASSOC"];
         self.status=SCTP_STATUS_OOS;
-        //[self reportStatus];
+        [self reportStatus];
         //[self powerdownInReceiverThread];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
