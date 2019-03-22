@@ -891,8 +891,8 @@
     else if(snp->sn_assoc_change.sac_state==SCTP_CANT_STR_ASSOC)
     {
         [self.logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_CANT_STR_ASSOC"];
-        //self.status=SCTP_STATUS_OOS;
-        //[self reportStatus];
+        self.status=SCTP_STATUS_OOS;
+        [self reportStatus];
         //[self powerdownInReceiverThread];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
