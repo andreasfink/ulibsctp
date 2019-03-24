@@ -276,7 +276,19 @@
     return layer;
 }
 
-- (void)registerLayer:(UMLayerSctp *)layer
+- (void)registerIncomingLayer:(UMLayerSctp *)layer
+{
+    if(layer)
+    {
+
+        [_lock lock];
+        [_incomingLayers removeObject:layer];
+        [_incomingLayers addObject:layer];
+        [_lock unlock];
+    }
+}
+
+- (void)registerOutgoingLayer:(UMLayerSctp *)layer
 {
     if(layer)
     {
@@ -329,8 +341,8 @@
 }
 
 
-
-- (void)registerLayer:(UMLayerSctp *)layer forAssoc:(NSNumber *)assocId;
+#if 0
+- (void)registerOutgoingLayer:(UMLayerSctp *)layer forAssoc:(NSNumber *)assocId;
 {
     if(layer)
     {
@@ -367,6 +379,7 @@
         [_lock unlock];
     }
 }
+#endif
 
 - (void)unregisterLayer:(UMLayerSctp *)layer
 {
@@ -395,12 +408,17 @@
             }
         }
         [_outgoingLayers removeObject:layer];
+        [_incomingLayers removeObject:layer];
         [_lock unlock];
     }
 }
 
 - (void)startReceiver
 {
+    if(_logLevel <= UMLOG_DEBUG)
+    {
+        [_logFeed debugText:@"[UMSocketSCTPegistry startReceiver]"];
+    }
     if(_receiverStarted==YES)
     {
         return;
@@ -417,6 +435,11 @@
 
 - (void)stopReceiver
 {
+    if(_logLevel <= UMLOG_DEBUG)
+    {
+        [_logFeed debugText:@"[UMSocketSCTPegistry stopReceiver]"];
+    }
+
     [_lock lock];
     if(_receiverStarted==YES)
     {

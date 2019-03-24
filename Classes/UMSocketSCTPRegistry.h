@@ -18,6 +18,7 @@
 
     NSMutableArray          *_outgoingLayers;
     NSMutableArray          *_incomingListeners;
+    NSMutableArray          *_incomingLayers; /* once peeled of the listener */
     NSMutableDictionary     *_outgoingLayersByIpsAndPorts;
     NSMutableDictionary     *_outgoingLayersByAssoc;
     
@@ -47,7 +48,8 @@
 
 - (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId;
 
-- (void)registerLayer:(UMLayerSctp *)layer;
+- (void)registerOutgoingLayer:(UMLayerSctp *)layer;
+- (void)registerIncomingLayer:(UMLayerSctp *)layer;
 - (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer;
 - (void)unregisterAssoc:(NSNumber *)assocId;
 

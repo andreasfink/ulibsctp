@@ -338,8 +338,8 @@
                 NSString *e = [UMSocket getSocketErrorString:err];
                 [self logDebug:[NSString stringWithFormat:@"returns %d %@",err,e]];
             }
+            [_registry registerOutgoingLayer:self];
         }
-        [_registry registerLayer:self];
         if(_assocIdPresent)
         {
             [_registry registerAssoc:@(_assocId) forLayer:self];
@@ -899,6 +899,16 @@
         _assocIdPresent=YES;
         [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS (assocID=%ld)",(long)_assocId]];
         self.status=SCTP_STATUS_IS;
+        if(_directSocket==NULL)
+        {
+            UMSocketError err = UMSocketError_no_error;
+            _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+            if(err != UMSocketError_no_error)
+            {
+                _directSocket = NULL;
+            }
+            [_registry registerIncomingLayer:self];
+        }
         [_reconnectTimer stop];
         [self reportStatus];
     }

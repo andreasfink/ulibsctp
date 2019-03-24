@@ -75,7 +75,7 @@
 @property(readwrite,strong) NSDate          *stopButtonPressed;
 
 @property(readwrite,assign,atomic) SCTP_Status     status;
-@property(readwrite,strong) UMBackgrounder  *receiverThread;
+//@property(readwrite,strong) UMBackgrounder  *receiverThread;
 
 @property(readwrite,strong  )NSArray    *configured_local_addresses;
 @property(readwrite,assign) int         configured_local_port;
