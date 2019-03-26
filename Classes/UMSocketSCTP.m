@@ -979,6 +979,88 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 }
 
 
+
+- (UMSocketError) abortToAddress:(NSString *)addr
+                            port:(int)remotePort
+                           assoc:(sctp_assoc_t)assoc
+                          stream:(uint16_t)streamId
+                        protocol:(u_int32_t)protocolId
+{
+    UMSocketError err = UMSocketError_no_error;
+    ssize_t sp = 0;
+    int count = 0;
+    NSArray *addrs = @[addr];
+    NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
+    int flags=SCTP_ABORT;
+
+
+#if defined(ULIBSCTP_SCTP_SENDV_SUPPORTED)
+    struct sctp_sndinfo  send_info;
+    memset(&send_info,0x00,sizeof(struct sctp_sndinfo));
+    send_info.snd_sid = streamId;
+    send_info.snd_flags = flags;
+    send_info.snd_ppid = htonl(protocolId);
+    send_info.snd_context = 0;
+    send_info.snd_assoc_id = assoc;
+
+    sp = sctp_sendv(_sock,
+                    NULL,
+                    0,
+                    (struct sockaddr *)remote_sockaddr.bytes,
+                    count,
+                    &send_info,
+                    sizeof(struct sctp_sndinfo),
+                    SCTP_SENDV_SNDINFO,
+                    flags);
+#else
+
+
+
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    NSLog(@"sctp_sendmsg(_sock=%d,\n\tdata.bytes=%p\n\tdata.length=%ld\n\t(struct sockaddr *)remote_sockaddr.bytes=%p\n\t(socklen_t)remote_sockaddr.length=%ld\n\tprotocolId=%ld\n\tflags=%ld\n\tstreamId=%ld\n\ttimetolive=%ld\n\tcontext=%ld\n);\n",
+          NULL,
+          0,
+          remote_sockaddr.bytes,
+          (long)remote_sockaddr.length,
+          (long)protocolId,
+          (long)flags, /* flags */
+          (long)streamId,
+          (long)timetolive, // timetolive,
+          (long)context); // context);
+    NSLog(@"assocPtr:%p, value=%ld,",assocptr, assocptr ? (long)*assocptr : -1);
+#endif
+    int timetolive=2000;
+    int context=0;
+
+    sp = sctp_sendmsg(_sock,
+                      NULL,
+                      0,
+                      (struct sockaddr *)remote_sockaddr.bytes,
+                      (socklen_t)remote_sockaddr.length,
+                      htonl(protocolId),
+                      flags, /* flags */
+                      streamId,
+                      timetolive, // timetolive,
+                      context); // context);
+
+#endif
+
+    if(sp<0)
+    {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        NSLog(@"errno: %d %s",errno, strerror(errno));
+#endif
+
+        err = [UMSocket umerrFromErrno:errno];
+    }
+    else if(sp==0)
+    {
+        err = UMSocketError_no_error;
+    }
+    return err;
+}
+
+
 #define SCTP_RXBUF 10240
 
 - (UMSocketSCTPReceivedPacket *)receiveSCTP

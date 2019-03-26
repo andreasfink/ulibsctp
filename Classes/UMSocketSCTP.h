@@ -100,6 +100,11 @@
                    protocol:(u_int32_t)protocolId
                       error:(UMSocketError *)err2;
 
+- (UMSocketError) abortToAddress:(NSString *)addr
+                            port:(int)remotePort
+                           assoc:(sctp_assoc_t)assoc
+                          stream:(uint16_t)streamId
+                        protocol:(u_int32_t)protocolId;
 #endif
 
 /*

@@ -720,9 +720,9 @@
 
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx
 {
-    if(_assocIdPresent==NO)
+    if(rx.assocId !=0)
     {
-        _assocId = [rx.assocId unsignedIntValue];
+        _assocId = (sctp_assoc_t)[rx.assocId unsignedIntValue];
         _assocIdPresent = YES;
     }
 
@@ -742,6 +742,7 @@
         [self powerdownInReceiverThread];
         [self reportStatus];
     }
+
     if(rx.err==UMSocketError_connection_aborted)
     {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
