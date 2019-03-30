@@ -246,11 +246,23 @@
                 else
                 {
                     /* we have not found anyone listening to this so we send abort */
-                    NSLog(@"Incomning SCTP connection attempt from IP %@ port %d. (We should abort)",rx.remoteAddress,rx.remotePort);
+                    UMSocketError err = [_umsocket abortToAddress:rx.remoteAddress
+                                                             port:rx.remotePort
+                                                            assoc:(sctp_assoc_t) rx.assocId.longValue
+                                                           stream:rx.streamId
+                                                         protocol:rx.protocolId];
+                    if(err !=UMSocketError_no_error)
+                    {
+                        NSLog(@"abortToAddress  %@ port %d. error %@",rx.remoteAddress,rx.remotePort, [UMSocket getSocketErrorString:err]);
+                    }
                 }
             }
         }
     }
+}
+
+- (void)abortPeer
+{
 }
 
 - (void)processError:(UMSocketError)err
@@ -286,7 +298,9 @@
     {
         [self startListeningFor:layer];
     }
-    UMSocketError err = [_umsocket connectToAddresses:addrs port:port assoc:assocptr];
+    UMSocketError err = [_umsocket connectToAddresses:addrs
+                                                 port:port
+                                                assoc:assocptr];
     if(assocptr)
     {
         if(_logLevel == UMLOG_DEBUG)
@@ -296,6 +310,12 @@
     }
     return err;
 }
+
+- (UMSocketSCTP *) peelOffAssoc:(sctp_assoc_t)assoc error:(UMSocketError *)errptr
+{
+    return [_umsocket peelOffAssoc:assoc error:errptr];
+}
+
 
 - (ssize_t) sendToAddresses:(NSArray *)addrs
                        port:(int)remotePort

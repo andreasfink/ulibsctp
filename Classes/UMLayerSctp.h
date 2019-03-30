@@ -29,7 +29,7 @@
 @interface UMLayerSctp : UMLayer
 {
     UMSynchronizedArray *_users;
-    UMBackgrounder      *_receiverThread;
+    //UMBackgrounder      *_receiverThread;
     UMMutex             *_linkLock;
     UMThroughputCounter *_inboundThroughputPackets;
     UMThroughputCounter *_outboundThroughputPackets;
@@ -37,6 +37,7 @@
     UMThroughputCounter *_outboundThroughputBytes;
     UMSocketSCTPRegistry *_registry;
     UMSocketSCTPListener *_listener;
+    UMSocketSCTP         *_directSocket; /* after peeloff */
     NSDate               *_startButtonPressed;
     NSDate               *_stopButtonPressed;
 
@@ -74,7 +75,7 @@
 @property(readwrite,strong) NSDate          *stopButtonPressed;
 
 @property(readwrite,assign,atomic) SCTP_Status     status;
-@property(readwrite,strong) UMBackgrounder  *receiverThread;
+//@property(readwrite,strong) UMBackgrounder  *receiverThread;
 
 @property(readwrite,strong  )NSArray    *configured_local_addresses;
 @property(readwrite,assign) int         configured_local_port;
@@ -100,6 +101,7 @@
 @property(readwrite,assign) BOOL assocIdPresent;
 @property(readwrite,assign) int mtu;
 @property(readwrite,assign) BOOL newDestination;
+@property(readwrite,strong,atomic)      UMSocketSCTP        *directSocket;
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq;
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name;
@@ -159,7 +161,7 @@
            streamId:(uint32_t)streamId
          protocolId:(uint16_t)protocolId;
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx;
+- (void)processError:(UMSocketError)err;
 - (void)processHangUp;
 - (void)processInvalidSocket;
-
 @end

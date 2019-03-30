@@ -46,8 +46,8 @@
     UMSocketSCTPListener *_listener;
     BOOL            _continuousConnectionAttempts;
     BOOL            _connectx_pending;
-    NSData              *_localAddressesSockaddr;
-    int                 _localAddressesSockaddrCount;
+    NSData          *_localAddressesSockaddr;
+    int             _localAddressesSockaddrCount;
 //    struct sockaddr     *_local_addresses;
 //    int                 _local_addresses_count;
 //    BOOL                _local_addresses_prepared;
@@ -76,6 +76,8 @@
 - (UMSocketError) enableFutureAssoc;
 
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret;
+- (UMSocketSCTP *) peelOffAssoc:(sctp_assoc_t)assoc error:(UMSocketError *)errptr;
+
 //- (UMSocketError) connectSCTP;
 
 
@@ -98,6 +100,11 @@
                    protocol:(u_int32_t)protocolId
                       error:(UMSocketError *)err2;
 
+- (UMSocketError) abortToAddress:(NSString *)addr
+                            port:(int)remotePort
+                           assoc:(sctp_assoc_t)assoc
+                          stream:(uint16_t)streamId
+                        protocol:(u_int32_t)protocolId;
 #endif
 
 /*
