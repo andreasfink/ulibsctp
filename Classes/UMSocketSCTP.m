@@ -1015,6 +1015,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #else
 
 
+    uint32_t timetolive=2000;
+    uint32_t context=0;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     NSLog(@"sctp_sendmsg(_sock=%d,\n\tdata.bytes=%p\n\tdata.length=%ld\n\t(struct sockaddr *)remote_sockaddr.bytes=%p\n\t(socklen_t)remote_sockaddr.length=%ld\n\tprotocolId=%ld\n\tflags=%ld\n\tstreamId=%ld\n\ttimetolive=%ld\n\tcontext=%ld\n);\n",
@@ -1029,8 +1031,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
           (long)context); // context);
     NSLog(@"assocPtr:%p, value=%ld,",assocptr, assocptr ? (long)*assocptr : -1);
 #endif
-    int timetolive=2000;
-    int context=0;
 
     sp = sctp_sendmsg(_sock,
                       NULL,
