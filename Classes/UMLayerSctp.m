@@ -309,13 +309,18 @@
                                                port:_configured_remote_port
                                               assoc:&tmp_assocId
                                               layer:self];
-                if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
+                if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
                 {
                     if(tmp_assocId != -1)
                     {
                         _assocId = tmp_assocId;
+
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+                        NSLog(@"Peeling of assoc %d",tmp_assocId);
+#endif
                         _directSocket = [_listener peelOffAssoc:_assocId error:&err];
-                        if(err != UMSocketError_no_error)
+
+                        if((err != UMSocketError_no_error) || (err==UMSocketError_in_progress))
                         {
                             _directSocket = NULL;
                         }
