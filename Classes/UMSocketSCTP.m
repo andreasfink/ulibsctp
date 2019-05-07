@@ -27,7 +27,7 @@
 #define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
 #define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
 #if defined __APPLE__
-#define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
+//#define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
 //#define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
 #endif
 
@@ -566,6 +566,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                                 port:(int)remotePort
                                assoc:(sctp_assoc_t *)assocptr
 {
+	UMAssert(assocptr!=NULL,@"assocptr can not be NULL");
 
     int count = 0;
     NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
@@ -696,6 +697,12 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         newcon.requestedLocalPort=self.requestedLocalPort;
         newcon.requestedRemoteAddresses = _requestedRemoteAddresses;
         newcon.requestedRemotePort=self.requestedRemotePort;
+
+		newcon.connectedLocalAddresses = _connectedLocalAddresses;
+		newcon.connectedLocalPort=self.connectedLocalPort;
+		newcon.connectedRemoteAddresses = _connectedRemoteAddresses;
+		newcon.connectedRemotePort=self.connectedRemotePort;
+
         newcon.cryptoStream = [[UMCrypto alloc]initWithRelatedSocket:newcon];
         newcon.isBound=NO;
         newcon.isListening=NO;
@@ -851,7 +858,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                    protocol:(u_int32_t)protocolId
                       error:(UMSocketError *)err2
 {
+	UMAssert(assocptr!=NULL,@"assocptr can not be NULL");
     UMSocketError err = UMSocketError_no_error;
+
+
     ssize_t sp = 0;
     if(data == NULL)
     {
@@ -862,16 +872,11 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         return -1;
     }
 
-	sctp_assoc_t tmp_assocId = -1;
-	if(assocptr)
-	{
-		tmp_assocId = *assocptr;
-	}
-    if(tmp_assocId==-1)
+    if(*assocptr == -1)
     {
         err = [self connectToAddresses:addrs
                                   port:remotePort
-                                 assoc:&tmp_assocId];
+                                 assoc:assocptr];
         if(err==UMSocketError_is_already_connected)
         {
             err = UMSocketError_no_error;
@@ -894,25 +899,21 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             return -1;
         }
     }
-    if (tmp_assocId==-1)
+    if (*assocptr==-1)
     {
         if(err2)
         {
             *err2 = UMSocketError_address_not_available;
         }
-		if(assocptr)
-		{
-			*assocptr = tmp_assocId;
-        }
 		return -1;
     }
-	if(assocptr)
-	{
-		*assocptr = tmp_assocId;
-	}
 
 	int count = 0;
+	int flags=0;
+
 	NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
+	NSLog(@"remote_sockaddr=%@",remote_sockaddr);
+
 
 #if defined(ULIBSCTP_SCTP_SENDV_SUPPORTED)
 
@@ -929,7 +930,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     send_info.snd_ppid = htonl(protocolId);
     send_info.snd_context = 0;
     send_info.snd_assoc_id = *assocptr;
-    int flags = 0;
 
     sp = sctp_sendv(_sock,
                     iov,
@@ -942,39 +942,26 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                     flags);
 #else
 
-    int flags=0;
-    int timetolive=2000;
-    int context=0;
-
-/*
-    struct sctp_sndrcvinfo sinfo;
-    memset(&sinfo,0x00,sizeof(struct sctp_sndrcvinfo));
-
-    sinfo.sinfo_stream = streamId;
-    sinfo.sinfo_flags = 0;
-    sinfo.sinfo_ppid = htonl(protocolId);
-    sinfo.sinfo_context = flags;
-    sinfo.sinfo_timetolive = timetolive;
-    sinfo.sinfo_assoc_id = *assocptr;
-    sp = sctp_send(_sock,
-                   (const void *)data.bytes,
-                   data.length,
-                   &sinfo,
-                   flags);
-*/
+	int timetolive=2000;
+	int context=0;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    NSLog(@"sctp_sendmsg(_sock=%d,\n\tdata.bytes=%p\n\tdata.length=%ld\n\t(struct sockaddr *)remote_sockaddr.bytes=%p\n\t(socklen_t)remote_sockaddr.length=%ld\n\tprotocolId=%ld\n\tflags=%ld\n\tstreamId=%ld\n\ttimetolive=%ld\n\tcontext=%ld\n);\n",
-                    _sock,(const void *)data.bytes,
-                      data.length,
-                      remote_sockaddr.bytes,
-                      (long)remote_sockaddr.length,
-                      (long)protocolId,
-                      (long)flags, /* flags */
-                      (long)streamId,
-                      (long)timetolive, // timetolive,
-                      (long)context); // context);
-    NSLog(@"assocPtr:%p, value=%ld,",assocptr, assocptr ? (long)*assocptr : -1);
+	NSMutableString *s = [[NSMutableString alloc]init];
+
+	[s appendFormat:@"sctp_sendmsg(_sock=%d,\n",_sock];
+	[s appendFormat:@"\tdata.bytes=%p\n",(void *)data.bytes];
+	[s appendFormat:@"\tdata.length=%ld\n",(long)data.length];
+	[s appendFormat:@"\t(struct sockaddr *)remote_sockaddr.bytes=%p\n",(void *)remote_sockaddr.bytes];
+	[s appendFormat:@"\t(socklen_t)remote_sockaddr.length=%ld\n",(long)remote_sockaddr.length];
+	[s appendFormat:@"\tprotocolId=%ld\n",(long)protocolId];
+	[s appendFormat:@"\tflags=%ld\n",(long)flags];
+    [s appendFormat:@"\tstreamId=%ld\n",(long)streamId];
+	[s appendFormat:@"\ttimetolive=%ld\n",(long)timetolive];
+	[s appendFormat:@"\tcontext=%ld\n);\n",(long)context];
+	[s appendFormat:@"\t(assoc=%ld\n);\n",(long)*assocptr];
+	[s appendFormat:@"\tremote Addresses: %@\n",[addrs componentsJoinedByString:@","]];
+	[s appendFormat:@"\tremote Port: %ld\n",(long)remotePort];
+	[self.logFeed debugText:s];
 #endif
 
     sp = sctp_sendmsg(_sock,
@@ -993,7 +980,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     if(sp<0)
     {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"errno: %d %s",errno, strerror(errno));
+		NSString *s = [NSString stringWithFormat:@"errno: %d %s",errno, strerror(errno)];
+		[self.logFeed debugText:s];
 #endif
 
         err = [UMSocket umerrFromErrno:errno];
