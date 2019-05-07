@@ -862,11 +862,16 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         return -1;
     }
 
-    if(*assocptr==0)
+	sctp_assoc_t tmp_assocId = -1;
+	if(assocptr)
+	{
+		tmp_assocId = *assocptr;
+	}
+    if(tmp_assocId==-1)
     {
         err = [self connectToAddresses:addrs
                                   port:remotePort
-                                 assoc:assocptr];
+                                 assoc:&tmp_assocId];
         if(err==UMSocketError_is_already_connected)
         {
             err = UMSocketError_no_error;
@@ -889,14 +894,22 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             return -1;
         }
     }
-    if (*assocptr==0)
+    if (tmp_assocId==-1)
     {
         if(err2)
         {
             *err2 = UMSocketError_address_not_available;
         }
-        return -1;
+		if(assocptr)
+		{
+			*assocptr = tmp_assocId;
+        }
+		return -1;
     }
+	if(assocptr)
+	{
+		*assocptr = tmp_assocId;
+	}
 
 
 #if defined(ULIBSCTP_SCTP_SENDV_SUPPORTED)

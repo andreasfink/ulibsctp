@@ -361,7 +361,7 @@
                 [self logDebug:[NSString stringWithFormat:@"returns %d %@",err,e]];
             }
             [_registry registerOutgoingLayer:self];
-			if ((err == UMSocketError_in_progress) || (err == UMSocketError_no_error))
+			if ((err == UMSocketError_in_progress) || (err == UMSocketError_no_error))
 			{
 			   self.status = SCTP_STATUS_OOS;
 			}
@@ -450,17 +450,20 @@
         [_linkLock lock];
         if(_directSocket)
         {
-            sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
-                                      port:_configured_remote_port
-                                     assoc:&_assocId
-                                      data:task.data
-                                    stream:task.streamId
-                                  protocol:task.protocolId
-                                     error:&err];
+			sctp_assoc_t        tmp_assocId = _assocId;
+			sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
+													 port:_configured_remote_port
+													assoc:&tmp_assocId
+													 data:task.data
+												   stream:task.streamId
+												 protocol:task.protocolId
+													error:&err];
+			_assocId = tmp_assocId;
 
         }
         else
         {
+			sctp_assoc_t        tmp_assocId = _assocId;
             sent_packets = [_listener sendToAddresses:_configured_remote_addresses
                                                  port:_configured_remote_port
                                                 assoc:&_assocId
@@ -469,6 +472,7 @@
                                              protocol:task.protocolId
                                                 error:&err
                                                 layer:self];
+			_assocId = tmp_assocId;
         }
         [_linkLock unlock];
 
