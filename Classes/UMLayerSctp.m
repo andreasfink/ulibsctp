@@ -760,6 +760,13 @@
 
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx
 {
+
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+	NSMutableString *s = [[NSMutableString alloc]init];
+	[s appendFormat:@"processReceivedData: \n%@",rx.description];
+	[self logDebug:s];
+#endif
+
     if(rx.assocId !=0)
     {
         _assocId = (sctp_assoc_t)[rx.assocId unsignedIntValue];
@@ -1395,10 +1402,11 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(self.logLevel <= UMLOG_DEBUG)
     {
-        [self logDebug:[NSString stringWithFormat:@"RXT: got %u bytes on stream %u protocol_id: %u",
+		[self logDebug:[NSString stringWithFormat:@"RXT: got %u bytes on stream %u protocol_id: %u data:%@",
                         (unsigned int)data.length,
                         (unsigned int)streamId,
-                        (unsigned int)protocolId]];
+                        (unsigned int)protocolId,
+						data.hexString]];
     }
 #endif
     if(_defaultUser == NULL)
