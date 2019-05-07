@@ -54,6 +54,7 @@
   //  sctp_assoc_t        assoc;
     int _mtu;
     int _maxSeg;
+	NSNumber				*_xassoc;
 }
 
 @property(readwrite,strong) NSArray        *requestedLocalAddresses;
@@ -67,6 +68,9 @@
 @property(readwrite,assign) BOOL            continuousConnectionAttempts;
 @property(readwrite,assign) NSTimeInterval  connectionRepeatTimer;
 @property(readwrite,assign) int mtu;
+
+@property(readwrite,strong)	NSNumber		*xassoc;
+
 
 - (int)maxSegment;
 - (void)setMaxSegment:(int)newMaxSeg;
