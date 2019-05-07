@@ -361,6 +361,14 @@
                 [self logDebug:[NSString stringWithFormat:@"returns %d %@",err,e]];
             }
             [_registry registerOutgoingLayer:self];
+			if(err == UMSocketError_no_error)
+			{
+				self.status = SCTP_STATUS_IS;
+			}
+			else if (err == UMSocketError_in_progress)
+			{
+			   self.status = SCTP_STATUS_OOS;
+			}
         }
         if(_assocIdPresent)
         {

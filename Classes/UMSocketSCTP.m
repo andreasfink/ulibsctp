@@ -814,6 +814,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         newcon.connectedRemoteAddress = remoteAddress;
         newcon.connectedRemotePort = remotePort;
         newcon.useSSL = useSSL;
+		newcon.xassoc = @(assoc);
         [newcon updateMtu:_mtu];
         [newcon updateName];
         newcon.objectStatisticsName = @"UMSocket(accept)";
