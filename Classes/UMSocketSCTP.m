@@ -600,6 +600,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         if (err < 0)
         {
             returnValue = [UMSocket umerrFromErrno:errno];
+			if(errno==EINPROGRESS)
+			{
+				_connectx_pending = YES;
+			}
         }
         else
         {

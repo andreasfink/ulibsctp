@@ -304,6 +304,10 @@
 #endif
             if(_directSocket==NULL)
             {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+				[self logDebug:@"_directSocket==NULL"];
+#endif
+
                 tmp_assocId = -1;
                 err = [_listener connectToAddresses:_configured_remote_addresses
                                                port:_configured_remote_port
@@ -316,12 +320,17 @@
                         _assocId = tmp_assocId;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-                        NSLog(@"Peeling of assoc %d",tmp_assocId);
+						[self logDebug:[NSString stringWithFormat:@"Peeling of assoc %d",tmp_assocId]];
 #endif
                         _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+						[self logDebug:[NSString stringWithFormat:@",_directSocket is now %@", _directSocket ? @"set":@"NULL"]];
+#endif
 
-                        if((err != UMSocketError_no_error) || (err==UMSocketError_in_progress))
+                        if((err != UMSocketError_no_error)
+						&& (err !=UMSocketError_in_progress))
                         {
+							[_directSocket close];
                             _directSocket = NULL;
                         }
                     }
@@ -329,9 +338,17 @@
             }
             else
             {
-                err = [_directSocket connectToAddresses:_configured_remote_addresses
-                                               port:_configured_remote_port
-                                              assoc:&tmp_assocId];
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+				[self logDebug:[NSString stringWithFormat:@" using _directSocket"]];
+#endif
+
+				err = [_directSocket connectToAddresses:_configured_remote_addresses
+													port:_configured_remote_port
+												   assoc:&tmp_assocId];
+				if(tmp_assocId != -1)
+				{
+					_assocId = tmp_assocId;
+				}
             }
 
             if(_assocId!= -1)
@@ -348,7 +365,7 @@
         if(_assocIdPresent)
         {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-             NSLog(@"Registering assoc");
+			[self logDebug:[NSString stringWithFormat:@" registering new assoc"]];
 #endif
             [_registry registerAssoc:@(_assocId) forLayer:self];
         }
