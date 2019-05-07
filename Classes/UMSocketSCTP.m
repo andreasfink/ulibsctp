@@ -593,10 +593,17 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         if(assocptr && assoc != -1)
         {
             *assocptr = assoc;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+            NSLog(@"assoc is now set to %d", (int)assoc);
+#endif
         }
         if (err < 0)
         {
             returnValue = [UMSocket umerrFromErrno:errno];
+			if(errno==EINPROGRESS)
+			{
+				_connectx_pending = YES;
+			}
         }
         else
         {
@@ -715,6 +722,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 - (UMSocketSCTP *) peelOffAssoc:(sctp_assoc_t)assoc
                           error:(UMSocketError *)errptr
 {
+
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    NSLog(@"calling peelOffAssoc:(assoc=%d)",assoc);
+#endif
     int           newsock = -1;
     UMSocketSCTP  *newcon =NULL;
     NSString *remoteAddress=@"";
@@ -812,12 +823,22 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         {
             *errptr = UMSocketError_no_error;
         }
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        NSLog(@"   returning new socket/UMSocketError_no_error");
+#endif
         return newcon;
     }
+
+    UMSocketError e = [UMSocket umerrFromErrno:errno];
+
     if(*errptr)
     {
-        *errptr = [UMSocket umerrFromErrno:errno];
+        *errptr = e;
     }
+
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    NSLog(@"   returning nil/err = %@",[UMSocket getSocketErrorString:e]);
+#endif
     return nil;
 }
 
