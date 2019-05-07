@@ -911,11 +911,11 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 		*assocptr = tmp_assocId;
 	}
 
+	int count = 0;
+	NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
 
 #if defined(ULIBSCTP_SCTP_SENDV_SUPPORTED)
 
-    int count = 0;
-    NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
 
     struct iovec iov[1];
     iov[0].iov_base = (void *)data.bytes;

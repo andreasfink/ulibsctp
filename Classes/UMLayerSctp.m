@@ -438,18 +438,19 @@
         {
             @throw([NSException exceptionWithName:@"NULL" reason:@"trying to send NULL data" userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
         }
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(self.logLevel <= UMLOG_DEBUG)
-        {
-            [self logDebug:@" Calling sctp_sendmsg"];
-        }
-#endif
         UMSocketError err = UMSocketError_no_error;
 
         ssize_t sent_packets = 0;
         [_linkLock lock];
         if(_directSocket)
         {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+			if(self.logLevel <= UMLOG_DEBUG)
+			{
+				[self logDebug:@" Calling sctp_sendmsg on _directsocket"];
+			}
+#endif
+
 			sctp_assoc_t        tmp_assocId = _assocId;
 			sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
 													 port:_configured_remote_port
@@ -463,6 +464,12 @@
         }
         else
         {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+			if(self.logLevel <= UMLOG_DEBUG)
+			{
+				[self logDebug:@" Calling sctp_sendmsg on _listener"];
+			}
+#endif
 			sctp_assoc_t        tmp_assocId = _assocId;
             sent_packets = [_listener sendToAddresses:_configured_remote_addresses
                                                  port:_configured_remote_port
