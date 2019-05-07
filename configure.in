@@ -173,6 +173,12 @@ AC_CONFIG_SECTION([Checking libraries])
 AC_CHECK_LIB(ulib, ulib_cpu_count)
 
 
+dnl AC_CHECK_LIB(sctp, sctp_sendv, [AC_DEFINE(ULIBSCTP_SCTP_SENDV_SUPPORTED)]);
+dnl AC_CHECK_LIB(sctp, sctp_recvv, [AC_DEFINE(ULIBSCTP_SCTP_RECVV_SUPPORTED)]);
+
+
+
+
 dnl Implement --enable-debug --enable-profiling options.
 dnl -------------------------------------
 AC_ARG_ENABLE(profiling,

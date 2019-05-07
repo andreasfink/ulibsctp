@@ -912,8 +912,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 	int flags=0;
 
 	NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
-	NSLog(@"remote_sockaddr=%@",remote_sockaddr);
-
 
 #if defined(ULIBSCTP_SCTP_SENDV_SUPPORTED)
 
@@ -961,7 +959,14 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 	[s appendFormat:@"\t(assoc=%ld\n);\n",(long)*assocptr];
 	[s appendFormat:@"\tremote Addresses: %@\n",[addrs componentsJoinedByString:@","]];
 	[s appendFormat:@"\tremote Port: %ld\n",(long)remotePort];
-	[self.logFeed debugText:s];
+	if(self.logFeed)
+	{
+		[self.logFeed debugText:s];
+	}
+	else
+	{
+		NSLog(@"%@",s);
+	}
 #endif
 
     sp = sctp_sendmsg(_sock,
