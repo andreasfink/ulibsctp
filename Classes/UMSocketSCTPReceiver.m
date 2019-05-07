@@ -246,13 +246,13 @@
 						   socket:(UMSocketSCTP *)socket
 						poll_time:(UMMicroSec)poll_time
 {
-	if((layer==NULL) && (socket==NULL))
+	if((listener==NULL) && (layer==NULL))
 	{
-		UMAssert(0,@"Either Layer or Socket have to be set");
+		UMAssert(0,@"Either listener or layer have to be set");
 	}
-	if((layer!=NULL) && (socket!=NULL))
+	if((listener!=NULL) && (layer!=NULL))
 	{
-		UMAssert(0,@"Either Layer or Socket have to be set but not both");
+		UMAssert(0,@"Either listener or layer have to be set but not both");
 	}
 
     UMSocketError returnValue = UMSocketError_no_error;
