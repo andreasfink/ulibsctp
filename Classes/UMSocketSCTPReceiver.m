@@ -186,7 +186,11 @@
             {
                 socket = listener.umsocket;
                 int revent = pollfds[j].revents;
-                UMSocketError r = [self handlePollResult:revent listener:listener layer:NULL socket:socket poll_time:poll_time];
+                UMSocketError r = [self handlePollResult:revent
+												listener:listener
+												   layer:NULL
+												  socket:socket
+											   poll_time:poll_time];
                 if(r != UMSocketError_no_error)
                 {
                     returnValue= r;
@@ -201,7 +205,11 @@
             {
                 socket = outbound.directSocket;
                 int revent = pollfds[j].revents;
-                UMSocketError r = [self handlePollResult:revent listener:NULL layer:outbound socket:socket poll_time:poll_time];
+                UMSocketError r = [self handlePollResult:revent
+												listener:NULL
+												   layer:outbound
+												  socket:socket
+											   poll_time:poll_time];
                 if(r != UMSocketError_no_error)
                 {
                     returnValue = r;
@@ -232,8 +240,21 @@
     return returnValue;
 }
 
-- (UMSocketError)handlePollResult:(int)revent listener:(UMSocketSCTPListener *)listener layer:(UMLayerSctp *)layer socket:(UMSocketSCTP *)socket poll_time:(UMMicroSec)poll_time
+- (UMSocketError)handlePollResult:(int)revent
+						 listener:(UMSocketSCTPListener *)listener
+							layer:(UMLayerSctp *)layer
+						   socket:(UMSocketSCTP *)socket
+						poll_time:(UMMicroSec)poll_time
 {
+	if((layer==NULL) && (socket==NULL))
+	{
+		UMAssert(0,@"Either Layer or Socket have to be set");
+	}
+	if((layer!=NULL) && (socket!=NULL))
+	{
+		UMAssert(0,@"Either Layer or Socket have to be set but not both");
+	}
+
     UMSocketError returnValue = UMSocketError_no_error;
 
     int revent_error = UMSocketError_no_error;

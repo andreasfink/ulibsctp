@@ -817,6 +817,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 		newcon.socketFamily = _socketFamily;
 		newcon.socketType = _socketType;
 		newcon.socketProto = _socketProto;
+		[newcon initNetworkSocket];
 
 		newcon.configuredTcpMaxSegmentSize = _configuredTcpMaxSegmentSize;
 		int activeTcpMaxSegmentSize = 0;
@@ -1210,12 +1211,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     protocolId = ntohl(sinfo.sinfo_ppid);
     context = sinfo.sinfo_context;
     assoc = sinfo.sinfo_assoc_id;
-    if(!(flags & MSG_NOTIFICATION))
-    {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"Data for protocolId %d received",protocolId);
-#endif
-    }
 #endif
 
     if(bytes_read <= 0)
@@ -1231,6 +1226,11 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         rx.remotePort = [UMSocket portOfSockAddr:remote_address_ptr];
         rx.data = [NSData dataWithBytes:&buffer length:bytes_read];
         rx.flags = flags;
+		if(_msg_notification_mask==0)
+		{
+			_msg_notification_mask = MSG_NOTIFICATION;
+		}
+
         if(flags & _msg_notification_mask)
         {
             rx.isNotification = YES;
