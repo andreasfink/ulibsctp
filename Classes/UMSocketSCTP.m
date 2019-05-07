@@ -20,6 +20,17 @@
 #include <arpa/inet.h>
 #include <string.h>
 
+
+
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/uio.h>
+#include <unistd.h>
+#include <poll.h>
+#include <fcntl.h>
+#include <netinet/tcp.h>
+#include <netdb.h>
+
 #ifdef __APPLE__
 #import <sctp/sctp.h>
 #include <sys/utsname.h>
@@ -802,6 +813,27 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     {
         newcon = [[UMSocketSCTP alloc]init];
         newcon.type = type;
+		newcon.socketDomain = _socketDomain;
+		newcon.socketFamily = _socketFamily;
+		newcon.socketType = _socketType;
+		newcon.socketProto = _socketProto;
+
+		newcon.configuredTcpMaxSegmentSize = _configuredTcpMaxSegmentSize;
+		int activeTcpMaxSegmentSize = 0;
+		socklen_t tcp_maxseg_len = sizeof(activeTcpMaxSegmentSize);
+		if(getsockopt(_sock, IPPROTO_TCP, TCP_MAXSEG, &activeTcpMaxSegmentSize, &tcp_maxseg_len) == 0)
+		{
+			newcon.activeTcpMaxSegmentSize = activeTcpMaxSegmentSize;
+			if((_configuredTcpMaxSegmentSize > 0) && (_configuredTcpMaxSegmentSize < activeTcpMaxSegmentSize))
+			{
+				activeTcpMaxSegmentSize = _configuredTcpMaxSegmentSize;
+				if(setsockopt(_sock, IPPROTO_TCP, TCP_MAXSEG, &activeTcpMaxSegmentSize, tcp_maxseg_len))
+				{
+					newcon.activeTcpMaxSegmentSize = _configuredTcpMaxSegmentSize;
+				}
+			}
+		}
+
         newcon.direction =  direction;
         newcon.status=status;
         newcon.localHost = self.localHost;
