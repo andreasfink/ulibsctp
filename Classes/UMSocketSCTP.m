@@ -942,13 +942,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                     flags);
 #else
 
-    int count=0;
     int flags=0;
     int timetolive=2000;
     int context=0;
 
-    NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
-    count= 1;
 /*
     struct sctp_sndrcvinfo sinfo;
     memset(&sinfo,0x00,sizeof(struct sctp_sndrcvinfo));
