@@ -1019,9 +1019,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     uint32_t context=0;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    NSLog(@"sctp_sendmsg(_sock=%d,\n\tdata.bytes=%p\n\tdata.length=%ld\n\t(struct sockaddr *)remote_sockaddr.bytes=%p\n\t(socklen_t)remote_sockaddr.length=%ld\n\tprotocolId=%ld\n\tflags=%ld\n\tstreamId=%ld\n\ttimetolive=%ld\n\tcontext=%ld\n);\n",
-          NULL,
-          0,
+    NSLog(@"sctp_sendmsg(_sock=%d,\n\tdata.bytes=NULL\n\tdata.length=0\n\t(struct sockaddr *)remote_sockaddr.bytes=%p\n\t(socklen_t)remote_sockaddr.length=%ld\n\tprotocolId=%ld\n\tflags=%ld\n\tstreamId=%ld\n\ttimetolive=%ld\n\tcontext=%ld\n);\n",
+          (int)_sock,
           remote_sockaddr.bytes,
           (long)remote_sockaddr.length,
           (long)protocolId,
