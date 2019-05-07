@@ -38,11 +38,14 @@
 - (void)backgroundInit
 {
     ulib_set_thread_name(@"UMSocketSCTPReceiver");
+	NSLog(@"starting UMSocketSCTPReceiver");
 }
+
 
 - (void)backgroundExit
 {
     ulib_set_thread_name(@"UMSocketSCTPReceiver (terminating)");
+	NSLog(@"terminating UMSocketSCTPReceiver");
 }
 
 - (void)backgroundTask
@@ -70,12 +73,15 @@
     while((UMBackgrounder_running == self.runningStatus) && (mustQuit==NO))
     {
         [self waitAndHandleData];
+		NSLog(@"waitAndHandleData returned. mustQuit=%s", (mustQuit ? "YES":"NO"));
     }
     [self backgroundExit];
     self.runningStatus = UMBackgrounder_notRunning;
     self.workSleeper = NULL;
     [self.control_sleeper wakeUp:UMSleeper_ShutdownCompletedSignal];
 }
+
+
 
 - (UMSocketError) waitAndHandleData
 {
@@ -128,7 +134,7 @@
             pollfds[j].events = events;
             j++;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"pollfds[%d] = %d (direct)",(int)j,(int)layer.directSocket.fileDescriptor);
+            NSLog(@"pollfds[%d] = %d (direct) assoc=%@",(int)j,(int)layer.directSocket.fileDescriptor,layer.directSocket.xassoc);
 #endif
         }
     }
