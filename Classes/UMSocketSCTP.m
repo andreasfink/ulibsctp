@@ -810,12 +810,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         newcon.requestedLocalPort=_requestedLocalPort;
         newcon.requestedRemoteAddresses = _requestedRemoteAddresses;
         newcon.requestedRemotePort=_requestedRemotePort;
-
 		newcon.connectedLocalAddresses = _connectedLocalAddresses;
 		newcon.connectedLocalPort = _connectedLocalPort;
 		newcon.connectedRemoteAddresses = _connectedRemoteAddresses;
 		newcon.connectedRemotePort = _connectedRemotePort;
-
         newcon.cryptoStream = [[UMCrypto alloc]initWithRelatedSocket:newcon];
         newcon.isBound=NO;
         newcon.isListening=NO;
@@ -824,8 +822,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         [newcon setSock: newsock];
         [newcon switchToNonBlocking];
         [newcon doInitReceiveBuffer];
-        newcon.connectedRemoteAddress = remoteAddress;
-        newcon.connectedRemotePort = remotePort;
         newcon.useSSL = useSSL;
 		newcon.xassoc = @(assoc);
         [newcon updateMtu:_mtu];
@@ -919,6 +915,14 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 	NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
 
+
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+
+	NSLog(@"[UMSocketSCTP sockaddrFromAddresses:%@ port:%d count:] returns %@ count=%d",
+		  addrs,remotePort,remote_sockaddr,count);
+#endif
+
+	 [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily];
 #if defined(ULIBSCTP_SCTP_SENDV_SUPPORTED)
 
 
@@ -955,7 +959,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 	[s appendFormat:@"sctp_sendmsg(_sock=%d,\n",_sock];
 	[s appendFormat:@"\tdata.bytes=%p\n",(void *)data.bytes];
 	[s appendFormat:@"\tdata.length=%ld\n",(long)data.length];
-	[s appendFormat:@"\t(struct sockaddr *)remote_sockaddr.bytes=%p\n",(void *)remote_sockaddr.bytes];
+	[s appendFormat:@"\t(struct sockaddr *)remote_sockaddr.bytes=%p\n",remote_sockaddr.bytes];
 	[s appendFormat:@"\t(socklen_t)remote_sockaddr.length=%ld\n",(long)remote_sockaddr.length];
 	[s appendFormat:@"\tprotocolId=%ld\n",(long)protocolId];
 	[s appendFormat:@"\tflags=%ld\n",(long)flags];

@@ -329,8 +329,6 @@
     ssize_t r = -1;
     [self startListeningFor:layer];
 
-
-
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(layer.newDestination)
     {
