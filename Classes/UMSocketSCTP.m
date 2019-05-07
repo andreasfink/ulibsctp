@@ -807,9 +807,15 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         newcon.localHost = self.localHost;
         newcon.remoteHost = self.remoteHost;
         newcon.requestedLocalAddresses = _requestedLocalAddresses;
-        newcon.requestedLocalPort=self.requestedLocalPort;
+        newcon.requestedLocalPort=_requestedLocalPort;
         newcon.requestedRemoteAddresses = _requestedRemoteAddresses;
-        newcon.requestedRemotePort=self.requestedRemotePort;
+        newcon.requestedRemotePort=_requestedRemotePort;
+
+		newcon.connectedLocalAddresses = _connectedLocalAddresses;
+		newcon.connectedLocalPort = _connectedLocalPort;
+		newcon.connectedRemoteAddresses = _connectedRemoteAddresses;
+		newcon.connectedRemotePort = _connectedRemotePort;
+
         newcon.cryptoStream = [[UMCrypto alloc]initWithRelatedSocket:newcon];
         newcon.isBound=NO;
         newcon.isListening=NO;

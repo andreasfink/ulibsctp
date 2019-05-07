@@ -447,7 +447,7 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
 			if(self.logLevel <= UMLOG_DEBUG)
 			{
-				[self logDebug:@" Calling sctp_sendmsg on _directsocket"];
+				[self logDebug:[NSString stringWithFormat:@" Calling sctp_sendmsg on _directsocket (%@)",[_configured_remote_addresses componentsJoinedByString:@","]]];
 			}
 #endif
 

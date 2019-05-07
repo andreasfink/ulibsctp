@@ -80,7 +80,8 @@
 - (UMSocketError) enableFutureAssoc;
 
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret;
-- (UMSocketSCTP *) peelOffAssoc:(sctp_assoc_t)assoc error:(UMSocketError *)errptr;
+- (UMSocketSCTP *) peelOffAssoc:(sctp_assoc_t)assoc
+						  error:(UMSocketError *)errptr;
 
 //- (UMSocketError) connectSCTP;
 
