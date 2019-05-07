@@ -309,7 +309,7 @@
                                                port:_configured_remote_port
                                               assoc:&tmp_assocId
                                               layer:self];
-                if(err == UMSocketError_no_error)
+                if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
                 {
                     if(tmp_assocId != -1)
                     {
@@ -342,6 +342,9 @@
         }
         if(_assocIdPresent)
         {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+             NSLog(@"Registering assoc");
+#endif
             [_registry registerAssoc:@(_assocId) forLayer:self];
         }
         [_registry startReceiver];

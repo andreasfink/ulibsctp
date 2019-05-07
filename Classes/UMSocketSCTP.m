@@ -593,6 +593,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         if(assocptr && assoc != -1)
         {
             *assocptr = assoc;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+            NSLog(@"assoc is now set to %d", (int)assoc);
+#endif
         }
         if (err < 0)
         {
@@ -1028,7 +1031,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
           (long)streamId,
           (long)timetolive, // timetolive,
           (long)context); // context);
-    NSLog(@"assocPtr:%p, value=%ld,",assocptr, assocptr ? (long)*assocptr : -1);
 #endif
 
     sp = sctp_sendmsg(_sock,
