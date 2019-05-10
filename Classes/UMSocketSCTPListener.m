@@ -246,6 +246,7 @@
                 else
                 {
                     /* we have not found anyone listening to this so we send abort */
+#if 0
                     UMSocketError err = [_umsocket abortToAddress:rx.remoteAddress
                                                              port:rx.remotePort
                                                             assoc:(sctp_assoc_t) rx.assocId.longValue
@@ -255,6 +256,7 @@
                     {
                         NSLog(@"abortToAddress  %@ port %d. error %@",rx.remoteAddress,rx.remotePort, [UMSocket getSocketErrorString:err]);
                     }
+#endif
                 }
             }
         }
