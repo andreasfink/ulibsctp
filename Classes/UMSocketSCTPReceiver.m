@@ -23,7 +23,7 @@
 
 - (UMSocketSCTPReceiver *)initWithRegistry:(UMSocketSCTPRegistry *)r;
 {
-    self = [super init];
+    self = [super initWithName:@"UMSocketSCTPReceiver" workSleeper:NULL];
     if(self)
     {
         _outboundLayers = [[NSMutableArray alloc]init];
