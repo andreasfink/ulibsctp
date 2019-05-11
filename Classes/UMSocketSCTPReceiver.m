@@ -73,7 +73,7 @@
     while((UMBackgrounder_running == self.runningStatus) && (mustQuit==NO))
     {
         [self waitAndHandleData];
-		NSLog(@"waitAndHandleData returned. mustQuit=%s", (mustQuit ? "YES":"NO"));
+		//NSLog(@"waitAndHandleData returned. mustQuit=%s", (mustQuit ? "YES":"NO"));
     }
     [self backgroundExit];
     self.runningStatus = UMBackgrounder_notRunning;
