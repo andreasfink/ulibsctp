@@ -69,7 +69,6 @@
     
     [self backgroundInit];
 
-
     while((UMBackgrounder_running == self.runningStatus) && (mustQuit==NO))
     {
         [self waitAndHandleData];
