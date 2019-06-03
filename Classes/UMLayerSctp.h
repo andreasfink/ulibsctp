@@ -63,7 +63,7 @@
     BOOL                _assocIdPresent;
     BOOL                _isInvalid;
     BOOL                _newDestination;
-
+    BOOL                _allowAnyRemotePortIncoming;
     sctp_assoc_t        _assocId;
     SCTP_Status         _status;
 
@@ -88,6 +88,8 @@
 @property(readwrite,assign) int             active_remote_port;
 
 @property(readwrite,assign) BOOL            isPassive;
+@property(readwrite,assign) BOOL            allowAnyRemotePortIncoming;
+
 @property(readwrite,strong) UMLayerSctpUser *defaultUser;
 @property(readwrite,assign) NSTimeInterval  heartbeatSeconds;
 

@@ -360,11 +360,16 @@
                 NSString *e = [UMSocket getSocketErrorString:err];
                 [self logDebug:[NSString stringWithFormat:@"returns %d %@",err,e]];
             }
-            [_registry registerOutgoingLayer:self];
+            [_registry registerOutgoingLayer:self allowAnyRemotePortIncoming:_allowAnyRemotePortIncoming];
+
 			if ((err == UMSocketError_in_progress) || (err == UMSocketError_no_error))
 			{
 			   self.status = SCTP_STATUS_OOS;
 			}
+            if(_allowAnyRemotePortIncoming)
+            {
+                [_registry registerIncomingLayer:self];
+            }
         }
         if(_assocIdPresent)
         {
@@ -1470,6 +1475,14 @@
         exit(0); 
     }
     [self readLayerConfig:cfg];
+    if(cfg[@"allow-any-remote-port-inbound"])
+    {
+        _allowAnyRemotePortIncoming = [cfg[@"allow-any-remote-port-inbound"] boolValue];
+    }
+    else
+    {
+        _allowAnyRemotePortIncoming = NO;
+    }
     if (cfg[@"local-ip"])
     {
         id local_ip_object = cfg[@"local-ip"];

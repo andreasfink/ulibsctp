@@ -271,6 +271,15 @@
                      port2];
     //NSLog(@" key=%@",key);
     UMLayerSctp *layer = _outgoingLayersByIpsAndPorts[key] ;
+    if(layer==NULL)
+    {
+        NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d",
+                         ip1,
+                         port1,
+                         ip2,
+                         0];
+        layer = _outgoingLayersByIpsAndPorts[key] ;
+    }
     [_lock unlock];
     //NSLog(@" layer=%@",layer.layerName);
     return layer;
@@ -280,7 +289,6 @@
 {
     if(layer)
     {
-
         [_lock lock];
         [_incomingLayers removeObject:layer];
         [_incomingLayers addObject:layer];
@@ -290,9 +298,14 @@
 
 - (void)registerOutgoingLayer:(UMLayerSctp *)layer
 {
+    [self registerOutgoingLayer:layer allowAnyRemotePortIncoming:NO];
+
+}
+
+- (void)registerOutgoingLayer:(UMLayerSctp *)layer allowAnyRemotePortIncoming:(BOOL)anyPort
+{
     if(layer)
     {
-
         [_lock lock];
 
         /* we register every local IP / remote IP pair combination */
@@ -309,6 +322,15 @@
                                  remoteAddr,
                                  layer.configured_remote_port];
                 _outgoingLayersByIpsAndPorts[key] = layer;
+                if(anyPort)
+                {
+                    NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d",
+                                     localAddr,
+                                     layer.configured_local_port,
+                                     remoteAddr,
+                                     0];
+                    _outgoingLayersByIpsAndPorts[key] = layer;
+                }
             }
         }
 
