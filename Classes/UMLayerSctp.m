@@ -360,16 +360,16 @@
                 NSString *e = [UMSocket getSocketErrorString:err];
                 [self logDebug:[NSString stringWithFormat:@"returns %d %@",err,e]];
             }
-            [_registry registerOutgoingLayer:self allowAnyRemotePortIncoming:_allowAnyRemotePortIncoming];
+        }
+        [_registry registerOutgoingLayer:self allowAnyRemotePortIncoming:_allowAnyRemotePortIncoming];
 
-			if ((err == UMSocketError_in_progress) || (err == UMSocketError_no_error))
-			{
-			   self.status = SCTP_STATUS_OOS;
-			}
-            if(_allowAnyRemotePortIncoming)
-            {
-                [_registry registerIncomingLayer:self];
-            }
+        if ((err == UMSocketError_in_progress) || (err == UMSocketError_no_error))
+        {
+            self.status = SCTP_STATUS_OOS;
+        }
+        if(_allowAnyRemotePortIncoming)
+        {
+            [_registry registerIncomingLayer:self];
         }
         if(_assocIdPresent)
         {
