@@ -64,7 +64,7 @@
     BOOL                _isInvalid;
     BOOL                _newDestination;
     BOOL                _allowAnyRemotePortIncoming;
-    sctp_assoc_t        _assocId;
+    uint32_t            _assocId;
     SCTP_Status         _status;
 
 }
@@ -99,7 +99,7 @@
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputBytes;
 @property(readwrite,strong) UMSocketSCTPRegistry *registry;
 @property(readwrite,strong) UMSocketSCTPListener *listener;
-@property(readwrite,assign) sctp_assoc_t        assocId;
+@property(readwrite,assign) uint32_t        assocId;
 @property(readwrite,assign) BOOL assocIdPresent;
 @property(readwrite,assign) int mtu;
 @property(readwrite,assign) BOOL newDestination;

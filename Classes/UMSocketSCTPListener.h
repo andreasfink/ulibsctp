@@ -10,11 +10,6 @@
 #import "UMSocketSCTP.h"
 
 
-#ifdef	FREEBSD
-#ifndef sctp_assoc_t
-typedef uint32_t sctp_assoc_t;
-#endif
-#endif
 
 @class UMSocketSCTPRegistry;
 @class UMLayerSctp;
@@ -58,13 +53,14 @@ typedef uint32_t sctp_assoc_t;
 #if defined(ULIBSCTP_INTERNAL)
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)port
-                               assoc:(sctp_assoc_t *)assoc
+                               assoc:(uint32_t *)assoc
                                layer:(UMLayerSctp *)layer;
-- (UMSocketSCTP *) peelOffAssoc:(sctp_assoc_t)assoc error:(UMSocketError *)errptr;
+- (UMSocketSCTP *) peelOffAssoc:(uint32_t)assoc
+                          error:(UMSocketError *)errptr;
 
 - (ssize_t) sendToAddresses:(NSArray *)addrs
                        port:(int)remotePort
-                      assoc:(sctp_assoc_t *)assocptr
+                      assoc:(uint32_t *)assocptr
                        data:(NSData *)data
                      stream:(uint16_t)streamId
                    protocol:(u_int32_t)protocolId

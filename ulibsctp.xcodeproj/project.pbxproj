@@ -22,7 +22,6 @@
 		A634B4991A2E9AF700854472 /* UMLayerSctpUserProfile.h in Headers */ = {isa = PBXBuildFile; fileRef = A634B4971A2E9AF700854472 /* UMLayerSctpUserProfile.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A634B49A1A2E9AF700854472 /* UMLayerSctpUserProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */; };
 		A634B49B1A2E9AF700854472 /* UMLayerSctpUserProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */; };
-		A666CA301B4B102000854472 /* sctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A666CA2F1B4B102000854472 /* sctp.framework */; };
 		A666CA311B4B127D00854472 /* sctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A666CA2F1B4B102000854472 /* sctp.framework */; };
 		A6827E121E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = A6827E101E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A68974271A2D1EF800854472 /* UMSctpTask_AdminSetConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = A68974251A2D1EF800854472 /* UMSctpTask_AdminSetConfig.h */; };
@@ -63,6 +62,7 @@
 		A6C78DC71A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.h in Headers */ = {isa = PBXBuildFile; fileRef = A6C78DC51A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A6C78DC81A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m in Sources */ = {isa = PBXBuildFile; fileRef = A6C78DC61A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m */; };
 		A6C78DC91A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m in Sources */ = {isa = PBXBuildFile; fileRef = A6C78DC61A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m */; };
+		A6E3D78B22BABD6800D5B1B6 /* sctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A666CA2F1B4B102000854472 /* sctp.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -108,7 +108,7 @@
 		A6C78D1F1A29271D006C66A2 /* ulibsctpTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ulibsctpTests.m; sourceTree = "<group>"; };
 		A6C78D6D1A2942AB006C66A2 /* UMLayerSctp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctp.h; sourceTree = "<group>"; };
 		A6C78D6E1A2942AB006C66A2 /* UMLayerSctp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMLayerSctp.m; sourceTree = "<group>"; };
-		A6C78D731A2942EC006C66A2 /* ulib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ulib.framework; path = /Library/Frameworks/ulib.framework; sourceTree = "<absolute>"; };
+		A6C78D731A2942EC006C66A2 /* ulib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ulib.framework; path = "/Library/Application Support/FinkTelecomServices/frameworks/ulib.framework"; sourceTree = "<absolute>"; };
 		A6C78DA21A2945C5006C66A2 /* UMSctpTask_AdminInit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMSctpTask_AdminInit.h; sourceTree = "<group>"; };
 		A6C78DA31A2945C5006C66A2 /* UMSctpTask_AdminInit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMSctpTask_AdminInit.m; sourceTree = "<group>"; };
 		A6C78DA71A2945D9006C66A2 /* UMSctpTask_AdminAttach.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMSctpTask_AdminAttach.h; sourceTree = "<group>"; };
@@ -136,8 +136,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A6E3D78B22BABD6800D5B1B6 /* sctp.framework in Frameworks */,
 				A6C78D741A2942EC006C66A2 /* ulib.framework in Frameworks */,
-				A666CA301B4B102000854472 /* sctp.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -486,7 +486,7 @@
 				DSTROOT = /;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				FRAMEWORK_SEARCH_PATHS = "";
+				FRAMEWORK_SEARCH_PATHS = "\"/Library/Application Support/FinkTelecomServices/frameworks\"";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -508,7 +508,7 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 				);
 				INFOPLIST_FILE = "\"Supporting Files/Info.plist\"";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				INSTALL_PATH = "/Library/Application Support/FinkTelecomServices/frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -556,7 +556,7 @@
 				DSTROOT = /;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				FRAMEWORK_SEARCH_PATHS = "";
+				FRAMEWORK_SEARCH_PATHS = "\"/Library/Application Support/FinkTelecomServices/frameworks\"";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -570,7 +570,7 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 				);
 				INFOPLIST_FILE = "\"Supporting Files/Info.plist\"";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				INSTALL_PATH = "/Library/Application Support/FinkTelecomServices/frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;

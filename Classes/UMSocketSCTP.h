@@ -11,11 +11,8 @@
 #import "UMLayerSctpUserProtocol.h"
 #import "UMLayerSctpApplicationContextProtocol.h"
 #import "UMSocketSCTPReceivedPacket.h"
-#ifdef __APPLE__
-#import <sctp/sctp.h>
-#else
-#include <netinet/sctp.h>
-#endif
+
+struct sctp_sndrcvinfo;
 
 @class UMSocketSCTPListener;
 
@@ -80,7 +77,7 @@
 - (UMSocketError) enableFutureAssoc;
 
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret;
-- (UMSocketSCTP *) peelOffAssoc:(sctp_assoc_t)assoc
+- (UMSocketSCTP *) peelOffAssoc:(uint32_t)assoc
 						  error:(UMSocketError *)errptr;
 
 //- (UMSocketError) connectSCTP;
@@ -95,11 +92,11 @@
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)remotePort
-                               assoc:(sctp_assoc_t *)assoc;
+                               assoc:(uint32_t *)assoc;
 
 - (ssize_t) sendToAddresses:(NSArray *)addrs
                        port:(int)port
-                      assoc:(sctp_assoc_t *)assoc
+                      assoc:(uint32_t *)assoc
                        data:(NSData *)data
                      stream:(uint16_t)streamId
                    protocol:(u_int32_t)protocolId
@@ -107,7 +104,7 @@
 
 - (UMSocketError) abortToAddress:(NSString *)addr
                             port:(int)remotePort
-                           assoc:(sctp_assoc_t)assoc
+                           assoc:(uint32_t)assoc
                           stream:(uint16_t)streamId
                         protocol:(u_int32_t)protocolId;
 #endif
@@ -128,7 +125,7 @@
 - (UMSocketError) setNoDelay;
 - (void)updateMtu:(int)newMtu;
 - (UMSocketError)setHeartbeat:(BOOL)enable;
-- (NSArray *)getRemoteIpAddressesForAssoc:(sctp_assoc_t)assoc;
+- (NSArray *)getRemoteIpAddressesForAssoc:(uint32_t)assoc;
 
 
 @end

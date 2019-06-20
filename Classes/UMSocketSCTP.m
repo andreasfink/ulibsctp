@@ -57,6 +57,7 @@
 #include <netdb.h>
 #include <sys/utsname.h>
 
+
 static int _global_msg_notification_mask = 0;
 
 /*
@@ -575,7 +576,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)remotePort
-                               assoc:(sctp_assoc_t *)assocptr
+                               assoc:(uint32_t *)assocptr
 {
 	UMAssert(assocptr!=NULL,@"assocptr can not be NULL");
 
