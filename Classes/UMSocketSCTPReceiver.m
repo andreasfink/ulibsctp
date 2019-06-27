@@ -147,10 +147,6 @@
 
     UMMicroSec poll_time = ulib_microsecondTime();
 
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-    NSLog(@"poll returns: %d %s",errno,strerror(errno));
-#endif
-
     if (ret1 < 0)
     {
         int eno = errno;
@@ -226,7 +222,7 @@
             break;
         default:
             /* if poll returns an error, we will not have hit the timeout. Hence we risk a busy loop */
-            sleep(1);
+            usleep(100000); /* sleep 0.1 sec */
             break;
     }
 

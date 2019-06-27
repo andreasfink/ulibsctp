@@ -1287,15 +1287,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     ret1 = poll(pollfds, 1, timeoutInMs);
     [_controlLock unlock];
 
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-    NSLog(@" poll returns %d (%d:%s)",ret1,errno,strerror(errno));
-#endif
 
     if (ret1 < 0)
     {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"poll: %d %s",errno,strerror(errno));
-#endif
         eno = errno;
         if((eno==EINPROGRESS) || (eno == EINTR) || (eno==EAGAIN))
         {
