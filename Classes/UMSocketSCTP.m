@@ -846,8 +846,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         newcon.requestedRemotePort=_requestedRemotePort;
 		newcon.connectedLocalAddresses = _connectedLocalAddresses;
 		newcon.connectedLocalPort = _connectedLocalPort;
-		newcon.connectedRemoteAddresses = _connectedRemoteAddresses;
-		newcon.connectedRemotePort = _connectedRemotePort;
+		newcon.connectedRemoteAddresses = @[remoteAddress];
+		newcon.connectedRemotePort = remotePort;
         newcon.cryptoStream = [[UMCrypto alloc]initWithRelatedSocket:newcon];
         newcon.isBound=NO;
         newcon.isListening=NO;
