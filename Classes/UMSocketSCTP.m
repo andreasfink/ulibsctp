@@ -472,7 +472,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     size_t              addresses46_len = 0;
 
     int count = (int)theAddrs.count;
-
     int j=0;
     if(socketFamily==AF_INET6)
     {
