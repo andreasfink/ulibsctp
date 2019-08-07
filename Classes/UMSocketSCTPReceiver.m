@@ -288,12 +288,22 @@
     if(revent_has_data)
     {
         UMSocketSCTPReceivedPacket *rx = [socket receiveSCTP];
-        rx.rx_time = ulib_microsecondTime();
-        rx.poll_time = poll_time;
-        [layer processReceivedData:rx];
-        [listener processReceivedData:rx];
-        rx.process_time = ulib_microsecondTime();
-        returnValue = UMSocketError_has_data;
+        if(rx.data.length > 0)
+        {
+            rx.rx_time = ulib_microsecondTime();
+            rx.poll_time = poll_time;
+            [layer processReceivedData:rx];
+            [listener processReceivedData:rx];
+            rx.process_time = ulib_microsecondTime();
+        }
+        if(revent_hup)
+        {
+            returnValue = UMSocketError_has_data_and_hup;
+        }
+        else
+        {
+            returnValue = UMSocketError_has_data;
+        }
     }
     if(revent_hup)
     {

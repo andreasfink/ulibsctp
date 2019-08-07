@@ -748,7 +748,7 @@
 }
 
 
--(void) reportStatus
+- (void) reportStatus
 {
     NSArray *usrs = [_users arrayCopy];
     for(UMLayerSctpUser *u in usrs)
@@ -1694,21 +1694,23 @@
 - (void)processError:(UMSocketError)err
 {
     /* FIXME */
-    NSLog(@"processError %d %@ received in layer %@",err, [UMSocket getSocketErrorString:err], _layerName);
+    NSLog(@"processError %d %@ received in UMLayerSctp %@",err, [UMSocket getSocketErrorString:err], _layerName);
 }
 
 
 - (void)processHangUp
 {
-    /* FIXME */
-    NSLog(@"processHangUp received in listener %@",_layerName);
+    NSLog(@"processHangUp received in UMLayerSctp %@",_layerName);
+    [self powerdown];
+    [self reportStatus];
 }
 
 - (void)processInvalidSocket
 {
-    /* FIXME */
-    NSLog(@"processInvalidSocket received in listener %@",_layerName);
+    NSLog(@"processInvalidSocket received in UMLayerSctp %@",_layerName);
     _isInvalid = YES;
+    [self powerdown];
+    [self reportStatus];
 }
 
 @end
