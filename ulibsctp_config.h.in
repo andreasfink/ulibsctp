@@ -125,6 +125,12 @@
 /* Define if you have the backtrace function. */
 #undef HAVE_BACKTRACE
 
+/* if sctp_sendv is supported */
+#undef ULIBSCTP_SCTP_SENDV_SUPPORTED
+
+/* do we have sctp_recvv */
+#undef ULIBSCTP_SCTP_RECVV_SUPPORTED
+
 /* Define for various gethostbyname_r functions */
 #undef HAVE_FUNC_GETHOSTBYNAME_R_6
 #undef HAVE_FUNC_GETHOSTBYNAME_R_5
