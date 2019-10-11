@@ -342,6 +342,8 @@
 
 - (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer
 {
+    [_lock lock];
+
     UMAssert(layer,@"layer is NULL");
     if(assocId)
     {
@@ -349,10 +351,13 @@
         NSLog(@"registerAssoc %@ forLayer:%@",assocId,layer.layerName);
         _assocs[assocId] = layer;
     }
+    [_lock unlock];
+
 }
 
 - (void)unregisterAssoc:(NSNumber *)assocId
 {
+    [_lock lock];
     if(assocId)
     {
         UMLayerSctp *layer = _assocs[assocId];
@@ -360,6 +365,7 @@
         NSLog(@"unregisterAssoc %@ forLayer:%@",assocId,layer.layerName);
         [_assocs removeObjectForKey:assocId];
     }
+    [_lock unlock];
 }
 
 
