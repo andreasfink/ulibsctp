@@ -1978,7 +1978,7 @@ RANLIB="ranlib"
 LIBS=""
 LIBRARY_NAME=$PROJECT_NAME
 BUILD_DIR=.
-FRAMEWORKS="-framework ulib"
+FRAMEWORKS="-framework ulib -framework sctp"
 
 EXE_EXT=""
 LIBTOOL="ar rc"
@@ -1999,11 +1999,10 @@ case "$host" in
   *apple-darwin*)
 	ARCH="-arch x86_64"
 	OSX_DEVTOOL_DIR=`xcode-select -p`
-        FRAMEWORKS="${FRAMEWORKS} -framework sctp"
 	CFLAGS="$CFLAGS -D_REENTRANT=1 -DDARWIN=1 ${ARCH}"
-	LDFLAGS=-framework CoreFoundation -framework IOKit -framework Security -F/Library/Application\ Support/FinkTelecomServices/frameworks ${FRAMEWORKS}
+	LDFLAGS=-framework IOKit -framework Security -F/Library/Application\ Support/FinkTelecomServices/frameworks ${FRAMEWORKS}
 	LIBTOOL="libtool -static -o"
-	LIBS="${LIBS} -framework sctp"
+	LIBS="${LIBS} -F /Library/Frameworks -framework sctp"
 	SHARED_LIBRARY_EXTENSION=dylib
     ;;
 
