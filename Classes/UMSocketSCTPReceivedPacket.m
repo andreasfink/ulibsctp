@@ -16,6 +16,7 @@
     [s appendFormat:@"-----------------------------------------------------------\n"];
     [s appendFormat:@"UMSocketSCTPReceivedPacket %p\n",self];
     [s appendFormat:@".err =  %d %@\n",_err,[UMSocket getSocketErrorString:_err]];
+    [s appendFormat:@".socket =  %@\n",_socket];
     [s appendFormat:@".streamId =  %lu\n",(unsigned long)_streamId];
     [s appendFormat:@".protocolId =  %lu\n",(unsigned long)_protocolId];
     [s appendFormat:@".context =  %lu\n",(unsigned long)_context];

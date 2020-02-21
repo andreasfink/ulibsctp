@@ -38,8 +38,8 @@
 #define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
 #define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
 #if defined __APPLE__
-//#define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
-//#define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
+#define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
+#define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
 #endif
 
 #else
@@ -896,7 +896,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 	UMAssert(assocptr!=NULL,@"assocptr can not be NULL");
     UMSocketError err = UMSocketError_no_error;
 
-
     ssize_t sp = 0;
     if(data == NULL)
     {
@@ -998,8 +997,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 	[s appendFormat:@"\tflags=%ld\n",(long)flags];
     [s appendFormat:@"\tstreamId=%ld\n",(long)streamId];
 	[s appendFormat:@"\ttimetolive=%ld\n",(long)timetolive];
-	[s appendFormat:@"\tcontext=%ld\n);\n",(long)context];
-	[s appendFormat:@"\t(assoc=%ld\n);\n",(long)*assocptr];
+	[s appendFormat:@"\tcontext=%ld\n",(long)context];
+	[s appendFormat:@"\tassoc=%ld\n",(long)*assocptr];
 	[s appendFormat:@"\tremote Addresses: %@\n",[addrs componentsJoinedByString:@","]];
 	[s appendFormat:@"\tremote Port: %ld\n",(long)remotePort];
 	if(self.logFeed)
@@ -1020,7 +1019,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                       htonl(protocolId),
                       flags, /* flags */
                       streamId,
-                      timetolive, // timetolive,
+                      0,//timetolive, // timetolive,
                       context); // context);
 
 #endif
@@ -1159,7 +1158,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     memset(remote_address_ptr,0x00,sizeof(remote_address_len));
 
     UMSocketSCTPReceivedPacket *rx = [[UMSocketSCTPReceivedPacket alloc]init];
+
 #if defined __APPLE__
+// we want to test unix behaviour here... so we ignore this for now
 //define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
 #endif
 
@@ -1177,7 +1178,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     iov[0].iov_len = SCTP_RXBUF;
     rinfo_len = sizeof(struct sctp_rcvinfo);
     infoType = SCTP_RECVV_RCVINFO;
-    
     bytes_read = sctp_recvv(_sock,
                             iov,
                             iovcnt,
@@ -1212,6 +1212,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     context = sinfo.sinfo_context;
     assoc = sinfo.sinfo_assoc_id;
 #endif
+
+    rx.socket = @(_sock);
 
     if(bytes_read <= 0)
     {

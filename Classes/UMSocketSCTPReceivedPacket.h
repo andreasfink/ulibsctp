@@ -15,6 +15,7 @@
     uint32_t    _protocolId;
     uint32_t    _context;
     NSNumber    *_assocId;
+    NSNumber    *_socket;
     NSData      *_data;
     NSString    *_remoteAddress;
     int         _remotePort;
@@ -32,6 +33,7 @@
 @property(readwrite,atomic,assign)  uint16_t streamId;
 @property(readwrite,atomic,assign)  uint32_t protocolId;
 @property(readwrite,atomic,assign)  uint32_t context;
+@property(readwrite,atomic,strong)  NSNumber *socket;
 @property(readwrite,atomic,strong)  NSNumber *assocId;
 @property(readwrite,atomic,strong)  NSData *data;
 @property(readwrite,atomic,strong)  NSString *remoteAddress;

@@ -324,7 +324,7 @@
 #endif
                         _directSocket = [_listener peelOffAssoc:_assocId error:&err];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-						[self logDebug:[NSString stringWithFormat:@",_directSocket is now %@", _directSocket ? @"set":@"NULL"]];
+                        [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
 #endif
 
                         if((err != UMSocketError_no_error)
