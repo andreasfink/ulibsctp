@@ -236,7 +236,7 @@
 
 - (void)_openTask:(UMSctpTask_Open *)task
 {
-    sctp_assoc_t        tmp_assocId = -1;
+    uint32_t        tmp_assocId = -1;
 
     id<UMLayerUserProtocol> caller = task.sender;
 
@@ -320,7 +320,7 @@
                         _assocId = tmp_assocId;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-						[self logDebug:[NSString stringWithFormat:@"Peeling of assoc %d",tmp_assocId]];
+						[self logDebug:[NSString stringWithFormat:@"Peeling of assoc %lu",(unsigned long)tmp_assocId]];
 #endif
                         _directSocket = [_listener peelOffAssoc:_assocId error:&err];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -456,7 +456,7 @@
 			}
 #endif
 
-			sctp_assoc_t        tmp_assocId = _assocId;
+			uint32_t        tmp_assocId = _assocId;
 			sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
 													 port:_configured_remote_port
 													assoc:&tmp_assocId
@@ -475,10 +475,10 @@
 				[self logDebug:@" Calling sctp_sendmsg on _listener"];
 			}
 #endif
-			sctp_assoc_t        tmp_assocId = _assocId;
+			uint32_t tmp_assocId = _assocId;
             sent_packets = [_listener sendToAddresses:_configured_remote_addresses
                                                  port:_configured_remote_port
-                                                assoc:&_assocId
+                                                assoc:&tmp_assocId
                                                  data:task.data
                                                stream:task.streamId
                                              protocol:task.protocolId
@@ -1677,7 +1677,7 @@
     [_reconnectTimer stop];
     if(_status != SCTP_STATUS_IS)
     {
-        sctp_assoc_t xassocId = -1;
+        uint32_t xassocId = -1;
         [_listener connectToAddresses:_configured_remote_addresses
                                  port:_configured_remote_port
                                 assoc:&xassocId
