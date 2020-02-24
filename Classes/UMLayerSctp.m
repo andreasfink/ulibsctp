@@ -774,7 +774,7 @@
 
     if(rx.assocId !=0)
     {
-        _assocId = (sctp_assoc_t)[rx.assocId unsignedIntValue];
+        _assocId = (uint32_t)[rx.assocId unsignedIntValue];
         _assocIdPresent = YES;
     }
 

@@ -604,9 +604,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #endif
         if(assocptr && assoc != -1)
         {
-            *assocptr = assoc;
+            *assocptr = (uint32_t)assoc;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"assoc is now set to %d", (int)assoc);
+            NSLog(@"assoc is now set to %lu", (unsigned long)assoc);
 #endif
         }
         if (err < 0)
@@ -737,7 +737,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     return nil;
 }
 
-- (UMSocketSCTP *) peelOffAssoc:(sctp_assoc_t)assoc
+- (UMSocketSCTP *) peelOffAssoc:(uint32_t)assoc
                           error:(UMSocketError *)errptr
 {
 
@@ -887,7 +887,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (ssize_t) sendToAddresses:(NSArray *)addrs
                        port:(int)remotePort
-                      assoc:(sctp_assoc_t *)assocptr
+                      assoc:(uint32_t *)assocptr
                        data:(NSData *)data
                      stream:(uint16_t)streamId
                    protocol:(u_int32_t)protocolId
@@ -1049,7 +1049,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (UMSocketError) abortToAddress:(NSString *)addr
                             port:(int)remotePort
-                           assoc:(sctp_assoc_t)assoc
+                           assoc:(uint32_t)assoc
                           stream:(uint16_t)streamId
                         protocol:(u_int32_t)protocolId
 {
@@ -1240,7 +1240,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         rx.streamId =streamId;
         rx.protocolId = protocolId;
         rx.context = context;
-        rx.assocId = @(assoc);
+        rx.assocId = @((uint32_t)assoc);
     }
     return rx;
 }
@@ -1434,11 +1434,11 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 }
 
 
-- (NSArray *)getRemoteIpAddressesForAssoc:(sctp_assoc_t)assoc
+- (NSArray *)getRemoteIpAddressesForAssoc:(uint32_t)assoc
 {
     NSMutableArray *arr = [[NSMutableArray alloc]init];
     struct sockaddr *addrs=NULL;
-    int e = sctp_getpaddrs(_sock, assoc, &addrs);
+    int e = sctp_getpaddrs(_sock, (sctp_assoc_t)assoc, &addrs);
     if(e<0)
     {
         if(addrs)
