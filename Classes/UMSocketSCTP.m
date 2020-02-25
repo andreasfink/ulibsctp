@@ -1019,7 +1019,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                       htonl(protocolId),
                       flags, /* flags */
                       streamId,
-                      0,//timetolive, // timetolive,
+                      timetolive, // timetolive,
                       context); // context);
 
 #endif
