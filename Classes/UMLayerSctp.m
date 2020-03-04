@@ -1562,6 +1562,23 @@
         _mtu = [cfg[@"mtu"] intValue];
     }
 
+    if (cfg[@"max-init-timeout"])
+    {
+        _maxInitTimeout = [cfg[@"max-init-timeout"] intValue];
+    }
+    else
+    {
+        _maxInitTimeout = 15; /* we send INIT every 15 sec */
+    }
+    
+    if (cfg[@"max-init-attempts"])
+    {
+        _maxInitAttempts = [cfg[@"max-init-attempts"] intValue];
+    }
+    else
+    {
+        _maxInitAttempts = 12; /* we try up to 12 titmes (3 minutes at 15sec intervalls) */
+    }
 #ifdef ULIB_SCTP_DEBUG
     NSLog(@"configured_local_addresses=%@",configured_local_addresses);
     NSLog(@"configured_remote_addresses=%@",configured_remote_addresses);

@@ -66,7 +66,8 @@
     BOOL                _allowAnyRemotePortIncoming;
     uint32_t            _assocId;
     SCTP_Status         _status;
-
+    int                 _maxInitTimeout;
+    int                 _maxInitAttempts;
 }
 
 //@property(readwrite,strong) UMSocketSCTP    *sctpSocket;

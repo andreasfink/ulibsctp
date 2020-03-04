@@ -461,6 +461,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 }
 
+
+
 + (NSData *)sockaddrFromAddresses:(NSArray *)theAddrs
                              port:(int)thePort
                             count:(int *)count_out /* returns struct sockaddr data in NSData */
@@ -819,18 +821,18 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 		newcon.socketProto = _socketProto;
 		[newcon initNetworkSocket];
 
-		newcon.configuredTcpMaxSegmentSize = _configuredTcpMaxSegmentSize;
-		int activeTcpMaxSegmentSize = 0;
-		socklen_t tcp_maxseg_len = sizeof(activeTcpMaxSegmentSize);
-		if(getsockopt(_sock, IPPROTO_TCP, TCP_MAXSEG, &activeTcpMaxSegmentSize, &tcp_maxseg_len) == 0)
+		newcon.configuredMaxSegmentSize = _configuredMaxSegmentSize;
+		int activeSctpMaxSegmentSize = 0;
+		socklen_t maxseg_len = sizeof(activeSctpMaxSegmentSize);
+		if(getsockopt(_sock, IPPROTO_SCTP, SCTP_MAXSEG, &activeSctpMaxSegmentSize, &maxseg_len) == 0)
 		{
-			newcon.activeTcpMaxSegmentSize = activeTcpMaxSegmentSize;
-			if((_configuredTcpMaxSegmentSize > 0) && (_configuredTcpMaxSegmentSize < activeTcpMaxSegmentSize))
+			newcon.activeMaxSegmentSize = activeSctpMaxSegmentSize;
+			if((_configuredMaxSegmentSize > 0) && (_configuredMaxSegmentSize < activeSctpMaxSegmentSize))
 			{
-				activeTcpMaxSegmentSize = _configuredTcpMaxSegmentSize;
-				if(setsockopt(_sock, IPPROTO_TCP, TCP_MAXSEG, &activeTcpMaxSegmentSize, tcp_maxseg_len))
+				activeSctpMaxSegmentSize = _configuredMaxSegmentSize;
+				if(setsockopt(_sock, IPPROTO_SCTP, SCTP_MAXSEG, &activeSctpMaxSegmentSize, maxseg_len))
 				{
-					newcon.activeTcpMaxSegmentSize = _configuredTcpMaxSegmentSize;
+					newcon.activeMaxSegmentSize = _configuredMaxSegmentSize;
 				}
 			}
 		}
@@ -1388,6 +1390,45 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #if defined(SCTP_NODELAY)
     int flags = 1;
     int err = setsockopt(_sock, IPPROTO_SCTP, SCTP_NODELAY, (char *)&flags, sizeof(flags));
+    if(err !=0)
+    {
+        return [UMSocket umerrFromErrno:errno];
+    }
+    return    UMSocketError_no_error;
+#else
+    return UMSocketError_not_supported_operation
+#endif
+}
+
+
+- (UMSocketError) setInitParams
+{
+#if defined(SCTP_INITMSG)
+    struct sctp_initmsg  params;
+    memset((void *)&params,0x00, sizeof(struct sctp_initmsg));
+    socklen_t len = sizeof(params);
+
+    int err = getsockopt(_sock, IPPROTO_SCTP, SCTP_INITMSG, &params, &len);
+    if(err==0)
+    {
+        if(_maxInStreams>0)
+        {
+            params.sinit_max_instreams = _maxInStreams;
+        }
+        if(_numOStreams>0)
+        {
+            params.sinit_num_ostreams = _numOStreams;
+        }
+        if(_maxInitAttempts>0)
+        {
+            params.sinit_max_attempts = _maxInitAttempts;
+        }
+        if(_initTimeout>0)
+        {
+            params.sinit_max_init_timeo = _initTimeout;
+        }
+        err = setsockopt(_sock, IPPROTO_SCTP, SCTP_INITMSG, &params, len);
+    }
     if(err !=0)
     {
         return [UMSocket umerrFromErrno:errno];

@@ -97,6 +97,16 @@
             [self logDebug:[NSString stringWithFormat:@"%@: setting NODELAY successful",_name]];
         }
 
+        err = [_umsocket setInitParams];
+        if(err!=UMSocketError_no_error)
+        {
+            [self logMinorError:[NSString stringWithFormat:@"can not set INIT PARMAS on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
+        }
+        else
+        {
+            [self logDebug:[NSString stringWithFormat:@"%@: setting INIT PARMAS successful",_name]];
+        }
+
         err = [_umsocket setIPDualStack];
         if(err!=UMSocketError_no_error)
         {
@@ -106,7 +116,6 @@
         {
             [self logDebug:[NSString stringWithFormat:@"%@:  setIPDualStack successful",_name]];
         }
-
         err = [_umsocket setLinger];
         if(err!=UMSocketError_no_error)
         {

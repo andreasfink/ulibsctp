@@ -47,6 +47,11 @@ struct sctp_sndrcvinfo;
     int             _localAddressesSockaddrCount;
     int _mtu;
     int _maxSeg;
+    
+    int _maxInStreams;
+    int _numOStreams;
+    int _maxInitAttempts;
+    int _initTimeout;
 	NSNumber				*_xassoc;
 }
 
@@ -61,6 +66,10 @@ struct sctp_sndrcvinfo;
 @property(readwrite,assign) BOOL            continuousConnectionAttempts;
 @property(readwrite,assign) NSTimeInterval  connectionRepeatTimer;
 @property(readwrite,assign) int mtu;
+@property(readwrite,assign) int maxInStreams;
+@property(readwrite,assign) int numOStreams;
+@property(readwrite,assign) int maxInitAttempts;
+@property(readwrite,assign) int initTimeout;
 
 @property(readwrite,strong)	NSNumber		*xassoc;
 
@@ -119,6 +128,8 @@ struct sctp_sndrcvinfo;
 - (UMSocketError) getSocketError;
 - (UMSocketError) setReusePort;
 - (UMSocketError) setNoDelay;
+- (UMSocketError) setInitParams;
+
 - (void)updateMtu:(int)newMtu;
 - (UMSocketError)setHeartbeat:(BOOL)enable;
 - (NSArray *)getRemoteIpAddressesForAssoc:(uint32_t)assoc;
