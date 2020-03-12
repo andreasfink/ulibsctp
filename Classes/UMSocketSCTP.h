@@ -93,12 +93,6 @@ struct sctp_sndrcvinfo;
                             count:(int *)count_out /* returns struct sockaddr data in NSData */
                      socketFamily:(int)socketFamily;
 
-#if defined(ULIBSCTP_INTERNAL)
-
-- (UMSocketError) connectToAddresses:(NSArray *)addrs
-                                port:(int)remotePort
-                               assoc:(uint32_t *)assoc;
-
 - (ssize_t) sendToAddresses:(NSArray *)addrs
                        port:(int)port
                       assoc:(uint32_t *)assoc
@@ -106,6 +100,13 @@ struct sctp_sndrcvinfo;
                      stream:(uint16_t)streamId
                    protocol:(u_int32_t)protocolId
                       error:(UMSocketError *)err2;
+
+#if defined(ULIBSCTP_INTERNAL)
+
+- (UMSocketError) connectToAddresses:(NSArray *)addrs
+                                port:(int)remotePort
+                               assoc:(uint32_t *)assoc;
+
 
 - (UMSocketError) abortToAddress:(NSString *)addr
                             port:(int)remotePort
@@ -133,6 +134,7 @@ struct sctp_sndrcvinfo;
 - (void)updateMtu:(int)newMtu;
 - (UMSocketError)setHeartbeat:(BOOL)enable;
 - (NSArray *)getRemoteIpAddressesForAssoc:(uint32_t)assoc;
+
 
 
 @end
