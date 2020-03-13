@@ -169,9 +169,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (UMSocketError) bind
 {
-
-    UMAssert(_requestedLocalPort != 0,@"bind to port 0 not allowed");
-
     NSMutableArray *useable_local_addr = [[NSMutableArray alloc]init];
 
     if((_localAddressesSockaddr==NULL) || ( _localAddressesSockaddrCount==0))
@@ -181,9 +178,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                                                                 count:&_localAddressesSockaddrCount /* returns struct sockaddr data in NSData */
                                                          socketFamily:_socketFamily];
     }
-
-    UMAssert(_requestedLocalPort != 0, @"bind on to port 0 is not allowed");
-
     /* at this point usable_addresses contains strings which are in _socketFamily specific formats */
     /* invalid IP's have been remvoed */
     int usable_ips = -1;
