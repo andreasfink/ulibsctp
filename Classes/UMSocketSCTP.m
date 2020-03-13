@@ -1158,6 +1158,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #if defined __APPLE__
 // we want to test unix behaviour here... so we ignore this for now
 //define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
+#undef ULIBSCTP_SCTP_RECVV_SUPPORTED
 #endif
 
 #if defined(ULIBSCTP_SCTP_RECVV_SUPPORTED)
@@ -1194,7 +1195,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #if defined(SCTP_FUTURE_ASSOC)
     sinfo.sinfo_assoc_id = SCTP_FUTURE_ASSOC;
 #endif
-    memset(&sinfo,0x00,sizeof(struct sctp_sndrcvinfo));
+    memset(&sinfo,0xFF,sizeof(struct sctp_sndrcvinfo));
     bytes_read = sctp_recvmsg(_sock,
                          &buffer,
                          SCTP_RXBUF,
