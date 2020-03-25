@@ -183,7 +183,7 @@ dnl -------------------------------------
 AC_ARG_ENABLE(profiling,
 [  --enable-profiling	  enable profiling  [disabled]], [
 	echo Using Debuging+profiling target
-	CFLAGS="$CFLAGS -pg -g -O0 -D${CONFIG_DEFINE}=Debug -D${CONFIG_DEFINE}_DEBUG=1"
+	CFLAGS="$CFLAGS -pg -g -O0"
 	LDFLAGS="$LDFLAGS -g"
 	CONFIGURATION="-configuration Debug"
 	AC_DEFINE(WS_DEBUG)
