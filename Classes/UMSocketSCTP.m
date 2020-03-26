@@ -813,20 +813,30 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 		newcon.socketFamily = _socketFamily;
 		newcon.socketType = _socketType;
 		newcon.socketProto = _socketProto;
+        newcon.xassoc = @(assoc);
 		[newcon initNetworkSocket];
 
 		newcon.configuredMaxSegmentSize = _configuredMaxSegmentSize;
 		int activeSctpMaxSegmentSize = 0;
-		socklen_t maxseg_len = sizeof(activeSctpMaxSegmentSize);
-		if(getsockopt(_sock, IPPROTO_SCTP, SCTP_MAXSEG, &activeSctpMaxSegmentSize, &maxseg_len) == 0)
+
+        struct sctp_assoc_value a;
+        a.assoc_id = assoc;
+        a.assoc_value = 0;
+
+        socklen_t maxseg_len = sizeof(a);
+
+		if(getsockopt(_sock, IPPROTO_SCTP, SCTP_MAXSEG, &a, &maxseg_len) == 0)
 		{
-			newcon.activeMaxSegmentSize = activeSctpMaxSegmentSize;
+			newcon.activeMaxSegmentSize = a.assoc_value;
 			if((_configuredMaxSegmentSize > 0) && (_configuredMaxSegmentSize < activeSctpMaxSegmentSize))
 			{
-				activeSctpMaxSegmentSize = _configuredMaxSegmentSize;
+                newcon.activeMaxSegmentSize = _configuredMaxSegmentSize;
 				if(setsockopt(_sock, IPPROTO_SCTP, SCTP_MAXSEG, &activeSctpMaxSegmentSize, maxseg_len))
 				{
-					newcon.activeMaxSegmentSize = _configuredMaxSegmentSize;
+                    if(getsockopt(_sock, IPPROTO_SCTP, SCTP_MAXSEG, &a, &maxseg_len) == 0)
+                    {
+                        newcon.activeMaxSegmentSize = a.assoc_value;
+                    }
 				}
 			}
 		}
@@ -852,7 +862,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         [newcon switchToNonBlocking];
         [newcon doInitReceiveBuffer];
         newcon.useSSL = useSSL;
-		newcon.xassoc = @(assoc);
         [newcon updateMtu:_mtu];
         [newcon updateName];
         newcon.objectStatisticsName = @"UMSocket(accept)";
