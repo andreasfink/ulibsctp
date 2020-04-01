@@ -264,7 +264,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     /* ENABLING EVENTS    */
     /**********************/
     
-    self.status = SCTP_STATUS_OOS;
+    self.status = UMSOCKET_STATUS_OOS;
 
 
     memset((void *)&event,0x00, sizeof(struct sctp_event_subscribe));

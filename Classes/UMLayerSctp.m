@@ -73,7 +73,7 @@
         _timeoutInMs = 2400;
         _heartbeatSeconds = 30.0;
         _users = [[UMSynchronizedArray alloc]init];
-        self.status = SCTP_STATUS_OFF;
+        self.status = UMSOCKET_STATUS_OFF;
         _newDestination = YES;
         _inboundThroughputPackets   = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
         _inboundThroughputBytes     = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
@@ -250,19 +250,19 @@
 
     @try
     {
-        if(self.status == SCTP_STATUS_M_FOOS)
+        if(self.status == UMSOCKET_STATUS_FOOS)
         {
-            NSLog(@"SCTP_STATUS_M_FOOS");
+            NSLog(@"UMSOCKET_STATUS_FOOS");
             @throw([NSException exceptionWithName:@"FOOS" reason:@"failed due to manual forced out of service status" userInfo:@{@"errno":@(EBUSY), @"backtrace": UMBacktrace(NULL,0)}]);
         }
-        if(self.status == SCTP_STATUS_OOS)
+        if(self.status == UMSOCKET_STATUS_OOS)
         {
-            NSLog(@"SCTP_STATUS_OOS");
+            NSLog(@"UMSOCKET_STATUS_OOS");
             @throw([NSException exceptionWithName:@"OOS" reason:@"status is OOS so SCTP is already establishing." userInfo:@{@"errno":@(EBUSY),@"backtrace": UMBacktrace(NULL,0)}]);
         }
-        if(self.status == SCTP_STATUS_IS)
+        if(self.status == UMSOCKET_STATUS_IS)
         {
-            NSLog(@"SCTP_STATUS_IS");
+            NSLog(@"UMSOCKET_STATUS_IS");
             @throw([NSException exceptionWithName:@"IS" reason:@"status is IS so already up." userInfo:@{@"errno":@(EAGAIN),@"backtrace": UMBacktrace(NULL,0)}]);
         }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -365,7 +365,7 @@
 
         if ((err == UMSocketError_in_progress) || (err == UMSocketError_no_error))
         {
-            self.status = SCTP_STATUS_OOS;
+            self.status = UMSOCKET_STATUS_OOS;
         }
         if(_allowAnyRemotePortIncoming)
         {
@@ -643,7 +643,7 @@
 {
     [_linkLock lock];
     [self powerdown];
-    self.status = SCTP_STATUS_M_FOOS;
+    self.status = UMSOCKET_STATUS_FOOS;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(self.logLevel <=UMLOG_DEBUG)
     {
@@ -660,18 +660,18 @@
 
     switch(self.status)
     {
-        case SCTP_STATUS_M_FOOS:
+        case UMSOCKET_STATUS_FOOS:
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <=UMLOG_DEBUG)
             {
                 [self logDebug:@"manual M-FOOS->IS requested"];
             }
 #endif
-            self.status = SCTP_STATUS_OFF;
+            self.status = UMSOCKET_STATUS_OFF;
             [self reportStatus];
             [self openFor:user];
             break;
-        case SCTP_STATUS_OFF:
+        case UMSOCKET_STATUS_OFF:
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <=UMLOG_DEBUG)
             {
@@ -680,7 +680,7 @@
 #endif
             [self openFor:user];
             break;
-        case SCTP_STATUS_OOS:
+        case UMSOCKET_STATUS_OOS:
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <=UMLOG_DEBUG)
             {
@@ -689,7 +689,7 @@
 #endif
             [self reportStatus];
             break;
-        case SCTP_STATUS_IS:
+        case UMSOCKET_STATUS_IS:
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <=UMLOG_DEBUG)
             {
@@ -714,8 +714,8 @@
     }
 #endif
     //[_receiverThread shutdownBackgroundTask];
-    self.status = SCTP_STATUS_OOS;
-    self.status = SCTP_STATUS_OFF;
+    self.status = UMSOCKET_STATUS_OOS;
+    self.status = UMSOCKET_STATUS_OFF;
     if(_assocIdPresent)
     {
         [_registry unregisterAssoc:@(_assocId)];
@@ -734,8 +734,8 @@
         [self.logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
     }
 #endif
-    self.status = SCTP_STATUS_OOS;
-    self.status = SCTP_STATUS_OFF;
+    self.status = UMSOCKET_STATUS_OOS;
+    self.status = UMSOCKET_STATUS_OFF;
 
     if(_assocIdPresent)
     {
@@ -951,7 +951,7 @@
         _assocId = snp->sn_assoc_change.sac_assoc_id;
         _assocIdPresent=YES;
         [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS (assocID=%ld)",(long)_assocId]];
-        self.status=SCTP_STATUS_IS;
+        self.status=UMSOCKET_STATUS_IS;
         if(_directSocket==NULL)
         {
             UMSocketError err = UMSocketError_no_error;
@@ -970,7 +970,7 @@
         _assocId = snp->sn_assoc_change.sac_assoc_id;
         _assocIdPresent=YES;
         [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF (assocID=%ld)",(long)_assocId]];
-        self.status=SCTP_STATUS_OFF;
+        self.status=UMSOCKET_STATUS_OFF;
         [self reportStatus];
         //[self powerdownInReceiverThread];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -985,7 +985,7 @@
     else if(snp->sn_assoc_change.sac_state==SCTP_CANT_STR_ASSOC)
     {
         [self.logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_CANT_STR_ASSOC"];
-        self.status=SCTP_STATUS_OOS;
+        self.status=UMSOCKET_STATUS_OOS;
         [self reportStatus];
         //[self powerdownInReceiverThread];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -999,7 +999,7 @@
     else if(snp->sn_assoc_change.sac_error!=0)
     {
         [self.logFeed majorError:snp->sn_assoc_change.sac_error withText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)->OFF"];
-        self.status=SCTP_STATUS_OFF;
+        self.status=UMSOCKET_STATUS_OFF;
         [self powerdownInReceiverThread];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
@@ -1422,7 +1422,7 @@
     }
 
     /* if for whatever reason we have not realized we are in service yet, let us realize it now */
-    if(self.status != SCTP_STATUS_IS)
+    if(self.status != UMSOCKET_STATUS_IS)
     {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
@@ -1430,7 +1430,7 @@
             [self logDebug:[NSString stringWithFormat:@"force change status to IS"]];
         }
 #endif
-        self.status = SCTP_STATUS_IS;
+        self.status = UMSOCKET_STATUS_IS;
         [self reportStatus];
     }
 
@@ -1607,16 +1607,16 @@
     NSMutableDictionary *d = [[NSMutableDictionary alloc]init];
     switch(_status)
     {
-        case SCTP_STATUS_M_FOOS:
+        case UMSOCKET_STATUS_FOOS:
             d[@"status"] = @"M-FOOS";
             break;
-        case SCTP_STATUS_OFF:
+        case UMSOCKET_STATUS_OFF:
             d[@"status"] = @"OFF";
             break;
-        case SCTP_STATUS_OOS:
+        case UMSOCKET_STATUS_OOS:
             d[@"status"] = @"OOS";
             break;
-        case SCTP_STATUS_IS:
+        case UMSOCKET_STATUS_IS:
             d[@"status"] = @"IS";
             break;
         default:
@@ -1662,13 +1662,13 @@
 {
     switch(_status)
     {
-        case    SCTP_STATUS_M_FOOS:
+        case    UMSOCKET_STATUS_FOOS:
             return @"M-FOOS";
-        case  SCTP_STATUS_OFF:
+        case  UMSOCKET_STATUS_OFF:
             return @"OFF";
-        case SCTP_STATUS_OOS:
+        case UMSOCKET_STATUS_OOS:
             return @"OOS";
-        case SCTP_STATUS_IS:
+        case UMSOCKET_STATUS_IS:
             return @"IS";
     }
     return @"UNDEFINED";
@@ -1692,7 +1692,7 @@
     }
 #endif
     [_reconnectTimer stop];
-    if(_status != SCTP_STATUS_IS)
+    if(_status != UMSOCKET_STATUS_IS)
     {
         uint32_t xassocId = -1;
         [_listener connectToAddresses:_configured_remote_addresses
