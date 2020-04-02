@@ -467,7 +467,11 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     struct sockaddr     *addresses46 = NULL;
     size_t              addresses46_len = 0;
 
+    UMAssert(theAddrs!=NULL,@"passed addresses can not be NULL in [UMSocketSCTP sockaddrFromAddresses:port:count:socketFamily:]");
+
     int count = (int)theAddrs.count;
+    UMAssert(count>0,@"you need to pass at least one address to [UMSocketSCTP sockaddrFromAddresses:port:count:socketFamily:]");
+
     int j=0;
     if(socketFamily==AF_INET6)
     {
