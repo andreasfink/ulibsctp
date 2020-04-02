@@ -534,6 +534,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             {
                 address = address2;
             }
+            NSLog(@"inet_pton(AF_INET,%@, &address[j=%d].sin6_addr)\n",address.UTF8String,j);
             int result = inet_pton(AF_INET,address.UTF8String, &addresses4[j].sin_addr);
             if(result==1)
             {
