@@ -467,10 +467,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     struct sockaddr     *addresses46 = NULL;
     size_t              addresses46_len = 0;
 
-    UMAssert(theAddrs!=NULL,@"passed addresses can not be NULL in [UMSocketSCTP sockaddrFromAddresses:port:count:socketFamily:]");
-
     int count = (int)theAddrs.count;
-    UMAssert(count>0,@"you need to pass at least one address to [UMSocketSCTP sockaddrFromAddresses:port:count:socketFamily:]");
+
+    NSLog(@"theAddrs=%p",theAddrs);
+    NSLog(@"theAddrs.count=%d",count);
 
     int j=0;
     if(socketFamily==AF_INET6)
@@ -489,6 +489,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                 /* we have a IPV6 socket but the remote addres is in IPV4 format so we must use the IPv6 representation of it */
                 address =[NSString stringWithFormat:@"::ffff:%@",address];
             }
+            NSLog(@"inet_pton(AF_INET6,%@, &addresses6[j=%d].sin6_addr)\n",address.UTF8String,j);
             int result = inet_pton(AF_INET6,address.UTF8String, &addresses6[j].sin6_addr);
             if(result==1)
             {
