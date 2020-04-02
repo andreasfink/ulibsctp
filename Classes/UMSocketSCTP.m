@@ -94,7 +94,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             break;
         case UMSOCKET_TYPE_SCTP:
             _socketFamily=AF_INET6;
-            _socketType = SOCK_SEQPACKET;
+            _socketType = SOCK_STREAM;
             _socketProto = IPPROTO_SCTP;
             _sock = socket(_socketFamily,_socketType, _socketProto);
             TRACK_FILE_SOCKET(_sock,@"sctp");
@@ -685,6 +685,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         /* IPv6 or dual mode */
         struct    sockaddr_in6        sa6;
         socklen_t slen6 = sizeof(sa6);
+        memset(&sa6,0x00,slen6);
+        sa6.sin6_port = htons(3868);
         [_controlLock lock];
         newsock = accept(_sock,(struct sockaddr *)&sa6,&slen6);
         [_controlLock unlock];
