@@ -502,7 +502,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         }
         if(j==0)
         {
-            NSLog(@"no valid local IP addresses found");
+            NSLog(@"no valid local IP addresses found %@:%d AF_INET6",[theAddrs componentsJoinedByString:@","],thePort);
             free(addresses6);
             addresses6 = NULL;
             *count_out = 0;
@@ -546,7 +546,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         }
         if(j==0)
         {
-            NSLog(@"no valid local IPv4 addresses found");
+            NSLog(@"no valid local IP addresses found %@:%d AF_INET",[theAddrs componentsJoinedByString:@","],thePort);
             free(addresses4);
         }
         else
