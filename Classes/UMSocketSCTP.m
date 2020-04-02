@@ -80,14 +80,14 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     {
         case UMSOCKET_TYPE_SCTP4ONLY:
             _socketFamily=AF_INET;
-            _socketType = SOCK_SEQPACKET;
+            _socketType = SOCK_STREAM;
             _socketProto = IPPROTO_SCTP;
             _sock = socket(_socketFamily,_socketType, _socketProto);
             TRACK_FILE_SOCKET(_sock,@"sctp");
             break;
         case UMSOCKET_TYPE_SCTP6ONLY:
             _socketFamily=AF_INET6;
-            _socketType = SOCK_SEQPACKET;
+            _socketType = SOCK_STREAM;
             _socketProto = IPPROTO_SCTP;
             _sock = socket(_socketFamily,_socketType, _socketProto);
             TRACK_FILE_SOCKET(_sock,@"sctp");
@@ -972,14 +972,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 	NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
 
-
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-
-	NSLog(@"[UMSocketSCTP sockaddrFromAddresses:%@ port:%d count:] returns %@ count=%d",
-		  addrs,remotePort,remote_sockaddr,count);
-#endif
-
-	 [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily];
+    [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily];
 #if defined(ULIBSCTP_SCTP_SENDV_SUPPORTED)
 
 
