@@ -178,10 +178,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                                                                 count:&_localAddressesSockaddrCount /* returns struct sockaddr data in NSData */
                                                          socketFamily:_socketFamily];
     }
-<<<<<<< HEAD
-
-=======
->>>>>>> cde03f3f00126e09377f387e5566ef4748cebc86
     /* at this point usable_addresses contains strings which are in _socketFamily specific formats */
     /* invalid IP's have been remvoed */
     int usable_ips = -1;
