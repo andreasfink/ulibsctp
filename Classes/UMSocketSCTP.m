@@ -581,8 +581,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 - (UMSocketError) connectAssoc:(uint32_t *)assoc;
 {
     return [self connectToAddresses:_requestedRemoteAddresses
-                        port:_requestedRemotePort
-                       assoc:assoc];
+                               port:_requestedRemotePort
+                              assoc:assoc];
 }
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
@@ -621,6 +621,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             NSLog(@"assoc is now set to %lu", (unsigned long)assoc);
 #endif
         }
+        _connectedRemotePort = remotePort;
+
         if (err < 0)
         {
             returnValue = [UMSocket umerrFromErrno:errno];
