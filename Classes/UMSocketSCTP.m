@@ -716,6 +716,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     {
         newcon = [[UMSocketSCTP alloc]init];
         newcon.type = type;
+        newcon.socketFamily = self.socketFamily;
         newcon.direction =  direction;
         newcon.status=status;
         newcon.localHost = self.localHost;
