@@ -85,7 +85,11 @@ struct sctp_sndrcvinfo;
 - (UMSocketSCTP *) peelOffAssoc:(uint32_t)assoc
 						  error:(UMSocketError *)errptr;
 
-//- (UMSocketError) connectSCTP;
+- (UMSocketError) connect;
+- (UMSocketError) connectAssoc:(uint32_t *)assoc;
+- (UMSocketError) connectToAddresses:(NSArray *)addrs
+                                port:(int)remotePort
+                               assoc:(uint32_t *)assoc;
 
 
 + (NSData *)sockaddrFromAddresses:(NSArray *)theAddrs
@@ -101,11 +105,6 @@ struct sctp_sndrcvinfo;
                    protocol:(u_int32_t)protocolId
                       error:(UMSocketError *)err2;
 
-#if defined(ULIBSCTP_INTERNAL)
-
-- (UMSocketError) connectToAddresses:(NSArray *)addrs
-                                port:(int)remotePort
-                               assoc:(uint32_t *)assoc;
 
 
 - (UMSocketError) abortToAddress:(NSString *)addr
@@ -113,7 +112,6 @@ struct sctp_sndrcvinfo;
                            assoc:(uint32_t)assoc
                           stream:(uint16_t)streamId
                         protocol:(u_int32_t)protocolId;
-#endif
 
 /*
 - (ssize_t)sendSCTP:(NSData *)data

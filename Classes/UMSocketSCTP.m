@@ -570,6 +570,21 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     return result;
 }
 
+- (UMSocketError) connect
+{
+    uint32_t assoc;
+    return [self connectToAddresses:_requestedRemoteAddresses
+                        port:_requestedRemotePort
+                       assoc:&assoc];
+}
+
+- (UMSocketError) connectAssoc:(uint32_t *)assoc;
+{
+    return [self connectToAddresses:_requestedRemoteAddresses
+                        port:_requestedRemotePort
+                       assoc:assoc];
+}
+
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)remotePort
                                assoc:(uint32_t *)assocptr
