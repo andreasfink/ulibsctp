@@ -65,7 +65,7 @@
     BOOL                _newDestination;
     BOOL                _allowAnyRemotePortIncoming;
     uint32_t            _assocId;
-    SCTP_Status         _status;
+    UMSocketStatus      _status;
     int                 _maxInitTimeout;
     int                 _maxInitAttempts;
 }
@@ -75,7 +75,7 @@
 @property(readwrite,strong) NSDate          *startButtonPressed;
 @property(readwrite,strong) NSDate          *stopButtonPressed;
 
-@property(readwrite,assign,atomic) SCTP_Status     status;
+@property(readwrite,assign,atomic) UMSocketStatus     status;
 //@property(readwrite,strong) UMBackgrounder  *receiverThread;
 
 @property(readwrite,strong  )NSArray    *configured_local_addresses;

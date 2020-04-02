@@ -178,7 +178,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                                                                 count:&_localAddressesSockaddrCount /* returns struct sockaddr data in NSData */
                                                          socketFamily:_socketFamily];
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> cde03f3f00126e09377f387e5566ef4748cebc86
     /* at this point usable_addresses contains strings which are in _socketFamily specific formats */
     /* invalid IP's have been remvoed */
     int usable_ips = -1;
@@ -265,7 +268,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     /* ENABLING EVENTS    */
     /**********************/
     
-    self.status = SCTP_STATUS_OOS;
+    self.status = UMSOCKET_STATUS_OOS;
 
 
     memset((void *)&event,0x00, sizeof(struct sctp_event_subscribe));
@@ -814,20 +817,30 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 		newcon.socketFamily = _socketFamily;
 		newcon.socketType = _socketType;
 		newcon.socketProto = _socketProto;
+        newcon.xassoc = @(assoc);
 		[newcon initNetworkSocket];
 
 		newcon.configuredMaxSegmentSize = _configuredMaxSegmentSize;
 		int activeSctpMaxSegmentSize = 0;
-		socklen_t maxseg_len = sizeof(activeSctpMaxSegmentSize);
-		if(getsockopt(_sock, IPPROTO_SCTP, SCTP_MAXSEG, &activeSctpMaxSegmentSize, &maxseg_len) == 0)
+
+        struct sctp_assoc_value a;
+        a.assoc_id = assoc;
+        a.assoc_value = 0;
+
+        socklen_t maxseg_len = sizeof(a);
+
+		if(getsockopt(_sock, IPPROTO_SCTP, SCTP_MAXSEG, &a, &maxseg_len) == 0)
 		{
-			newcon.activeMaxSegmentSize = activeSctpMaxSegmentSize;
+			newcon.activeMaxSegmentSize = a.assoc_value;
 			if((_configuredMaxSegmentSize > 0) && (_configuredMaxSegmentSize < activeSctpMaxSegmentSize))
 			{
-				activeSctpMaxSegmentSize = _configuredMaxSegmentSize;
+                newcon.activeMaxSegmentSize = _configuredMaxSegmentSize;
 				if(setsockopt(_sock, IPPROTO_SCTP, SCTP_MAXSEG, &activeSctpMaxSegmentSize, maxseg_len))
 				{
-					newcon.activeMaxSegmentSize = _configuredMaxSegmentSize;
+                    if(getsockopt(_sock, IPPROTO_SCTP, SCTP_MAXSEG, &a, &maxseg_len) == 0)
+                    {
+                        newcon.activeMaxSegmentSize = a.assoc_value;
+                    }
 				}
 			}
 		}
@@ -853,7 +866,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         [newcon switchToNonBlocking];
         [newcon doInitReceiveBuffer];
         newcon.useSSL = useSSL;
-		newcon.xassoc = @(assoc);
         [newcon updateMtu:_mtu];
         [newcon updateName];
         newcon.objectStatisticsName = @"UMSocket(accept)";
@@ -1159,6 +1171,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #if defined __APPLE__
 // we want to test unix behaviour here... so we ignore this for now
 //define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
+#undef ULIBSCTP_SCTP_RECVV_SUPPORTED
 #endif
 
 #if defined(ULIBSCTP_SCTP_RECVV_SUPPORTED)
@@ -1195,7 +1208,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #if defined(SCTP_FUTURE_ASSOC)
     sinfo.sinfo_assoc_id = SCTP_FUTURE_ASSOC;
 #endif
-    memset(&sinfo,0x00,sizeof(struct sctp_sndrcvinfo));
+    memset(&sinfo,0xFF,sizeof(struct sctp_sndrcvinfo));
     bytes_read = sctp_recvmsg(_sock,
                          &buffer,
                          SCTP_RXBUF,

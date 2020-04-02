@@ -19,7 +19,7 @@
 
 - (void) sctpStatusIndication:(UMLayer *)caller
                        userId:(id)uid
-                       status:(SCTP_Status)s;
+                       status:(UMSocketStatus)s;
 
 - (void) sctpDataIndication:(UMLayer *)caller
                      userId:(id)uid

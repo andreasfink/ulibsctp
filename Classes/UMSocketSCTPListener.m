@@ -350,7 +350,7 @@
         [self logDebug:@" layer.newDestination=NO"];
     }
 #endif
-    if(layer.status != SCTP_STATUS_IS)
+    if(layer.status != UMSOCKET_STATUS_IS)
     {
         UMSocketError err = [_umsocket connectToAddresses:addrs
                                                      port:remotePort

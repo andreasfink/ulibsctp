@@ -73,16 +73,16 @@
     [link.sctpSocket switchToNonBlocking];
     if(err == UMSocketError_connection_refused)
     {
-        link.status = SCTP_STATUS_OFF;
+        link.status = UMSOCKET_STATUS_OFF;
         mustQuit = YES;
     }
     if((err == UMSocketError_no_error) || (err == UMSocketError_in_progress))
     {
-        link.status = SCTP_STATUS_OOS; /* we are CONNECTING but not yet CONNECTED. We are once the SCTP event up is received */
+        link.status = UMSOCKET_STATUS_OOS; /* we are CONNECTING but not yet CONNECTED. We are once the SCTP event up is received */
     }
     else
     {
-        link.status = SCTP_STATUS_OFF;
+        link.status = UMSOCKET_STATUS_OFF;
     }
     if(enableLogging)
     {
