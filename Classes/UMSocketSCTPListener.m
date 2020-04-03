@@ -80,7 +80,7 @@
     {
         NSAssert(_umsocket == NULL,@"calling startListening with _umsocket already existing");
 
-        _umsocket = [[UMSocketSCTP alloc]initWithType:UMSOCKET_TYPE_SCTP name:_name];
+        _umsocket = [[UMSocketSCTP alloc]initWithType:UMSOCKET_TYPE_SCTP_SEQPACKET name:_name];
         _umsocket.requestedLocalAddresses = _localIpAddresses;
         _umsocket.requestedLocalPort = _port;
         [_umsocket updateMtu:_configuredMtu];

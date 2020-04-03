@@ -78,21 +78,56 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     _sock = -1;
     switch(type)
     {
-        case UMSOCKET_TYPE_SCTP4ONLY:
+        case UMSOCKET_TYPE_SCTP4ONLY_SEQPACKET:
+            _socketFamily=AF_INET;
+            _socketType = SOCK_SEQPACKET;
+            _socketProto = IPPROTO_SCTP;
+            _sock = socket(_socketFamily,_socketType, _socketProto);
+            TRACK_FILE_SOCKET(_sock,@"sctp");
+            break;
+        case UMSOCKET_TYPE_SCTP6ONLY_SEQPACKET:
+            _socketFamily=AF_INET6;
+            _socketType = SOCK_SEQPACKET;
+            _socketProto = IPPROTO_SCTP;
+            _sock = socket(_socketFamily,_socketType, _socketProto);
+            TRACK_FILE_SOCKET(_sock,@"sctp");
+            break;
+        case UMSOCKET_TYPE_SCTP_SEQPACKET:
+            _socketFamily=AF_INET6;
+            _socketType = SOCK_SEQPACKET;
+            _socketProto = IPPROTO_SCTP;
+            _sock = socket(_socketFamily,_socketType, _socketProto);
+            TRACK_FILE_SOCKET(_sock,@"sctp");
+            if(_sock < 0)
+            {
+                if(errno==EAFNOSUPPORT)
+                {
+                    _socketFamily=AF_INET;
+                    _sock = socket(_socketFamily,_socketType, _socketProto);
+                    TRACK_FILE_SOCKET(_sock,@"sctp");
+                    if(_sock!=-1)
+                    {
+                        int flags = 1;
+                        setsockopt(_sock, IPPROTO_SCTP, SCTP_NODELAY, (char *)&flags, sizeof(flags));
+                    }
+                }
+            }
+            break;
+        case UMSOCKET_TYPE_SCTP4ONLY_STREAM:
             _socketFamily=AF_INET;
             _socketType = SOCK_STREAM;
             _socketProto = IPPROTO_SCTP;
             _sock = socket(_socketFamily,_socketType, _socketProto);
             TRACK_FILE_SOCKET(_sock,@"sctp");
             break;
-        case UMSOCKET_TYPE_SCTP6ONLY:
+        case UMSOCKET_TYPE_SCTP6ONLY_STREAM:
             _socketFamily=AF_INET6;
             _socketType = SOCK_STREAM;
             _socketProto = IPPROTO_SCTP;
             _sock = socket(_socketFamily,_socketType, _socketProto);
             TRACK_FILE_SOCKET(_sock,@"sctp");
             break;
-        case UMSOCKET_TYPE_SCTP:
+        case UMSOCKET_TYPE_SCTP_STREAM:
             _socketFamily=AF_INET6;
             _socketType = SOCK_STREAM;
             _socketProto = IPPROTO_SCTP;
@@ -113,6 +148,42 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                 }
             }
             break;
+        case UMSOCKET_TYPE_SCTP4ONLY_DGRAM:
+            _socketFamily=AF_INET;
+            _socketType = SOCK_DGRAM;
+            _socketProto = IPPROTO_SCTP;
+            _sock = socket(_socketFamily,_socketType, _socketProto);
+            TRACK_FILE_SOCKET(_sock,@"sctp");
+            break;
+        case UMSOCKET_TYPE_SCTP6ONLY_DGRAM:
+            _socketFamily=AF_INET6;
+            _socketType = SOCK_DGRAM;
+            _socketProto = IPPROTO_SCTP;
+            _sock = socket(_socketFamily,_socketType, _socketProto);
+            TRACK_FILE_SOCKET(_sock,@"sctp");
+            break;
+        case UMSOCKET_TYPE_SCTP_DGRAM:
+            _socketFamily=AF_INET6;
+            _socketType = SOCK_DGRAM;
+            _socketProto = IPPROTO_SCTP;
+            _sock = socket(_socketFamily,_socketType, _socketProto);
+            TRACK_FILE_SOCKET(_sock,@"sctp");
+            if(_sock < 0)
+            {
+                if(errno==EAFNOSUPPORT)
+                {
+                    _socketFamily=AF_INET;
+                    _sock = socket(_socketFamily,_socketType, _socketProto);
+                    TRACK_FILE_SOCKET(_sock,@"sctp");
+                    if(_sock!=-1)
+                    {
+                        int flags = 1;
+                        setsockopt(_sock, IPPROTO_SCTP, SCTP_NODELAY, (char *)&flags, sizeof(flags));
+                    }
+                }
+            }
+            break;
+
         default:
             [super initNetworkSocket];
             break;
@@ -652,7 +723,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     UMSocketSCTP  *newcon =NULL;
     NSString *remoteAddress=@"";
     in_port_t remotePort=0;
-    if(type == UMSOCKET_TYPE_SCTP4ONLY)
+    if(type == UMSOCKET_TYPE_SCTP4ONLY_SEQPACKET)
     {
         struct    sockaddr_in sa4;
         socklen_t slen4 = sizeof(sa4);
@@ -765,7 +836,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     UMSocketSCTP  *newcon =NULL;
     NSString *remoteAddress=@"";
     in_port_t remotePort=0;
-    if(type == UMSOCKET_TYPE_SCTP4ONLY)
+    if(type == UMSOCKET_TYPE_SCTP4ONLY_SEQPACKET)
     {
         struct    sockaddr_in sa4;
         socklen_t slen4 = sizeof(sa4);
