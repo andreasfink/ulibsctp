@@ -7,7 +7,6 @@
 //
 
 #import <ulib/ulib.h>
-#import "UMLayerSctpStatus.h"
 #import "UMLayerSctpUserProtocol.h"
 #import "UMLayerSctpApplicationContextProtocol.h"
 #import "UMSocketSCTPReceivedPacket.h"
@@ -132,7 +131,5 @@ struct sctp_sndrcvinfo;
 - (void)updateMtu:(int)newMtu;
 - (UMSocketError)setHeartbeat:(BOOL)enable;
 - (NSArray *)getRemoteIpAddressesForAssoc:(uint32_t)assoc;
-
-
 
 @end

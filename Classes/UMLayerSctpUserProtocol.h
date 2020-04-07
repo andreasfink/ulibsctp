@@ -7,7 +7,6 @@
 //
 
 #import <ulib/ulib.h>
-#import "UMLayerSctpStatus.h"
 
 /* these are the methods a user of the SctpLayer has to implement */
 /* usually its a UMLayerObject where those methods simply queue an 

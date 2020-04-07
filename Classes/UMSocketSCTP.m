@@ -220,6 +220,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #endif
     }
     _msg_notification_mask = _global_msg_notification_mask;
+    status = UMSOCKET_STATUS_FOOS;
 }
 
 
@@ -334,9 +335,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     /**********************/
     /* ENABLING EVENTS    */
     /**********************/
-    
-    self.status = UMSOCKET_STATUS_OOS;
-
 
     memset((void *)&event,0x00, sizeof(struct sctp_event_subscribe));
     event.sctp_data_io_event            = 1;
@@ -644,6 +642,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 - (UMSocketError) connect
 {
     uint32_t assoc;
+
     return [self connectToAddresses:_requestedRemoteAddresses
                         port:_requestedRemotePort
                        assoc:&assoc];
@@ -672,6 +671,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     if(count<1)
     {
+        self.status = UMSOCKET_STATUS_OFF;
         returnValue = UMSocketError_address_not_available;
     }
     else
@@ -700,11 +700,13 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 			if(errno==EINPROGRESS)
 			{
 				_connectx_pending = YES;
+                self.status = UMSOCKET_STATUS_OOS;
 			}
         }
         else
         {
             _connectx_pending = YES;
+            self.status = UMSOCKET_STATUS_IS;
             returnValue = UMSocketError_no_error;
         }
     }
@@ -789,7 +791,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         newcon.type = type;
         newcon.socketFamily = self.socketFamily;
         newcon.direction =  direction;
-        newcon.status=status;
+        newcon.status=UMSOCKET_STATUS_IS;
         newcon.localHost = self.localHost;
         newcon.remoteHost = self.remoteHost;
         newcon.requestedLocalAddresses = _requestedLocalAddresses;
@@ -1340,6 +1342,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 {
     _dataDelegate = NULL;
     _notificationDelegate = NULL;
+    self.status = UMSOCKET_STATUS_OFF;
     return [super close];
 }
 
@@ -1533,7 +1536,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 {
     [self updateName];
     int err;
-    
+    self.status = UMSOCKET_STATUS_LISTENING;
+
     [self reportStatus:@"caling listen()"];
     if (self.isListening == 1)
     {
