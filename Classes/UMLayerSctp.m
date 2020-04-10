@@ -697,6 +697,14 @@
             }
 #endif
             [self reportStatus];
+        case UMSOCKET_STATUS_LISTENING:
+        #if defined(ULIBSCTP_CONFIG_DEBUG)
+            if(self.logLevel <=UMLOG_DEBUG)
+            {
+                [self logDebug:@"manual LISTENING->IS requested"];
+            }
+        #endif
+            [self reportStatus];
             break;
     }
 }
@@ -1660,18 +1668,7 @@
 
 - (NSString *)statusString
 {
-    switch(_status)
-    {
-        case    UMSOCKET_STATUS_FOOS:
-            return @"M-FOOS";
-        case  UMSOCKET_STATUS_OFF:
-            return @"OFF";
-        case UMSOCKET_STATUS_OOS:
-            return @"OOS";
-        case UMSOCKET_STATUS_IS:
-            return @"IS";
-    }
-    return @"UNDEFINED";
+    return [UMSocket statusDescription:_status];
 }
 
 -(void)dealloc
