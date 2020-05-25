@@ -21,6 +21,7 @@
 		A634B4991A2E9AF700854472 /* UMLayerSctpUserProfile.h in Headers */ = {isa = PBXBuildFile; fileRef = A634B4971A2E9AF700854472 /* UMLayerSctpUserProfile.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A634B49A1A2E9AF700854472 /* UMLayerSctpUserProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */; };
 		A634B49B1A2E9AF700854472 /* UMLayerSctpUserProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */; };
+		A648DF4F247C370000F25226 /* ulibsctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6C78D0D1A29271D006C66A2 /* ulibsctp.framework */; };
 		A666CA311B4B127D00854472 /* sctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A666CA2F1B4B102000854472 /* sctp.framework */; };
 		A6827E121E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = A6827E101E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A68974271A2D1EF800854472 /* UMSctpTask_AdminSetConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = A68974251A2D1EF800854472 /* UMSctpTask_AdminSetConfig.h */; };
@@ -63,6 +64,9 @@
 		A6C78DC81A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m in Sources */ = {isa = PBXBuildFile; fileRef = A6C78DC61A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m */; };
 		A6C78DC91A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m in Sources */ = {isa = PBXBuildFile; fileRef = A6C78DC61A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m */; };
 		A6E3D78B22BABD6800D5B1B6 /* sctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A666CA2F1B4B102000854472 /* sctp.framework */; };
+		A6F1C627247BEA1E00FE7402 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A6F1C626247BEA1D00FE7402 /* main.m */; };
+		A6F1C629247BEC8600FE7402 /* sctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A69BCFF4240675D20083657F /* sctp.framework */; };
+		A6F1C62A247BEC8900FE7402 /* ulib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6C78D731A2942EC006C66A2 /* ulib.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,6 +78,18 @@
 			remoteInfo = ulibsctp;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A6F1C61D247BEA0800FE7402 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		A60DE3B620ADD0440047E3A6 /* UMSocketSCTPListener.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UMSocketSCTPListener.h; sourceTree = "<group>"; };
@@ -124,6 +140,9 @@
 		A6C78DC51A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMSctpTask_Manual_ForceOutOfService.h; sourceTree = "<group>"; };
 		A6C78DC61A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMSctpTask_Manual_ForceOutOfService.m; sourceTree = "<group>"; };
 		A6E7BF521FBECF5C00C53765 /* rfc-4960.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "rfc-4960.txt"; sourceTree = "<group>"; };
+		A6F1C61F247BEA0800FE7402 /* testcase-sctp-1 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "testcase-sctp-1"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A6F1C626247BEA1D00FE7402 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		A6F1C62C247BECBE00FE7402 /* ulibsctp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ulibsctp.framework; path = "../../../../../Library/Application Support/FinkTelecomServices/frameworks/ulibsctp.framework"; sourceTree = "<group>"; };
 		A6F693F31B4E83AC0090FC94 /* configure.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.in; sourceTree = "<group>"; };
 		A6F693F41B4E83AC0090FC94 /* VERSION */ = {isa = PBXFileReference; lastKnownFileType = text; path = VERSION; sourceTree = "<group>"; };
 		A6F6942A1B4E85FA0090FC94 /* Makefile.linux.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.linux.in; sourceTree = "<group>"; };
@@ -152,6 +171,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A6F1C61C247BEA0800FE7402 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A648DF4F247C370000F25226 /* ulibsctp.framework in Frameworks */,
+				A6F1C62A247BEC8900FE7402 /* ulib.framework in Frameworks */,
+				A6F1C629247BEC8600FE7402 /* sctp.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -166,6 +195,7 @@
 				A6C78D0F1A29271D006C66A2 /* Classes */,
 				A6C78D101A29271D006C66A2 /* SupportingFiles */,
 				A6C78D1C1A29271D006C66A2 /* ulibsctpTests */,
+				A6F1C620247BEA0800FE7402 /* testcase-sctp-1 */,
 				A6C78D0E1A29271D006C66A2 /* Products */,
 				A6C78D721A2942D0006C66A2 /* Frameworks */,
 				A6E7BF511FBECE5400C53765 /* doc */,
@@ -177,6 +207,7 @@
 			children = (
 				A6C78D0D1A29271D006C66A2 /* ulibsctp.framework */,
 				A6C78D181A29271D006C66A2 /* ulibsctpTests.xctest */,
+				A6F1C61F247BEA0800FE7402 /* testcase-sctp-1 */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -256,6 +287,7 @@
 		A6C78D721A2942D0006C66A2 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				A6F1C62C247BECBE00FE7402 /* ulibsctp.framework */,
 				A666CA2F1B4B102000854472 /* sctp.framework */,
 				A69BCFF4240675D20083657F /* sctp.framework */,
 				A6C78D731A2942EC006C66A2 /* ulib.framework */,
@@ -269,6 +301,14 @@
 				A6E7BF521FBECF5C00C53765 /* rfc-4960.txt */,
 			);
 			path = doc;
+			sourceTree = "<group>";
+		};
+		A6F1C620247BEA0800FE7402 /* testcase-sctp-1 */ = {
+			isa = PBXGroup;
+			children = (
+				A6F1C626247BEA1D00FE7402 /* main.m */,
+			);
+			path = "testcase-sctp-1";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -341,6 +381,23 @@
 			productReference = A6C78D181A29271D006C66A2 /* ulibsctpTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		A6F1C61E247BEA0800FE7402 /* testcase-sctp-1 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A6F1C625247BEA0800FE7402 /* Build configuration list for PBXNativeTarget "testcase-sctp-1" */;
+			buildPhases = (
+				A6F1C61B247BEA0800FE7402 /* Sources */,
+				A6F1C61C247BEA0800FE7402 /* Frameworks */,
+				A6F1C61D247BEA0800FE7402 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "testcase-sctp-1";
+			productName = testcase1;
+			productReference = A6F1C61F247BEA0800FE7402 /* testcase-sctp-1 */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -357,6 +414,11 @@
 					};
 					A6C78D171A29271D006C66A2 = {
 						CreatedOnToolsVersion = 6.1.1;
+						DevelopmentTeam = 2GSNWPNR77;
+						ProvisioningStyle = Automatic;
+					};
+					A6F1C61E247BEA0800FE7402 = {
+						CreatedOnToolsVersion = 11.5;
 						DevelopmentTeam = 2GSNWPNR77;
 						ProvisioningStyle = Automatic;
 					};
@@ -377,6 +439,7 @@
 			targets = (
 				A6C78D0C1A29271D006C66A2 /* ulibsctp */,
 				A6C78D171A29271D006C66A2 /* ulibsctpTests */,
+				A6F1C61E247BEA0800FE7402 /* testcase-sctp-1 */,
 			);
 		};
 /* End PBXProject section */
@@ -439,6 +502,14 @@
 				A6C78D711A2942AB006C66A2 /* UMLayerSctp.m in Sources */,
 				A6C78DAB1A2945D9006C66A2 /* UMSctpTask_AdminAttach.m in Sources */,
 				A689747F1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A6F1C61B247BEA0800FE7402 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A6F1C627247BEA1E00FE7402 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -669,6 +740,62 @@
 			};
 			name = Release;
 		};
+		A6F1C623247BEA0800FE7402 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 2GSNWPNR77;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
+					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
+					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "me.fink.testcase-sctp1";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		A6F1C624247BEA0800FE7402 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEVELOPMENT_TEAM = 2GSNWPNR77;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
+					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
+					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "me.fink.testcase-sctp1";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -695,6 +822,15 @@
 			buildConfigurations = (
 				A6C78D271A29271D006C66A2 /* Debug */,
 				A6C78D281A29271D006C66A2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A6F1C625247BEA0800FE7402 /* Build configuration list for PBXNativeTarget "testcase-sctp-1" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A6F1C623247BEA0800FE7402 /* Debug */,
+				A6F1C624247BEA0800FE7402 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
