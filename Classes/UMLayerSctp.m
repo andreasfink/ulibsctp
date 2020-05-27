@@ -51,7 +51,7 @@
 
 - (UMLayerSctp *)init
 {
-    self = [super initWithTaskQueueMulti:NULL name:@""];
+    self = [self initWithTaskQueueMulti:NULL name:@""];
     if(self)
     {
         _newDestination = YES;
@@ -271,7 +271,7 @@
             [self logDebug:[NSString stringWithFormat:@"socket()"]];
         }
 #endif
-        UMSocketError err;
+        UMSocketError err = UMSocketError_no_error;
 
         if(self.logLevel <= UMLOG_DEBUG)
         {

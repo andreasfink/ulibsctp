@@ -32,8 +32,11 @@
 
 - (void)main
 {
-    UMLayerSctp *link = (UMLayerSctp *)self.receiver;
-    [link _adminSetConfigTask:self];
+    @autoreleasepool
+    {
+        UMLayerSctp *link = (UMLayerSctp *)self.receiver;
+        [link _adminSetConfigTask:self];
+    }
 }
 
 -(id) appContext
