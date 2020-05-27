@@ -26,7 +26,10 @@
 
 -(void)main
 {
-    UMLayerSctp *link = (UMLayerSctp *)self.receiver;
-    [link _foosTask:self];
+    @autoreleasepool
+    {
+        UMLayerSctp *link = (UMLayerSctp *)self.receiver;
+        [link _foosTask:self];
+    }
 }
 @end

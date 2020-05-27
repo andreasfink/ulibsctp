@@ -151,8 +151,14 @@
                                     streamId:sid
                                   protocolId:pid
                                   ackRequest:ack];
-//	[task main];
+#if 0
+    @autoreleasepool
+    {
+            [task main];
+    }
+#else
     [self queueFromUpper:task];
+#endif
 }
 
 - (void)foosFor:(id<UMLayerSctpUserProtocol>)caller
