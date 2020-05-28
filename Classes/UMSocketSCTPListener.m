@@ -86,7 +86,6 @@
         [_umsocket updateMtu:_configuredMtu];
 
         [_umsocket switchToNonBlocking];
-
         UMSocketError err = [_umsocket setNoDelay];
         if(err!=UMSocketError_no_error)
         {
@@ -96,7 +95,6 @@
         {
             [self logDebug:[NSString stringWithFormat:@"%@: setting NODELAY successful",_name]];
         }
-
         err = [_umsocket setInitParams];
         if(err!=UMSocketError_no_error)
         {
