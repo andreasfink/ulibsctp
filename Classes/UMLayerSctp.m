@@ -144,35 +144,41 @@
      protocolId:(uint32_t)pid
      ackRequest:(NSDictionary *)ack
 {
-    UMSctpTask_Data *task =
-    [[UMSctpTask_Data alloc]initWithReceiver:self
-                                      sender:caller
-                                        data:sendingData
-                                    streamId:sid
-                                  protocolId:pid
-                                  ackRequest:ack];
-#if 0
     @autoreleasepool
     {
-            [task main];
+        UMSctpTask_Data *task =
+        [[UMSctpTask_Data alloc]initWithReceiver:self
+                                          sender:caller
+                                            data:sendingData
+                                        streamId:sid
+                                      protocolId:pid
+                                      ackRequest:ack];
+    #if 0
+        [task main];
+    #else
+        [self queueFromUpper:task];
+    #endif
     }
-#else
-    [self queueFromUpper:task];
-#endif
 }
 
 - (void)foosFor:(id<UMLayerSctpUserProtocol>)caller
 {
-    UMSctpTask_Manual_ForceOutOfService *task =
-    [[UMSctpTask_Manual_ForceOutOfService alloc]initWithReceiver:self sender:caller];
-    [self queueFromLowerWithPriority:task];
+    @autoreleasepool
+    {
+        UMSctpTask_Manual_ForceOutOfService *task =
+        [[UMSctpTask_Manual_ForceOutOfService alloc]initWithReceiver:self sender:caller];
+        [self queueFromLowerWithPriority:task];
+    }
 }
 
 - (void)isFor:(id<UMLayerSctpUserProtocol>)caller
 {
-    UMSctpTask_Manual_InService *task =
-    [[UMSctpTask_Manual_InService alloc]initWithReceiver:self sender:caller];
-    [self queueFromLowerWithPriority:task];
+    @autoreleasepool
+    {
+        UMSctpTask_Manual_InService *task =
+        [[UMSctpTask_Manual_InService alloc]initWithReceiver:self sender:caller];
+        [self queueFromLowerWithPriority:task];
+    }
 }
 
 #pragma mark -
@@ -180,23 +186,29 @@
 /* LAYER API. The following methods are called by queued tasks */
 - (void)_adminInitTask:(UMSctpTask_AdminInit *)task
 {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(self.logLevel <= UMLOG_DEBUG)
+    @autoreleasepool
     {
-        [self logDebug:[NSString stringWithFormat:@"adminInit"]];
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
+        {
+            [self logDebug:[NSString stringWithFormat:@"adminInit"]];
+        }
+    #endif
     }
-#endif
 }
 
 - (void)_adminSetConfigTask:(UMSctpTask_AdminSetConfig *)task
 {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(self.logLevel <= UMLOG_DEBUG)
+    @autoreleasepool
     {
-        [self logDebug:[NSString stringWithFormat:@"setConfig %@",task.config]];
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
+        {
+            [self logDebug:[NSString stringWithFormat:@"setConfig %@",task.config]];
+        }
+    #endif
+        [self setConfig:task.config applicationContext:task.appContext];
     }
-#endif
-    [self setConfig:task.config applicationContext:task.appContext];
 }
 
 - (void)_adminAttachTask:(UMSctpTask_AdminAttach *)task
@@ -242,476 +254,492 @@
 
 - (void)_openTask:(UMSctpTask_Open *)task
 {
-    uint32_t        tmp_assocId = -1;
-
-    id<UMLayerUserProtocol> caller = task.sender;
-
-    if(self.logLevel <= UMLOG_DEBUG)
+    @autoreleasepool
     {
-        NSString *s = [NSString stringWithFormat:@"%@ is asking us to start SCTP %@->%@",caller.layerName,_configured_local_addresses,_configured_remote_addresses];
-        [self logDebug:s];
-    }
 
-    [_linkLock lock];
+        uint32_t        tmp_assocId = -1;
 
-    @try
-    {
-        if(self.status == UMSOCKET_STATUS_FOOS)
-        {
-            NSLog(@"UMSOCKET_STATUS_FOOS");
-            @throw([NSException exceptionWithName:@"FOOS" reason:@"failed due to manual forced out of service status" userInfo:@{@"errno":@(EBUSY), @"backtrace": UMBacktrace(NULL,0)}]);
-        }
-        if(self.status == UMSOCKET_STATUS_OOS)
-        {
-            NSLog(@"UMSOCKET_STATUS_OOS");
-            @throw([NSException exceptionWithName:@"OOS" reason:@"status is OOS so SCTP is already establishing." userInfo:@{@"errno":@(EBUSY),@"backtrace": UMBacktrace(NULL,0)}]);
-        }
-        if(self.status == UMSOCKET_STATUS_IS)
-        {
-            NSLog(@"UMSOCKET_STATUS_IS");
-            @throw([NSException exceptionWithName:@"IS" reason:@"status is IS so already up." userInfo:@{@"errno":@(EAGAIN),@"backtrace": UMBacktrace(NULL,0)}]);
-        }
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(self.logLevel <= UMLOG_DEBUG)
-        {
-            [self logDebug:[NSString stringWithFormat:@"socket()"]];
-        }
-#endif
-        UMSocketError err = UMSocketError_no_error;
+        id<UMLayerUserProtocol> caller = task.sender;
 
         if(self.logLevel <= UMLOG_DEBUG)
         {
-            NSString *addrs = [_configured_local_addresses componentsJoinedByString:@","];
-            [self logDebug:[NSString stringWithFormat:@"getting listener on %@ on port %d",addrs,_configured_local_port]];
+            NSString *s = [NSString stringWithFormat:@"%@ is asking us to start SCTP %@->%@",caller.layerName,_configured_local_addresses,_configured_remote_addresses];
+            [self logDebug:s];
         }
 
-        _listener =  [_registry getOrAddListenerForPort:_configured_local_port localIps:_configured_local_addresses];
-        _listener.mtu = _mtu;
-    
-        if(self.logLevel <= UMLOG_DEBUG)
-        {
-            [self logDebug:[NSString stringWithFormat:@"asking listener %@ to start",_listener]];
-        }
+        [_linkLock lock];
 
-        [_listener startListeningFor:self]; /* FIXME: what if we have an error */
-        _listenerStarted = _listener.isListening;
-        _newDestination = YES;
-        sleep(1);
-        _assocId = -1;
-        _assocIdPresent = NO;
-        if(!_isPassive)
+        @try
         {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
+            if(self.status == UMSOCKET_STATUS_FOOS)
+            {
+                NSLog(@"UMSOCKET_STATUS_FOOS");
+                @throw([NSException exceptionWithName:@"FOOS" reason:@"failed due to manual forced out of service status" userInfo:@{@"errno":@(EBUSY), @"backtrace": UMBacktrace(NULL,0)}]);
+            }
+            if(self.status == UMSOCKET_STATUS_OOS)
+            {
+                NSLog(@"UMSOCKET_STATUS_OOS");
+                @throw([NSException exceptionWithName:@"OOS" reason:@"status is OOS so SCTP is already establishing." userInfo:@{@"errno":@(EBUSY),@"backtrace": UMBacktrace(NULL,0)}]);
+            }
+            if(self.status == UMSOCKET_STATUS_IS)
+            {
+                NSLog(@"UMSOCKET_STATUS_IS");
+                @throw([NSException exceptionWithName:@"IS" reason:@"status is IS so already up." userInfo:@{@"errno":@(EAGAIN),@"backtrace": UMBacktrace(NULL,0)}]);
+            }
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <= UMLOG_DEBUG)
             {
-                NSString *addrs = [_configured_remote_addresses componentsJoinedByString:@","];
-                [self logDebug:[NSString stringWithFormat:@"asking listener to connect to %@ on port %d",addrs,_configured_remote_port]];
+                [self logDebug:[NSString stringWithFormat:@"socket()"]];
             }
-#endif
-            if(_directSocket==NULL)
+    #endif
+            UMSocketError err = UMSocketError_no_error;
+
+            if(self.logLevel <= UMLOG_DEBUG)
             {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-				[self logDebug:@"_directSocket==NULL"];
-#endif
+                NSString *addrs = [_configured_local_addresses componentsJoinedByString:@","];
+                [self logDebug:[NSString stringWithFormat:@"getting listener on %@ on port %d",addrs,_configured_local_port]];
+            }
 
-                tmp_assocId = -1;
-                err = [_listener connectToAddresses:_configured_remote_addresses
-                                               port:_configured_remote_port
-                                              assoc:&tmp_assocId
-                                              layer:self];
-                if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
+            _listener =  [_registry getOrAddListenerForPort:_configured_local_port localIps:_configured_local_addresses];
+            _listener.mtu = _mtu;
+        
+            if(self.logLevel <= UMLOG_DEBUG)
+            {
+                [self logDebug:[NSString stringWithFormat:@"asking listener %@ to start",_listener]];
+            }
+
+            [_listener startListeningFor:self]; /* FIXME: what if we have an error */
+            _listenerStarted = _listener.isListening;
+            _newDestination = YES;
+            sleep(1);
+            _assocId = -1;
+            _assocIdPresent = NO;
+            if(!_isPassive)
+            {
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+                if(self.logLevel <= UMLOG_DEBUG)
                 {
-                    if(tmp_assocId != -1)
+                    NSString *addrs = [_configured_remote_addresses componentsJoinedByString:@","];
+                    [self logDebug:[NSString stringWithFormat:@"asking listener to connect to %@ on port %d",addrs,_configured_remote_port]];
+                }
+    #endif
+                if(_directSocket==NULL)
+                {
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+                    [self logDebug:@"_directSocket==NULL"];
+    #endif
+
+                    tmp_assocId = -1;
+                    err = [_listener connectToAddresses:_configured_remote_addresses
+                                                   port:_configured_remote_port
+                                                  assoc:&tmp_assocId
+                                                  layer:self];
+                    if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
                     {
-                        _assocId = tmp_assocId;
-
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-						[self logDebug:[NSString stringWithFormat:@"Peeling of assoc %lu",(unsigned long)tmp_assocId]];
-#endif
-                        _directSocket = [_listener peelOffAssoc:_assocId error:&err];
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-                        [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
-#endif
-
-                        if((err != UMSocketError_no_error)
-						&& (err !=UMSocketError_in_progress))
+                        if(tmp_assocId != -1)
                         {
-							[_directSocket close];
-                            _directSocket = NULL;
+                            _assocId = tmp_assocId;
+
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+                            [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %lu",(unsigned long)tmp_assocId]];
+    #endif
+                            _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+                            [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
+    #endif
+
+                            if((err != UMSocketError_no_error)
+                            && (err !=UMSocketError_in_progress))
+                            {
+                                [_directSocket close];
+                                _directSocket = NULL;
+                            }
                         }
                     }
                 }
-            }
-            else
-            {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-				[self logDebug:[NSString stringWithFormat:@" using _directSocket"]];
-#endif
+                else
+                {
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+                    [self logDebug:[NSString stringWithFormat:@" using _directSocket"]];
+    #endif
 
-				err = [_directSocket connectToAddresses:_configured_remote_addresses
-													port:_configured_remote_port
-												   assoc:&tmp_assocId];
-				if(tmp_assocId != -1)
-				{
-					_assocId = tmp_assocId;
-				}
-            }
+                    err = [_directSocket connectToAddresses:_configured_remote_addresses
+                                                        port:_configured_remote_port
+                                                       assoc:&tmp_assocId];
+                    if(tmp_assocId != -1)
+                    {
+                        _assocId = tmp_assocId;
+                    }
+                }
 
-            if(_assocId!= -1)
-            {
-                _assocIdPresent = YES;
+                if(_assocId!= -1)
+                {
+                    _assocIdPresent = YES;
+                }
+                if(self.logLevel <= UMLOG_DEBUG)
+                {
+                    NSString *e = [UMSocket getSocketErrorString:err];
+                    [self logDebug:[NSString stringWithFormat:@"returns %d %@",err,e]];
+                }
             }
+            [_registry registerOutgoingLayer:self allowAnyRemotePortIncoming:_allowAnyRemotePortIncoming];
+
+            if ((err == UMSocketError_in_progress) || (err == UMSocketError_no_error))
+            {
+                self.status = UMSOCKET_STATUS_OOS;
+            }
+            if(_allowAnyRemotePortIncoming)
+            {
+                [_registry registerIncomingLayer:self];
+            }
+            if(_assocIdPresent)
+            {
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+                [self logDebug:[NSString stringWithFormat:@" registering new assoc"]];
+    #endif
+                [_registry registerAssoc:@(_assocId) forLayer:self];
+            }
+            [_registry startReceiver];
+        }
+        @catch (NSException *exception)
+        {
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <= UMLOG_DEBUG)
             {
-                NSString *e = [UMSocket getSocketErrorString:err];
-                [self logDebug:[NSString stringWithFormat:@"returns %d %@",err,e]];
+                [self logDebug:[NSString stringWithFormat:@"%@ %@",exception.name,exception.reason]];
             }
-        }
-        [_registry registerOutgoingLayer:self allowAnyRemotePortIncoming:_allowAnyRemotePortIncoming];
-
-        if ((err == UMSocketError_in_progress) || (err == UMSocketError_no_error))
-        {
-            self.status = UMSOCKET_STATUS_OOS;
-        }
-        if(_allowAnyRemotePortIncoming)
-        {
-            [_registry registerIncomingLayer:self];
-        }
-        if(_assocIdPresent)
-        {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-			[self logDebug:[NSString stringWithFormat:@" registering new assoc"]];
-#endif
-            [_registry registerAssoc:@(_assocId) forLayer:self];
-        }
-        [_registry startReceiver];
-    }
-    @catch (NSException *exception)
-    {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(self.logLevel <= UMLOG_DEBUG)
-        {
-            [self logDebug:[NSString stringWithFormat:@"%@ %@",exception.name,exception.reason]];
-        }
-#endif
-        if(exception.userInfo)
-        {
-            NSNumber *e = exception.userInfo[@"errno"];
-            if(e)
+    #endif
+            if(exception.userInfo)
             {
-                [self logMajorError:e.intValue  location:@(__func__)];
+                NSNumber *e = exception.userInfo[@"errno"];
+                if(e)
+                {
+                    [self logMajorError:e.intValue  location:@(__func__)];
+                }
             }
+            [self powerdown];
         }
-        [self powerdown];
+        [_linkLock unlock];
+        [self reportStatus];
     }
-    [_linkLock unlock];
-    [self reportStatus];
 }
 
 - (void)_closeTask:(UMSctpTask_Close *)task
 {
-    [_linkLock lock];
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(self.logLevel <=UMLOG_DEBUG)
+    @autoreleasepool
     {
-        id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
-        [self logDebug:[NSString stringWithFormat:@"closing for %@",user.layerName]];
+        [_linkLock lock];
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+        if(self.logLevel <=UMLOG_DEBUG)
+        {
+            id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
+            [self logDebug:[NSString stringWithFormat:@"closing for %@",user.layerName]];
+        }
+    #endif
+        [self powerdown];
+        if(_listenerStarted==YES)
+        {
+            [_listener stopListeningFor:self];
+        }
+        _listener = NULL;
+        [_linkLock unlock];
+        [self reportStatus];
     }
-#endif
-    [self powerdown];
-    if(_listenerStarted==YES)
-    {
-        [_listener stopListeningFor:self];
-    }
-    _listener = NULL;
-    [_linkLock unlock];
-    [self reportStatus];
 }
-
 
 - (void)_dataTask:(UMSctpTask_Data *)task
 {
-    id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
-
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(self.logLevel <= UMLOG_DEBUG)
-    {
-        [self logDebug:[NSString stringWithFormat:@"DATA: %@",task.data]];
-        [self logDebug:[NSString stringWithFormat:@" streamId: %u",task.streamId]];
-        [self logDebug:[NSString stringWithFormat:@" protocolId: %u",task.protocolId]];
-        [self logDebug:[NSString stringWithFormat:@" ackRequest: %@",(task.ackRequest ? task.ackRequest.description  : @"(not present)")]];
-    }
-#endif
-
-    @try
-    {
-        if(task.data == NULL)
+    @autoreleasepool
         {
-            @throw([NSException exceptionWithName:@"NULL" reason:@"trying to send NULL data" userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-        }
-        UMSocketError err = UMSocketError_no_error;
 
-        ssize_t sent_packets = 0;
-        [_linkLock lock];
-        if(_directSocket)
-        {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-			if(self.logLevel <= UMLOG_DEBUG)
-			{
-				[self logDebug:[NSString stringWithFormat:@" Calling sctp_sendmsg on _directsocket (%@)",[_configured_remote_addresses componentsJoinedByString:@","]]];
-			}
-#endif
+        id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
 
-			uint32_t        tmp_assocId = _assocId;
-			sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
-													 port:_configured_remote_port
-													assoc:&tmp_assocId
-													 data:task.data
-												   stream:task.streamId
-												 protocol:task.protocolId
-													error:&err];
-			_assocId = tmp_assocId;
-
-        }
-        else
-        {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-			if(self.logLevel <= UMLOG_DEBUG)
-			{
-				[self logDebug:@" Calling sctp_sendmsg on _listener"];
-			}
-#endif
-			uint32_t tmp_assocId = _assocId;
-            sent_packets = [_listener sendToAddresses:_configured_remote_addresses
-                                                 port:_configured_remote_port
-                                                assoc:&tmp_assocId
-                                                 data:task.data
-                                               stream:task.streamId
-                                             protocol:task.protocolId
-                                                error:&err
-                                                layer:self];
-			_assocId = tmp_assocId;
-        }
-        [_linkLock unlock];
-
-        if(sent_packets>0)
-        {
-            [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
-            [_outboundThroughputPackets increaseBy:(uint32_t)sent_packets];
-        }
-        NSArray *usrs = [_users arrayCopy];
-        for(UMLayerSctpUser *u in usrs)
-        {
-            if([u.profile wantsMonitor])
-            {
-                [u.user sctpMonitorIndication:self
-                                       userId:u.userId
-                                     streamId:task.streamId
-                                   protocolId:task.protocolId
-                                         data:task.data
-                                     incoming:NO];
-            }
-        }
-
-#if defined(ULIBSCTP_CONFIG_DEBUG)
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
-            [self logDebug:[NSString stringWithFormat:@" sent_packets: %ld",sent_packets]];
+            [self logDebug:[NSString stringWithFormat:@"DATA: %@",task.data]];
+            [self logDebug:[NSString stringWithFormat:@" streamId: %u",task.streamId]];
+            [self logDebug:[NSString stringWithFormat:@" protocolId: %u",task.protocolId]];
+            [self logDebug:[NSString stringWithFormat:@" ackRequest: %@",(task.ackRequest ? task.ackRequest.description  : @"(not present)")]];
         }
-#endif
-        if(sent_packets >= 0)
+    #endif
+
+        @try
         {
-            NSDictionary *ui = @{
-                                 @"protocolId" : @(task.protocolId),
-                                 @"streamId"   : @(task.streamId),
-                                 @"data"       : task.data
-                                 };
-            NSMutableDictionary *report = [task.ackRequest mutableCopy];
-            [report setObject:ui forKey:@"sctp_data"];
-            //report[@"backtrace"] = UMBacktrace(NULL,0);
-            [user sentAckConfirmFrom:self
-                            userInfo:report];
-        }
-        else
-        {
-            NSLog(@"Error %d %s",errno,strerror(errno));
-            if(errno!=EISCONN)
+            if(task.data == NULL)
             {
-                NSLog(@"still connected");
+                @throw([NSException exceptionWithName:@"NULL" reason:@"trying to send NULL data" userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
             }
-            switch(errno)
+            UMSocketError err = UMSocketError_no_error;
+
+            ssize_t sent_packets = 0;
+            [_linkLock lock];
+            if(_directSocket)
             {
-                case 0:
-                    break;
-                    @throw([NSException exceptionWithName:@"ERROR-ZERO"
-                                                   reason:@"send returns no error. weird"
-                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                    break;
-                case EBADF:
-                    @throw([NSException exceptionWithName:@"EBADF"
-                                                   reason:@"An invalid descriptor was specified"
-                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                    break;
-                case ENOTSOCK:
-                    @throw([NSException exceptionWithName:@"ENOTSOCK"
-                                                   reason:@"The argument s is not a socket"
-                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                    break;
-                case EFAULT:
-                    @throw([NSException exceptionWithName:@"EFAULT"
-                                                   reason:@"An invalid user space address was specified"
-                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                    break;
-                case EMSGSIZE:
-                    @throw([NSException exceptionWithName:@"EMSGSIZE"
-                                                   reason:@"The socket requires that message be sent atomically, and the size of the message to be sent made this impossible."
-                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                    break;
-                case EAGAIN:
-                    @throw([NSException exceptionWithName:@"EAGAIN"
-                                                   reason:@"The socket is marked non-blocking and the requested operation would block."
-                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                    break;
-                case ENOBUFS:
-                    @throw([NSException exceptionWithName:@"ENOBUFS"
-                                                   reason:@"The system was unable to allocate an internal buffer. The operation may succeed when buffers become available."
-                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                    break;
-                case EACCES:
-                    @throw([NSException exceptionWithName:@"EACCES"
-                                                   reason:@"The SO_BROADCAST option is not set on the socket, and a broadcast address was given as the destination."
-                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                    break;
-                case EHOSTUNREACH:
-                    @throw([NSException exceptionWithName:@"EHOSTUNREACH"
-                                                   reason:@"The destination address specified an unreachable host."
-                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                    break;
-                case ENOTCONN:
-                    @throw([NSException exceptionWithName:@"ENOTCONN"
-                                                   reason:@"socket is not connected."
-                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                    break;
-                case EPIPE:
-                    @throw([NSException exceptionWithName:@"EPIPE"
-                                                   reason:@"pipe is broken."
-                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                    break;
-                case ECONNRESET:
-                    @throw([NSException exceptionWithName:@"ECONNRESET"
-                                                   reason:@"connection is reset by peer."
-                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                    break;
-                case EADDRNOTAVAIL:
-                    @throw([NSException exceptionWithName:@"EADDRNOTAVAIL"
-                                                   reason:@"address is no available"
-                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                default:
-                    @throw([NSException exceptionWithName:[NSString stringWithFormat:@"ERROR %d",errno]
-                                                   reason:[NSString stringWithFormat:@"unknown error %d %s",errno,strerror(errno)]
-                                                 userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                    break;
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+                if(self.logLevel <= UMLOG_DEBUG)
+                {
+                    [self logDebug:[NSString stringWithFormat:@" Calling sctp_sendmsg on _directsocket (%@)",[_configured_remote_addresses componentsJoinedByString:@","]]];
+                }
+    #endif
+
+                uint32_t        tmp_assocId = _assocId;
+                sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
+                                                         port:_configured_remote_port
+                                                        assoc:&tmp_assocId
+                                                         data:task.data
+                                                       stream:task.streamId
+                                                     protocol:task.protocolId
+                                                        error:&err];
+                _assocId = tmp_assocId;
+
             }
-            //[self powerdown];
-            [self reportStatus];
+            else
+            {
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+                if(self.logLevel <= UMLOG_DEBUG)
+                {
+                    [self logDebug:@" Calling sctp_sendmsg on _listener"];
+                }
+    #endif
+                uint32_t tmp_assocId = _assocId;
+                sent_packets = [_listener sendToAddresses:_configured_remote_addresses
+                                                     port:_configured_remote_port
+                                                    assoc:&tmp_assocId
+                                                     data:task.data
+                                                   stream:task.streamId
+                                                 protocol:task.protocolId
+                                                    error:&err
+                                                    layer:self];
+                _assocId = tmp_assocId;
+            }
+            [_linkLock unlock];
+
+            if(sent_packets>0)
+            {
+                [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
+                [_outboundThroughputPackets increaseBy:(uint32_t)sent_packets];
+            }
+            NSArray *usrs = [_users arrayCopy];
+            for(UMLayerSctpUser *u in usrs)
+            {
+                if([u.profile wantsMonitor])
+                {
+                    [u.user sctpMonitorIndication:self
+                                           userId:u.userId
+                                         streamId:task.streamId
+                                       protocolId:task.protocolId
+                                             data:task.data
+                                         incoming:NO];
+                }
+            }
+
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+            if(self.logLevel <= UMLOG_DEBUG)
+            {
+                [self logDebug:[NSString stringWithFormat:@" sent_packets: %ld",sent_packets]];
+            }
+    #endif
+            if(sent_packets >= 0)
+            {
+                NSDictionary *ui = @{
+                                     @"protocolId" : @(task.protocolId),
+                                     @"streamId"   : @(task.streamId),
+                                     @"data"       : task.data
+                                     };
+                NSMutableDictionary *report = [task.ackRequest mutableCopy];
+                [report setObject:ui forKey:@"sctp_data"];
+                //report[@"backtrace"] = UMBacktrace(NULL,0);
+                [user sentAckConfirmFrom:self
+                                userInfo:report];
+            }
+            else
+            {
+                NSLog(@"Error %d %s",errno,strerror(errno));
+                if(errno!=EISCONN)
+                {
+                    NSLog(@"still connected");
+                }
+                switch(errno)
+                {
+                    case 0:
+                        break;
+                        @throw([NSException exceptionWithName:@"ERROR-ZERO"
+                                                       reason:@"send returns no error. weird"
+                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
+                        break;
+                    case EBADF:
+                        @throw([NSException exceptionWithName:@"EBADF"
+                                                       reason:@"An invalid descriptor was specified"
+                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
+                        break;
+                    case ENOTSOCK:
+                        @throw([NSException exceptionWithName:@"ENOTSOCK"
+                                                       reason:@"The argument s is not a socket"
+                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
+                        break;
+                    case EFAULT:
+                        @throw([NSException exceptionWithName:@"EFAULT"
+                                                       reason:@"An invalid user space address was specified"
+                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
+                        break;
+                    case EMSGSIZE:
+                        @throw([NSException exceptionWithName:@"EMSGSIZE"
+                                                       reason:@"The socket requires that message be sent atomically, and the size of the message to be sent made this impossible."
+                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
+                        break;
+                    case EAGAIN:
+                        @throw([NSException exceptionWithName:@"EAGAIN"
+                                                       reason:@"The socket is marked non-blocking and the requested operation would block."
+                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
+                        break;
+                    case ENOBUFS:
+                        @throw([NSException exceptionWithName:@"ENOBUFS"
+                                                       reason:@"The system was unable to allocate an internal buffer. The operation may succeed when buffers become available."
+                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
+                        break;
+                    case EACCES:
+                        @throw([NSException exceptionWithName:@"EACCES"
+                                                       reason:@"The SO_BROADCAST option is not set on the socket, and a broadcast address was given as the destination."
+                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
+                        break;
+                    case EHOSTUNREACH:
+                        @throw([NSException exceptionWithName:@"EHOSTUNREACH"
+                                                       reason:@"The destination address specified an unreachable host."
+                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
+                        break;
+                    case ENOTCONN:
+                        @throw([NSException exceptionWithName:@"ENOTCONN"
+                                                       reason:@"socket is not connected."
+                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
+                        break;
+                    case EPIPE:
+                        @throw([NSException exceptionWithName:@"EPIPE"
+                                                       reason:@"pipe is broken."
+                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
+                        break;
+                    case ECONNRESET:
+                        @throw([NSException exceptionWithName:@"ECONNRESET"
+                                                       reason:@"connection is reset by peer."
+                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
+                        break;
+                    case EADDRNOTAVAIL:
+                        @throw([NSException exceptionWithName:@"EADDRNOTAVAIL"
+                                                       reason:@"address is no available"
+                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
+                    default:
+                        @throw([NSException exceptionWithName:[NSString stringWithFormat:@"ERROR %d",errno]
+                                                       reason:[NSString stringWithFormat:@"unknown error %d %s",errno,strerror(errno)]
+                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
+                        break;
+                }
+                //[self powerdown];
+                [self reportStatus];
+            }
         }
-    }
-    @catch (NSException *exception)
-    {
-        [self logMajorError:[NSString stringWithFormat:@"%@: %@",exception.name,exception.reason]];
-        if(task.ackRequest)
+        @catch (NSException *exception)
         {
-            NSMutableDictionary *report = [task.ackRequest mutableCopy];
-            NSDictionary *ui = @{
-                                 @"protocolId" : @(task.protocolId),
-                                 @"streamId"   : @(task.streamId),
-                                 @"data"       : task.data
-                                 };
-            [report setObject:ui forKey:@"sctp_data"];
-            
-            NSDictionary *errDict = @{
-                                      @"exception"  : exception.name,
-                                      @"reason"     : exception.reason,
-                                      };
-            [report setObject:errDict forKey:@"sctp_error"];
-            [user sentAckFailureFrom:self
-                            userInfo:report
-                               error:exception.name
-                              reason:exception.reason
-                           errorInfo:errDict];
+            [self logMajorError:[NSString stringWithFormat:@"%@: %@",exception.name,exception.reason]];
+            if(task.ackRequest)
+            {
+                NSMutableDictionary *report = [task.ackRequest mutableCopy];
+                NSDictionary *ui = @{
+                                     @"protocolId" : @(task.protocolId),
+                                     @"streamId"   : @(task.streamId),
+                                     @"data"       : task.data
+                                     };
+                [report setObject:ui forKey:@"sctp_data"];
+                
+                NSDictionary *errDict = @{
+                                          @"exception"  : exception.name,
+                                          @"reason"     : exception.reason,
+                                          };
+                [report setObject:errDict forKey:@"sctp_error"];
+                [user sentAckFailureFrom:self
+                                userInfo:report
+                                   error:exception.name
+                                  reason:exception.reason
+                               errorInfo:errDict];
+            }
+            [self powerdown];
         }
-        [self powerdown];
     }
 }
 
-
 - (void)_foosTask:(UMSctpTask_Manual_ForceOutOfService *)task
 {
-    [_linkLock lock];
-    [self powerdown];
-    self.status = UMSOCKET_STATUS_FOOS;
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(self.logLevel <=UMLOG_DEBUG)
+    @autoreleasepool
     {
-        [self logDebug:@"FOOS"];
+        [_linkLock lock];
+        [self powerdown];
+        self.status = UMSOCKET_STATUS_FOOS;
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+        if(self.logLevel <=UMLOG_DEBUG)
+        {
+            [self logDebug:@"FOOS"];
+        }
+    #endif
+        [_linkLock unlock];
+        [self reportStatus];
     }
-#endif
-    [_linkLock unlock];
-    [self reportStatus];
 }
 
 - (void)_isTask:(UMSctpTask_Manual_InService *)task
 {
-    id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
-
-    switch(self.status)
+    @autoreleasepool
     {
-        case UMSOCKET_STATUS_FOOS:
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-            if(self.logLevel <=UMLOG_DEBUG)
-            {
-                [self logDebug:@"manual M-FOOS->IS requested"];
-            }
-#endif
-            self.status = UMSOCKET_STATUS_OFF;
-            [self reportStatus];
-            [self openFor:user];
-            break;
-        case UMSOCKET_STATUS_OFF:
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-            if(self.logLevel <=UMLOG_DEBUG)
-            {
-                [self logDebug:@"manual OFF->IS requested"];
-            }
-#endif
-            [self openFor:user];
-            break;
-        case UMSOCKET_STATUS_OOS:
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-            if(self.logLevel <=UMLOG_DEBUG)
-            {
-                [self logDebug:@"manual OOS->IS requested"];
-            }
-#endif
-            [self reportStatus];
-            break;
-        case UMSOCKET_STATUS_IS:
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-            if(self.logLevel <=UMLOG_DEBUG)
-            {
-                [self logDebug:@"manual IS->IS requested"];
-            }
-#endif
-            [self reportStatus];
-        case UMSOCKET_STATUS_LISTENING:
-        #if defined(ULIBSCTP_CONFIG_DEBUG)
-            if(self.logLevel <=UMLOG_DEBUG)
-            {
-                [self logDebug:@"manual LISTENING->IS requested"];
-            }
-        #endif
-            [self reportStatus];
-            break;
+
+        id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
+
+        switch(self.status)
+        {
+            case UMSOCKET_STATUS_FOOS:
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+                if(self.logLevel <=UMLOG_DEBUG)
+                {
+                    [self logDebug:@"manual M-FOOS->IS requested"];
+                }
+    #endif
+                self.status = UMSOCKET_STATUS_OFF;
+                [self reportStatus];
+                [self openFor:user];
+                break;
+            case UMSOCKET_STATUS_OFF:
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+                if(self.logLevel <=UMLOG_DEBUG)
+                {
+                    [self logDebug:@"manual OFF->IS requested"];
+                }
+    #endif
+                [self openFor:user];
+                break;
+            case UMSOCKET_STATUS_OOS:
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+                if(self.logLevel <=UMLOG_DEBUG)
+                {
+                    [self logDebug:@"manual OOS->IS requested"];
+                }
+    #endif
+                [self reportStatus];
+                break;
+            case UMSOCKET_STATUS_IS:
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+                if(self.logLevel <=UMLOG_DEBUG)
+                {
+                    [self logDebug:@"manual IS->IS requested"];
+                }
+    #endif
+                [self reportStatus];
+            case UMSOCKET_STATUS_LISTENING:
+            #if defined(ULIBSCTP_CONFIG_DEBUG)
+                if(self.logLevel <=UMLOG_DEBUG)
+                {
+                    [self logDebug:@"manual LISTENING->IS requested"];
+                }
+            #endif
+                [self reportStatus];
+                break;
+        }
     }
 }
 
@@ -721,57 +749,67 @@
 
 - (void) powerdown
 {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(self.logLevel <= UMLOG_DEBUG)
+    @autoreleasepool
     {
-        [self.logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
-    }
-#endif
-    //[_receiverThread shutdownBackgroundTask];
-    self.status = UMSOCKET_STATUS_OOS;
-    self.status = UMSOCKET_STATUS_OFF;
-    if(_assocIdPresent)
-    {
-        [_registry unregisterAssoc:@(_assocId)];
-        _assocId = -1;
-        _assocIdPresent = NO;
-        [_directSocket close];
-        _directSocket = NULL;
+
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
+        {
+            [self.logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
+        }
+    #endif
+        //[_receiverThread shutdownBackgroundTask];
+        self.status = UMSOCKET_STATUS_OOS;
+        self.status = UMSOCKET_STATUS_OFF;
+        if(_assocIdPresent)
+        {
+            [_registry unregisterAssoc:@(_assocId)];
+            _assocId = -1;
+            _assocIdPresent = NO;
+            [_directSocket close];
+            _directSocket = NULL;
+        }
     }
 }
 
 - (void) powerdownInReceiverThread
 {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(self.logLevel <= UMLOG_DEBUG)
+    @autoreleasepool
     {
-        [self.logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
-    }
-#endif
-    self.status = UMSOCKET_STATUS_OOS;
-    self.status = UMSOCKET_STATUS_OFF;
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
+        {
+            [self.logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
+        }
+    #endif
+        self.status = UMSOCKET_STATUS_OOS;
+        self.status = UMSOCKET_STATUS_OFF;
 
-    if(_assocIdPresent)
-    {
-        [_registry unregisterAssoc:@(_assocId)];
-        _assocId = -1;
-        _assocIdPresent = NO;
-        [_directSocket close];
-        _directSocket = NULL;
+        if(_assocIdPresent)
+        {
+            [_registry unregisterAssoc:@(_assocId)];
+            _assocId = -1;
+            _assocIdPresent = NO;
+            [_directSocket close];
+            _directSocket = NULL;
+        }
     }
 }
 
 
 - (void) reportStatus
 {
-    NSArray *usrs = [_users arrayCopy];
-    for(UMLayerSctpUser *u in usrs)
+    @autoreleasepool
     {
-        if([u.profile wantsStatusUpdates])
+        NSArray *usrs = [_users arrayCopy];
+        for(UMLayerSctpUser *u in usrs)
         {
-            [u.user sctpStatusIndication:self
-                                  userId:u.userId
-                                  status:self.status];
+            if([u.profile wantsStatusUpdates])
+            {
+                [u.user sctpStatusIndication:self
+                                      userId:u.userId
+                                      status:self.status];
+            }
         }
     }
 }
@@ -779,75 +817,78 @@
 
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx
 {
+    @autoreleasepool
+    {
 
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-	NSMutableString *s = [[NSMutableString alloc]init];
-	[s appendFormat:@"processReceivedData: \n%@",rx.description];
-	[self logDebug:s];
-#endif
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+        NSMutableString *s = [[NSMutableString alloc]init];
+        [s appendFormat:@"processReceivedData: \n%@",rx.description];
+        [self logDebug:s];
+    #endif
 
-    if(rx.assocId !=0)
-    {
-        _assocId = (uint32_t)[rx.assocId unsignedIntValue];
-        _assocIdPresent = YES;
-    }
-
-    if(rx.err==UMSocketError_try_again)
-    {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"receiveData: UMSocketError_try_again returned by receiveSCTP");
-#endif
-    }
-
-    if(rx.err==UMSocketError_connection_reset)
-    {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"receiveData: UMSocketError_connection_reset returned by receiveSCTP");
-#endif
-        [self logDebug:@"ECONNRESET"];
-        [self powerdownInReceiverThread];
-        [self reportStatus];
-    }
-
-    if(rx.err==UMSocketError_connection_aborted)
-    {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"receiveData: UMSocketError_connection_aborted returned by receiveSCTP");
-#endif
-        [self logDebug:@"ECONNABORTED"];
-        [self powerdownInReceiverThread];
-        [self reportStatus];
-    }
-    if(rx.err==UMSocketError_connection_refused)
-    {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"receiveData: UMSocketError_connection_refused returned by receiveSCTP");
-#endif
-  /*      [self logDebug:@"ECONNREFUSED"];
-        [self powerdownInReceiverThread];
-        [self reportStatus];
-   */
-    }
-    if(rx.err != UMSocketError_no_error)
-    {
-        [self logMinorError:[NSString stringWithFormat:@"receiveData: Error %d %@ returned by receiveSCTP",rx.err,[UMSocket getSocketErrorString:rx.err]]];
-        [self powerdownInReceiverThread];
-        [self reportStatus];
-    }
-    else
-    {
-        if(rx.isNotification)
+        if(rx.assocId !=0)
         {
+            _assocId = (uint32_t)[rx.assocId unsignedIntValue];
+            _assocIdPresent = YES;
+        }
 
-            [self handleEvent:rx.data
-                     streamId:rx.streamId
-                   protocolId:rx.protocolId];
+        if(rx.err==UMSocketError_try_again)
+        {
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+            NSLog(@"receiveData: UMSocketError_try_again returned by receiveSCTP");
+    #endif
+        }
+
+        if(rx.err==UMSocketError_connection_reset)
+        {
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+            NSLog(@"receiveData: UMSocketError_connection_reset returned by receiveSCTP");
+    #endif
+            [self logDebug:@"ECONNRESET"];
+            [self powerdownInReceiverThread];
+            [self reportStatus];
+        }
+
+        if(rx.err==UMSocketError_connection_aborted)
+        {
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+            NSLog(@"receiveData: UMSocketError_connection_aborted returned by receiveSCTP");
+    #endif
+            [self logDebug:@"ECONNABORTED"];
+            [self powerdownInReceiverThread];
+            [self reportStatus];
+        }
+        if(rx.err==UMSocketError_connection_refused)
+        {
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+            NSLog(@"receiveData: UMSocketError_connection_refused returned by receiveSCTP");
+    #endif
+      /*      [self logDebug:@"ECONNREFUSED"];
+            [self powerdownInReceiverThread];
+            [self reportStatus];
+       */
+        }
+        if(rx.err != UMSocketError_no_error)
+        {
+            [self logMinorError:[NSString stringWithFormat:@"receiveData: Error %d %@ returned by receiveSCTP",rx.err,[UMSocket getSocketErrorString:rx.err]]];
+            [self powerdownInReceiverThread];
+            [self reportStatus];
         }
         else
         {
-            [self sctpReceivedData:rx.data
-                          streamId:rx.streamId
-                        protocolId:rx.protocolId];
+            if(rx.isNotification)
+            {
+
+                [self handleEvent:rx.data
+                         streamId:rx.streamId
+                       protocolId:rx.protocolId];
+            }
+            else
+            {
+                [self sctpReceivedData:rx.data
+                              streamId:rx.streamId
+                            protocolId:rx.protocolId];
+            }
         }
     }
 }
@@ -857,52 +898,55 @@
            streamId:(uint32_t)streamId
          protocolId:(uint16_t)protocolId
 {
-    
-    const union sctp_notification *snp;
-    snp = event.bytes;
-    switch(snp->sn_header.sn_type)
+    @autoreleasepool
     {
-        case SCTP_ASSOC_CHANGE:
-            [self handleAssocChange:event streamId:streamId protocolId:protocolId];
-            break;
-        case SCTP_PEER_ADDR_CHANGE:
-            [self handlePeerAddrChange:event streamId:streamId protocolId:protocolId];
-            break;
-        case SCTP_SEND_FAILED:
-            [self handleSendFailed:event streamId:streamId protocolId:protocolId];
-            break;
-        case SCTP_REMOTE_ERROR:
-            [self handleRemoteError:event streamId:streamId protocolId:protocolId];
-            break;
-        case SCTP_SHUTDOWN_EVENT:
-            [self handleShutdownEvent:event streamId:streamId protocolId:protocolId];
-            break;
-        case SCTP_PARTIAL_DELIVERY_EVENT:
-            [self handleAdaptionIndication:event streamId:streamId protocolId:protocolId];
-            break;
-        case SCTP_ADAPTATION_INDICATION:
-            [self handleAdaptionIndication:event streamId:streamId protocolId:protocolId];
-            break;
-#if defined SCTP_AUTHENTICATION_EVENT
-        case SCTP_AUTHENTICATION_EVENT:
-            [self handleAuthenticationEvent:event streamId:streamId protocolId:protocolId];
-            break;
-#endif
-        case SCTP_SENDER_DRY_EVENT:
-            [self handleSenderDryEvent:event streamId:streamId protocolId:protocolId];
-            break;
 
-#if defined SCTP_STREAM_RESET_EVENT
-        case  SCTP_STREAM_RESET_EVENT:
-            [self handleStreamResetEvent:event streamId:streamId protocolId:protocolId];
-            break;
-#endif
+        const union sctp_notification *snp;
+        snp = event.bytes;
+        switch(snp->sn_header.sn_type)
+        {
+            case SCTP_ASSOC_CHANGE:
+                [self handleAssocChange:event streamId:streamId protocolId:protocolId];
+                break;
+            case SCTP_PEER_ADDR_CHANGE:
+                [self handlePeerAddrChange:event streamId:streamId protocolId:protocolId];
+                break;
+            case SCTP_SEND_FAILED:
+                [self handleSendFailed:event streamId:streamId protocolId:protocolId];
+                break;
+            case SCTP_REMOTE_ERROR:
+                [self handleRemoteError:event streamId:streamId protocolId:protocolId];
+                break;
+            case SCTP_SHUTDOWN_EVENT:
+                [self handleShutdownEvent:event streamId:streamId protocolId:protocolId];
+                break;
+            case SCTP_PARTIAL_DELIVERY_EVENT:
+                [self handleAdaptionIndication:event streamId:streamId protocolId:protocolId];
+                break;
+            case SCTP_ADAPTATION_INDICATION:
+                [self handleAdaptionIndication:event streamId:streamId protocolId:protocolId];
+                break;
+    #if defined SCTP_AUTHENTICATION_EVENT
+            case SCTP_AUTHENTICATION_EVENT:
+                [self handleAuthenticationEvent:event streamId:streamId protocolId:protocolId];
+                break;
+    #endif
+            case SCTP_SENDER_DRY_EVENT:
+                [self handleSenderDryEvent:event streamId:streamId protocolId:protocolId];
+                break;
 
-        default:
-            [self.logFeed majorErrorText:[NSString stringWithFormat:@"SCTP unknown event type: %hu", snp->sn_header.sn_type]];
-            [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-STREAM: %d",streamId]];
-            [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-PROTO: %d", protocolId]];
-            [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-DATA: %@",event.description]];
+    #if defined SCTP_STREAM_RESET_EVENT
+            case  SCTP_STREAM_RESET_EVENT:
+                [self handleStreamResetEvent:event streamId:streamId protocolId:protocolId];
+                break;
+    #endif
+
+            default:
+                [self.logFeed majorErrorText:[NSString stringWithFormat:@"SCTP unknown event type: %hu", snp->sn_header.sn_type]];
+                [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-STREAM: %d",streamId]];
+                [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-PROTO: %d", protocolId]];
+                [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-DATA: %@",event.description]];
+        }
     }
 }
 
@@ -1415,256 +1459,269 @@
                           streamId:(uint32_t)streamId
                         protocolId:(uint16_t)protocolId
 {
-    [_inboundThroughputBytes increaseBy:(int)data.length];
-    [_inboundThroughputPackets increaseBy:1];
+    @autoreleasepool
+        {
 
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(self.logLevel <= UMLOG_DEBUG)
-    {
-		[self logDebug:[NSString stringWithFormat:@"RXT: got %u bytes on stream %u protocol_id: %u data:%@",
-                        (unsigned int)data.length,
-                        (unsigned int)streamId,
-                        (unsigned int)protocolId,
-						data.hexString]];
-    }
-#endif
-    if(_defaultUser == NULL)
-    {
-        [self logDebug:@"RXT: USER instance not found. Maybe not bound yet?"];
-        [self powerdownInReceiverThread];
-        return UMSocketError_no_buffers;
-    }
+        [_inboundThroughputBytes increaseBy:(int)data.length];
+        [_inboundThroughputPackets increaseBy:1];
 
-    /* if for whatever reason we have not realized we are in service yet, let us realize it now */
-    if(self.status != UMSOCKET_STATUS_IS)
-    {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
-            [self logDebug:[NSString stringWithFormat:@"force change status to IS"]];
+            [self logDebug:[NSString stringWithFormat:@"RXT: got %u bytes on stream %u protocol_id: %u data:%@",
+                            (unsigned int)data.length,
+                            (unsigned int)streamId,
+                            (unsigned int)protocolId,
+                            data.hexString]];
         }
-#endif
-        self.status = UMSOCKET_STATUS_IS;
-        [self reportStatus];
-    }
-
-    NSArray *usrs = [_users arrayCopy];
-    for(UMLayerSctpUser *u in usrs)
-    {
-        if( [u.profile wantsProtocolId:protocolId]
-           || [u.profile wantsStreamId:streamId])
+    #endif
+        if(_defaultUser == NULL)
         {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
+            [self logDebug:@"RXT: USER instance not found. Maybe not bound yet?"];
+            [self powerdownInReceiverThread];
+            return UMSocketError_no_buffers;
+        }
+
+        /* if for whatever reason we have not realized we are in service yet, let us realize it now */
+        if(self.status != UMSOCKET_STATUS_IS)
+        {
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <= UMLOG_DEBUG)
             {
-                [self logDebug:[NSString stringWithFormat:@"passing data '%@' to USER[%@]",data.description,u.user.layerName]];
+                [self logDebug:[NSString stringWithFormat:@"force change status to IS"]];
             }
-#endif
-            [u.user sctpDataIndication:self
-                                userId:u.userId
-                              streamId:streamId
-                            protocolId:protocolId
-                                  data:data];
+    #endif
+            self.status = UMSOCKET_STATUS_IS;
+            [self reportStatus];
         }
-        if([u.profile wantsMonitor])
-        {
-            [u.user sctpMonitorIndication:self
-                                   userId:u.userId
-                                 streamId:streamId
-                               protocolId:protocolId
-                                     data:data
-                                 incoming:YES];
-        }
-    }
-    return UMSocketError_no_error;
 
+        NSArray *usrs = [_users arrayCopy];
+        for(UMLayerSctpUser *u in usrs)
+        {
+            if( [u.profile wantsProtocolId:protocolId]
+               || [u.profile wantsStreamId:streamId])
+            {
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+                if(self.logLevel <= UMLOG_DEBUG)
+                {
+                    [self logDebug:[NSString stringWithFormat:@"passing data '%@' to USER[%@]",data.description,u.user.layerName]];
+                }
+    #endif
+                [u.user sctpDataIndication:self
+                                    userId:u.userId
+                                  streamId:streamId
+                                protocolId:protocolId
+                                      data:data];
+            }
+            if([u.profile wantsMonitor])
+            {
+                [u.user sctpMonitorIndication:self
+                                       userId:u.userId
+                                     streamId:streamId
+                                   protocolId:protocolId
+                                         data:data
+                                     incoming:YES];
+            }
+        }
+        return UMSocketError_no_error;
+    }
 }
+
 #pragma mark -
 #pragma mark Config Handling
 - (void)setConfig:(NSDictionary *)cfg applicationContext:(id<UMLayerSctpApplicationContextProtocol>)appContext
 {
-    if(_registry==NULL)
-    {
-        NSLog(@"Error: configuring a SCTP object which does not have .registry initialized to a global UMSocketSCTPRegistry object");
-        exit(0); 
-    }
-    [self readLayerConfig:cfg];
-    if(cfg[@"allow-any-remote-port-inbound"])
-    {
-        _allowAnyRemotePortIncoming = [cfg[@"allow-any-remote-port-inbound"] boolValue];
-    }
-    else
-    {
-        _allowAnyRemotePortIncoming = NO;
-    }
-    if (cfg[@"local-ip"])
-    {
-        id local_ip_object = cfg[@"local-ip"];
-        if([local_ip_object isKindOfClass:[NSString class]])
+    @autoreleasepool
         {
-            NSString *line = (NSString *)local_ip_object;
-            self.configured_local_addresses = [line componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@" \t;"]];
-        }
-        else if([local_ip_object isKindOfClass:[UMSynchronizedArray class]])
-        {
-            UMSynchronizedArray *ua = (UMSynchronizedArray *)local_ip_object;
-            self.configured_local_addresses = [ua.array copy];
-        }
-        else if([local_ip_object isKindOfClass:[UMSynchronizedArray class]])
-        {
-            UMSynchronizedArray *arr = (UMSynchronizedArray *)local_ip_object;
-            self.configured_local_addresses = [arr arrayCopy];
-        }
-        else if([local_ip_object isKindOfClass:[NSArray class]])
-        {
-            NSArray *arr = (NSArray *)local_ip_object;
-            self.configured_local_addresses = [arr copy];
-        }
-    }
-    else
-    {
-        NSLog(@"Warning: no local-ip defined for sctp %@",self.layerName);
-    }
-    if (cfg[@"local-port"])
-    {
-        _configured_local_port = [cfg[@"local-port"] intValue];
-    }
-    if (cfg[@"remote-ip"])
-    {
-        id remote_ip_object = cfg[@"remote-ip"];
-        if([remote_ip_object isKindOfClass:[NSString class]])
-        {
-            NSString *line = (NSString *)remote_ip_object;
-            self.configured_remote_addresses = [line componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@" \t;"]];
-        }
-        else if([remote_ip_object isKindOfClass:[UMSynchronizedArray class]])
-        {
-            UMSynchronizedArray *ua = (UMSynchronizedArray *)remote_ip_object;
-            self.configured_remote_addresses = [ua.array copy];
-        }
-        else if([remote_ip_object isKindOfClass:[UMSynchronizedArray class]])
-        {
-            UMSynchronizedArray *arr = (UMSynchronizedArray *)remote_ip_object;
-            self.configured_remote_addresses = [arr arrayCopy];
-        }
-        else if([remote_ip_object isKindOfClass:[NSArray class]])
-        {
-            NSArray *arr = (NSArray *)remote_ip_object;
-            self.configured_remote_addresses = [arr copy];
-        }
-    }
-    if (cfg[@"remote-port"])
-    {
-        _configured_remote_port = [cfg[@"remote-port"] intValue];
-    }
-    if (cfg[@"passive"])
-    {
-        _isPassive = [cfg[@"passive"] boolValue];
-    }
-    if (cfg[@"heartbeat"])
-    {
-        _heartbeatSeconds = [cfg[@"heartbeat"] doubleValue];
-    }
-    if (cfg[@"reconnect-timer"])
-    {
-        _reconnectTimerValue = [cfg[@"reconnect-timer"] doubleValue];
-        _reconnectTimer.seconds = _reconnectTimerValue;
-    }
 
-    if (cfg[@"mtu"])
-    {
-        _mtu = [cfg[@"mtu"] intValue];
-    }
+        if(_registry==NULL)
+        {
+            NSLog(@"Error: configuring a SCTP object which does not have .registry initialized to a global UMSocketSCTPRegistry object");
+            exit(0);
+        }
+        [self readLayerConfig:cfg];
+        if(cfg[@"allow-any-remote-port-inbound"])
+        {
+            _allowAnyRemotePortIncoming = [cfg[@"allow-any-remote-port-inbound"] boolValue];
+        }
+        else
+        {
+            _allowAnyRemotePortIncoming = NO;
+        }
+        if (cfg[@"local-ip"])
+        {
+            id local_ip_object = cfg[@"local-ip"];
+            if([local_ip_object isKindOfClass:[NSString class]])
+            {
+                NSString *line = (NSString *)local_ip_object;
+                self.configured_local_addresses = [line componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@" \t;"]];
+            }
+            else if([local_ip_object isKindOfClass:[UMSynchronizedArray class]])
+            {
+                UMSynchronizedArray *ua = (UMSynchronizedArray *)local_ip_object;
+                self.configured_local_addresses = [ua.array copy];
+            }
+            else if([local_ip_object isKindOfClass:[UMSynchronizedArray class]])
+            {
+                UMSynchronizedArray *arr = (UMSynchronizedArray *)local_ip_object;
+                self.configured_local_addresses = [arr arrayCopy];
+            }
+            else if([local_ip_object isKindOfClass:[NSArray class]])
+            {
+                NSArray *arr = (NSArray *)local_ip_object;
+                self.configured_local_addresses = [arr copy];
+            }
+        }
+        else
+        {
+            NSLog(@"Warning: no local-ip defined for sctp %@",self.layerName);
+        }
+        if (cfg[@"local-port"])
+        {
+            _configured_local_port = [cfg[@"local-port"] intValue];
+        }
+        if (cfg[@"remote-ip"])
+        {
+            id remote_ip_object = cfg[@"remote-ip"];
+            if([remote_ip_object isKindOfClass:[NSString class]])
+            {
+                NSString *line = (NSString *)remote_ip_object;
+                self.configured_remote_addresses = [line componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@" \t;"]];
+            }
+            else if([remote_ip_object isKindOfClass:[UMSynchronizedArray class]])
+            {
+                UMSynchronizedArray *ua = (UMSynchronizedArray *)remote_ip_object;
+                self.configured_remote_addresses = [ua.array copy];
+            }
+            else if([remote_ip_object isKindOfClass:[UMSynchronizedArray class]])
+            {
+                UMSynchronizedArray *arr = (UMSynchronizedArray *)remote_ip_object;
+                self.configured_remote_addresses = [arr arrayCopy];
+            }
+            else if([remote_ip_object isKindOfClass:[NSArray class]])
+            {
+                NSArray *arr = (NSArray *)remote_ip_object;
+                self.configured_remote_addresses = [arr copy];
+            }
+        }
+        if (cfg[@"remote-port"])
+        {
+            _configured_remote_port = [cfg[@"remote-port"] intValue];
+        }
+        if (cfg[@"passive"])
+        {
+            _isPassive = [cfg[@"passive"] boolValue];
+        }
+        if (cfg[@"heartbeat"])
+        {
+            _heartbeatSeconds = [cfg[@"heartbeat"] doubleValue];
+        }
+        if (cfg[@"reconnect-timer"])
+        {
+            _reconnectTimerValue = [cfg[@"reconnect-timer"] doubleValue];
+            _reconnectTimer.seconds = _reconnectTimerValue;
+        }
 
-    if (cfg[@"max-init-timeout"])
-    {
-        _maxInitTimeout = [cfg[@"max-init-timeout"] intValue];
+        if (cfg[@"mtu"])
+        {
+            _mtu = [cfg[@"mtu"] intValue];
+        }
+
+        if (cfg[@"max-init-timeout"])
+        {
+            _maxInitTimeout = [cfg[@"max-init-timeout"] intValue];
+        }
+        else
+        {
+            _maxInitTimeout = 15; /* we send INIT every 15 sec */
+        }
+        
+        if (cfg[@"max-init-attempts"])
+        {
+            _maxInitAttempts = [cfg[@"max-init-attempts"] intValue];
+        }
+        else
+        {
+            _maxInitAttempts = 12; /* we try up to 12 titmes (3 minutes at 15sec intervalls) */
+        }
+    #ifdef ULIB_SCTP_DEBUG
+        NSLog(@"configured_local_addresses=%@",configured_local_addresses);
+        NSLog(@"configured_remote_addresses=%@",configured_remote_addresses);
+    #endif
     }
-    else
-    {
-        _maxInitTimeout = 15; /* we send INIT every 15 sec */
-    }
-    
-    if (cfg[@"max-init-attempts"])
-    {
-        _maxInitAttempts = [cfg[@"max-init-attempts"] intValue];
-    }
-    else
-    {
-        _maxInitAttempts = 12; /* we try up to 12 titmes (3 minutes at 15sec intervalls) */
-    }
-#ifdef ULIB_SCTP_DEBUG
-    NSLog(@"configured_local_addresses=%@",configured_local_addresses);
-    NSLog(@"configured_remote_addresses=%@",configured_remote_addresses);
-#endif
 }
-
 
 - (NSDictionary *)config
 {
-    NSMutableDictionary *config = [[NSMutableDictionary alloc]init];
-    [self addLayerConfig:config];
-    config[@"local-ip"] = [_configured_local_addresses componentsJoinedByString:@" "];
-    config[@"local-port"] = @(_configured_local_port);
-    config[@"remote-ip"] = [_configured_remote_addresses componentsJoinedByString:@" "];
-    config[@"remote-port"] = @(_configured_remote_port);
-    config[@"passive"] = _isPassive ? @YES : @ NO;
-    config[@"heartbeat"] = @(_heartbeatSeconds);
-    config[@"reconnect-timer"] = @(_reconnectTimerValue);
-    config[@"heartbeat"] = @(_heartbeatSeconds);
-    config[@"mtu"] = @(_mtu);
-    return config;
+    @autoreleasepool
+    {
+        NSMutableDictionary *config = [[NSMutableDictionary alloc]init];
+        [self addLayerConfig:config];
+        config[@"local-ip"] = [_configured_local_addresses componentsJoinedByString:@" "];
+        config[@"local-port"] = @(_configured_local_port);
+        config[@"remote-ip"] = [_configured_remote_addresses componentsJoinedByString:@" "];
+        config[@"remote-port"] = @(_configured_remote_port);
+        config[@"passive"] = _isPassive ? @YES : @ NO;
+        config[@"heartbeat"] = @(_heartbeatSeconds);
+        config[@"reconnect-timer"] = @(_reconnectTimerValue);
+        config[@"heartbeat"] = @(_heartbeatSeconds);
+        config[@"mtu"] = @(_mtu);
+        return config;
+    }
 }
 
 - (NSDictionary *)apiStatus
 {
-    NSMutableDictionary *d = [[NSMutableDictionary alloc]init];
-    switch(_status)
+    @autoreleasepool
     {
-        case UMSOCKET_STATUS_FOOS:
-            d[@"status"] = @"M-FOOS";
-            break;
-        case UMSOCKET_STATUS_OFF:
-            d[@"status"] = @"OFF";
-            break;
-        case UMSOCKET_STATUS_OOS:
-            d[@"status"] = @"OOS";
-            break;
-        case UMSOCKET_STATUS_IS:
-            d[@"status"] = @"IS";
-            break;
-        default:
-            d[@"status"] = [NSString stringWithFormat:@"unknown(%d)",_status];
-            break;
-    }
-    d[@"name"] = self.layerName;
-    
-    d[@"configured-local-port"] = @(_configured_local_port);
-    d[@"configured-remote-port"] = @(_configured_remote_port);
-    d[@"active-local-port"] = @(_active_local_port);
-    d[@"active-remote-port"] = @(_active_remote_port);
+        NSMutableDictionary *d = [[NSMutableDictionary alloc]init];
+        switch(_status)
+        {
+            case UMSOCKET_STATUS_FOOS:
+                d[@"status"] = @"M-FOOS";
+                break;
+            case UMSOCKET_STATUS_OFF:
+                d[@"status"] = @"OFF";
+                break;
+            case UMSOCKET_STATUS_OOS:
+                d[@"status"] = @"OOS";
+                break;
+            case UMSOCKET_STATUS_IS:
+                d[@"status"] = @"IS";
+                break;
+            default:
+                d[@"status"] = [NSString stringWithFormat:@"unknown(%d)",_status];
+                break;
+        }
+        d[@"name"] = self.layerName;
+        
+        d[@"configured-local-port"] = @(_configured_local_port);
+        d[@"configured-remote-port"] = @(_configured_remote_port);
+        d[@"active-local-port"] = @(_active_local_port);
+        d[@"active-remote-port"] = @(_active_remote_port);
 
-    if(_configured_local_addresses.count > 0)
-    {
-        d[@"configured-local-addresses"] = [_configured_local_addresses copy];
+        if(_configured_local_addresses.count > 0)
+        {
+            d[@"configured-local-addresses"] = [_configured_local_addresses copy];
+        }
+        if(_configured_remote_addresses.count>0)
+        {
+            d[@"configured-remote-addresses"] = [_configured_remote_addresses copy];
+        }
+        if(_active_local_addresses.count)
+        {
+            d[@"active-local-addresses"] = [_active_local_addresses copy];
+        }
+        if(_active_remote_addresses.count)
+        {
+            d[@"active-remote-addresses"] = [_active_remote_addresses copy];
+        }
+        d[@"is-passive"] = _isPassive ? @(YES) : @(NO);
+        d[@"poll-timeout-in-ms"] = @(_timeoutInMs);
+        d[@"heartbeat"] = @(_heartbeatSeconds);
+        d[@"mtu"] = @(_mtu);
+        return d;
     }
-    if(_configured_remote_addresses.count>0)
-    {
-        d[@"configured-remote-addresses"] = [_configured_remote_addresses copy];
-    }
-    if(_active_local_addresses.count)
-    {
-        d[@"active-local-addresses"] = [_active_local_addresses copy];
-    }
-    if(_active_remote_addresses.count)
-    {
-        d[@"active-remote-addresses"] = [_active_remote_addresses copy];
-    }
-    d[@"is-passive"] = _isPassive ? @(YES) : @(NO);
-    d[@"poll-timeout-in-ms"] = @(_timeoutInMs);
-    d[@"heartbeat"] = @(_heartbeatSeconds);
-    d[@"mtu"] = @(_mtu);
-    return d;
 }
 
 - (void)stopDetachAndDestroy
@@ -1688,49 +1745,61 @@
 
 - (void)reconnectTimerFires
 {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(self.logLevel <= UMLOG_DEBUG)
+    @autoreleasepool
     {
-        [self logDebug:@"reconnectTimerFires"];
-    }
-#endif
-    [_reconnectTimer stop];
-    if(_status != UMSOCKET_STATUS_IS)
-    {
-        uint32_t xassocId = -1;
-        [_listener connectToAddresses:_configured_remote_addresses
-                                 port:_configured_remote_port
-                                assoc:&xassocId
-                                layer:self];
-        if(xassocId != -1)
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
         {
-            _assocIdPresent = YES;
-            _assocId = xassocId;
-            [_registry registerAssoc:@(_assocId) forLayer:self];
+            [self logDebug:@"reconnectTimerFires"];
+        }
+    #endif
+        [_reconnectTimer stop];
+        if(_status != UMSOCKET_STATUS_IS)
+        {
+            uint32_t xassocId = -1;
+            [_listener connectToAddresses:_configured_remote_addresses
+                                     port:_configured_remote_port
+                                    assoc:&xassocId
+                                    layer:self];
+            if(xassocId != -1)
+            {
+                _assocIdPresent = YES;
+                _assocId = xassocId;
+                [_registry registerAssoc:@(_assocId) forLayer:self];
+            }
         }
     }
 }
 
 - (void)processError:(UMSocketError)err
 {
-    /* FIXME */
-    NSLog(@"processError %d %@ received in UMLayerSctp %@",err, [UMSocket getSocketErrorString:err], _layerName);
+    @autoreleasepool
+    {
+        /* FIXME */
+        NSLog(@"processError %d %@ received in UMLayerSctp %@",err, [UMSocket getSocketErrorString:err], _layerName);
+    }
 }
 
 
 - (void)processHangUp
 {
-    NSLog(@"processHangUp received in UMLayerSctp %@",_layerName);
-    [self powerdown];
-    [self reportStatus];
+    @autoreleasepool
+    {
+        NSLog(@"processHangUp received in UMLayerSctp %@",_layerName);
+        [self powerdown];
+        [self reportStatus];
+    }
 }
 
 - (void)processInvalidSocket
 {
-    NSLog(@"processInvalidSocket received in UMLayerSctp %@",_layerName);
-    _isInvalid = YES;
-    [self powerdown];
-    [self reportStatus];
+    @autoreleasepool
+    {
+        NSLog(@"processInvalidSocket received in UMLayerSctp %@",_layerName);
+        _isInvalid = YES;
+        [self powerdown];
+        [self reportStatus];
+    }
 }
 
 @end
