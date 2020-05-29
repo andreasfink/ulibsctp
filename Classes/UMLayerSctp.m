@@ -450,8 +450,7 @@
 - (void)_dataTask:(UMSctpTask_Data *)task
 {
     @autoreleasepool
-        {
-
+    {
         id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
 
     #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -473,48 +472,60 @@
             UMSocketError err = UMSocketError_no_error;
 
             ssize_t sent_packets = 0;
-            [_linkLock lock];
-            if(_directSocket)
+            
+            while(1)
             {
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
-                if(self.logLevel <= UMLOG_DEBUG)
+                [_linkLock lock];
+                if(_directSocket)
                 {
-                    [self logDebug:[NSString stringWithFormat:@" Calling sctp_sendmsg on _directsocket (%@)",[_configured_remote_addresses componentsJoinedByString:@","]]];
-                }
-    #endif
+        #if defined(ULIBSCTP_CONFIG_DEBUG)
+                    if(self.logLevel <= UMLOG_DEBUG)
+                    {
+                        [self logDebug:[NSString stringWithFormat:@" Calling sctp_sendmsg on _directsocket (%@)",[_configured_remote_addresses componentsJoinedByString:@","]]];
+                    }
+        #endif
 
-                uint32_t        tmp_assocId = _assocId;
-                sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
+                    uint32_t        tmp_assocId = _assocId;
+                    sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
+                                                             port:_configured_remote_port
+                                                            assoc:&tmp_assocId
+                                                             data:task.data
+                                                           stream:task.streamId
+                                                         protocol:task.protocolId
+                                                            error:&err];
+                    _assocId = tmp_assocId;
+
+                }
+                else
+                {
+        #if defined(ULIBSCTP_CONFIG_DEBUG)
+                    if(self.logLevel <= UMLOG_DEBUG)
+                    {
+                        [self logDebug:@" Calling sctp_sendmsg on _listener"];
+                    }
+        #endif
+                    uint32_t tmp_assocId = _assocId;
+                    sent_packets = [_listener sendToAddresses:_configured_remote_addresses
                                                          port:_configured_remote_port
                                                         assoc:&tmp_assocId
                                                          data:task.data
                                                        stream:task.streamId
                                                      protocol:task.protocolId
-                                                        error:&err];
-                _assocId = tmp_assocId;
-
-            }
-            else
-            {
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
-                if(self.logLevel <= UMLOG_DEBUG)
-                {
-                    [self logDebug:@" Calling sctp_sendmsg on _listener"];
+                                                        error:&err
+                                                        layer:self];
+                    _assocId = tmp_assocId;
                 }
-    #endif
-                uint32_t tmp_assocId = _assocId;
-                sent_packets = [_listener sendToAddresses:_configured_remote_addresses
-                                                     port:_configured_remote_port
-                                                    assoc:&tmp_assocId
-                                                     data:task.data
-                                                   stream:task.streamId
-                                                 protocol:task.protocolId
-                                                    error:&err
-                                                    layer:self];
-                _assocId = tmp_assocId;
+                [_linkLock unlock];
+                if(sent_packets>0)
+                {
+                    break;
+                }
+                if(errno != EAGAIN)
+                {
+                    break;
+                }
+                continue; /* we loop until we get errno not EAGAIN or sent_packets returning > 0 */
             }
-            [_linkLock unlock];
-
             if(sent_packets>0)
             {
                 [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];

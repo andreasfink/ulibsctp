@@ -1074,7 +1074,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                     flags);
 #else
 
-	int timetolive=2000;
+	int timetolive=8000;
 	int context=0;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1174,7 +1174,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #else
 
 
-    uint32_t timetolive=2000;
+    uint32_t timetolive=8000;
     uint32_t context=0;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
