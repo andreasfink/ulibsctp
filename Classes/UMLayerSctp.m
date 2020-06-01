@@ -429,19 +429,26 @@
     @autoreleasepool
     {
         [_linkLock lock];
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(self.logLevel <=UMLOG_DEBUG)
+        @try
         {
-            id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
-            [self logDebug:[NSString stringWithFormat:@"closing for %@",user.layerName]];
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+            if(self.logLevel <=UMLOG_DEBUG)
+            {
+                id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
+                [self logDebug:[NSString stringWithFormat:@"closing for %@",user.layerName]];
+            }
+#endif
+            [self powerdown];
+            if(_listenerStarted==YES)
+            {
+                [_listener stopListeningFor:self];
+            }
+            _listener = NULL;
         }
-    #endif
-        [self powerdown];
-        if(_listenerStarted==YES)
+        @catch(NSException *e)
         {
-            [_listener stopListeningFor:self];
+            NSLog(@"%@",e);
         }
-        _listener = NULL;
         [_linkLock unlock];
         [self reportStatus];
     }
@@ -449,6 +456,7 @@
 
 - (void)_dataTask:(UMSctpTask_Data *)task
 {
+    BOOL linkLocked=NO;
     @autoreleasepool
     {
         id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
@@ -476,6 +484,7 @@
             while(1)
             {
                 [_linkLock lock];
+                linkLocked = YES;
                 if(_directSocket)
                 {
         #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -516,6 +525,7 @@
                     _assocId = tmp_assocId;
                 }
                 [_linkLock unlock];
+                linkLocked = NO;
                 if(sent_packets>0)
                 {
                     break;
@@ -650,6 +660,10 @@
         }
         @catch (NSException *exception)
         {
+            if(linkLocked)
+            {
+                [_linkLock unlock];
+            }
             [self logMajorError:[NSString stringWithFormat:@"%@: %@",exception.name,exception.reason]];
             if(task.ackRequest)
             {
