@@ -12,6 +12,10 @@
 @class UMLayerSctp;
 
 @interface UMSctpTask_Open : UMLayerTask
+{
+    BOOL _sendAbortFirst;
+}
+@property(readwrite,assign) BOOL sendAbortFirst;
 
 - (UMSctpTask_Open *)initWithReceiver:(UMLayerSctp *)rx sender:(id<UMLayerSctpUserProtocol>)tx;
 - (void)main;

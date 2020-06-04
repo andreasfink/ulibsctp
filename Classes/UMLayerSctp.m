@@ -126,7 +126,13 @@
 
 - (void)openFor:(id<UMLayerSctpUserProtocol>)caller
 {
-    UMLayerTask *task = [[UMSctpTask_Open alloc]initWithReceiver:self sender:caller];
+    [self openFor:caller sendAbortFirst:NO];
+}
+
+- (void)openFor:(id<UMLayerSctpUserProtocol>)caller sendAbortFirst:(BOOL)abortFirst
+{
+    UMSctpTask_Open *task = [[UMSctpTask_Open alloc]initWithReceiver:self sender:caller];
+    task.sendAbortFirst = abortFirst;
     [self queueFromUpper:task];
 }
 
@@ -256,9 +262,9 @@
 {
     @autoreleasepool
     {
-
         uint32_t        tmp_assocId = -1;
-
+        BOOL sendAbort = task.sendAbortFirst;
+        
         id<UMLayerUserProtocol> caller = task.sender;
 
         if(self.logLevel <= UMLOG_DEBUG)
@@ -314,6 +320,7 @@
             sleep(1);
             _assocId = -1;
             _assocIdPresent = NO;
+            
             if(!_isPassive)
             {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -363,6 +370,17 @@
                     [self logDebug:[NSString stringWithFormat:@" using _directSocket"]];
     #endif
 
+                    if(sendAbort)
+                    {
+                        for(NSString *addr in _configured_remote_addresses)
+                        {
+                            [_directSocket abortToAddress:addr
+                                                     port:_configured_remote_port
+                                                    assoc:0
+                                                   stream:0
+                                                 protocol:0];
+                        }
+                    }
                     err = [_directSocket connectToAddresses:_configured_remote_addresses
                                                         port:_configured_remote_port
                                                        assoc:&tmp_assocId];
@@ -457,6 +475,7 @@
 - (void)_dataTask:(UMSctpTask_Data *)task
 {
     BOOL linkLocked=NO;
+    UMSleeper *sleeper = [[UMSleeper alloc]init];
     @autoreleasepool
     {
         id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
@@ -470,6 +489,7 @@
             [self logDebug:[NSString stringWithFormat:@" ackRequest: %@",(task.ackRequest ? task.ackRequest.description  : @"(not present)")]];
         }
     #endif
+        BOOL failed = NO;
 
         @try
         {
@@ -481,6 +501,7 @@
 
             ssize_t sent_packets = 0;
             
+            int attempts=0;
             while(1)
             {
                 [_linkLock lock];
@@ -495,6 +516,7 @@
         #endif
 
                     uint32_t        tmp_assocId = _assocId;
+                    attempts++;
                     sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
                                                              port:_configured_remote_port
                                                             assoc:&tmp_assocId
@@ -514,6 +536,7 @@
                     }
         #endif
                     uint32_t tmp_assocId = _assocId;
+                    attempts++;
                     sent_packets = [_listener sendToAddresses:_configured_remote_addresses
                                                          port:_configured_remote_port
                                                         assoc:&tmp_assocId
@@ -526,43 +549,50 @@
                 }
                 [_linkLock unlock];
                 linkLocked = NO;
-                if(sent_packets>0)
+                
+                /*  we loop until we get errno not EAGAIN or sent_packets returning > 0 */
+                if((sent_packets>0) || (errno != EAGAIN))
                 {
                     break;
                 }
-                if(errno != EAGAIN)
-                {
-                    break;
-                }
-                continue; /* we loop until we get errno not EAGAIN or sent_packets returning > 0 */
-            }
-            if(sent_packets>0)
-            {
-                [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
-                [_outboundThroughputPackets increaseBy:(uint32_t)sent_packets];
-            }
-            NSArray *usrs = [_users arrayCopy];
-            for(UMLayerSctpUser *u in usrs)
-            {
-                if([u.profile wantsMonitor])
-                {
-                    [u.user sctpMonitorIndication:self
-                                           userId:u.userId
-                                         streamId:task.streamId
-                                       protocolId:task.protocolId
-                                             data:task.data
-                                         incoming:NO];
-                }
-            }
 
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
+                /* we have EAGAIN */
+                /* lets try up to 100 times and wait 100ms every 10th time */
+                if(attempts % 10==0)
+                {
+                    [sleeper sleepSeconds:0.2];
+                }
+                if(attempts < 100)
+                {
+                    continue;
+                }
+                /* if we get here we have attempted 100 times and failed */
+                /* we can assume this connection dead */
+                failed=YES;
+            }
+#if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@" sent_packets: %ld",sent_packets]];
             }
-    #endif
-            if(sent_packets >= 0)
+#endif
+            if(sent_packets>0)
             {
+                [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
+                [_outboundThroughputPackets increaseBy:(uint32_t)sent_packets];
+                NSArray *usrs = [_users arrayCopy];
+                for(UMLayerSctpUser *u in usrs)
+                {
+                    if([u.profile wantsMonitor])
+                    {
+                        [u.user sctpMonitorIndication:self
+                                               userId:u.userId
+                                             streamId:task.streamId
+                                           protocolId:task.protocolId
+                                                 data:task.data
+                                             incoming:NO];
+                    }
+                }
                 NSDictionary *ui = @{
                                      @"protocolId" : @(task.protocolId),
                                      @"streamId"   : @(task.streamId),
@@ -573,6 +603,7 @@
                 //report[@"backtrace"] = UMBacktrace(NULL,0);
                 [user sentAckConfirmFrom:self
                                 userInfo:report];
+                
             }
             else
             {
@@ -611,7 +642,7 @@
                         break;
                     case EAGAIN:
                         @throw([NSException exceptionWithName:@"EAGAIN"
-                                                       reason:@"The socket is marked non-blocking and the requested operation would block."
+                                                       reason:@"tried sending packet 100 times and still failed"
                                                      userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
                         break;
                     case ENOBUFS:
@@ -713,7 +744,6 @@
 {
     @autoreleasepool
     {
-
         id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
 
         switch(self.status)
@@ -791,6 +821,14 @@
             [_registry unregisterAssoc:@(_assocId)];
             _assocId = -1;
             _assocIdPresent = NO;
+            for(NSString *addr in _configured_remote_addresses)
+            {
+                [_directSocket abortToAddress:addr
+                                         port:(_active_remote_port>0 ? _active_remote_port :  _configured_remote_port)
+                                        assoc:_assocId
+                                       stream:0
+                                     protocol:0];
+            }
             [_directSocket close];
             _directSocket = NULL;
         }

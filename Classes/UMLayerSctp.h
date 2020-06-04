@@ -121,6 +121,7 @@
                 userId:(id)uid;
 
 - (void)openFor:(id<UMLayerSctpUserProtocol>)caller;
+- (void)openFor:(id<UMLayerSctpUserProtocol>)caller sendAbortFirst:(BOOL)abortFirst;
 - (void)closeFor:(id<UMLayerSctpUserProtocol>)caller;
 - (void)dataFor:(id<UMLayerSctpUserProtocol>)caller
            data:(NSData *)sendingData
