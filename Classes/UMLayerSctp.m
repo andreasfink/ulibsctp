@@ -370,27 +370,32 @@
                     [self logDebug:[NSString stringWithFormat:@" using _directSocket"]];
     #endif
 
-                    @try
+                    
+                    if(sendAbort)
                     {
-                        if(sendAbort)
+                        for(NSString *addr in _configured_remote_addresses)
                         {
-                            for(NSString *addr in _configured_remote_addresses)
+                            @try
                             {
+                                uint32_t a=0;
+                                if(_assocId > 0)
+                                {
+                                    a = _assocId;
+                                }
                                 [_directSocket abortToAddress:addr
                                                          port:_configured_remote_port
-                                                        assoc:0
+                                                        assoc:a
                                                        stream:0
                                                      protocol:0];
                             }
+                            @catch(NSException *e)
+                            {
+                            }
                         }
-                        err = [_directSocket connectToAddresses:_configured_remote_addresses
-                                                            port:_configured_remote_port
-                                                           assoc:&tmp_assocId];
                     }
-                    @catch(NSException *e)
-                    {
-                        
-                    }
+                    err = [_directSocket connectToAddresses:_configured_remote_addresses
+                                                        port:_configured_remote_port
+                                                       assoc:&tmp_assocId];                    
                     if(tmp_assocId != -1)
                     {
                         _assocId = tmp_assocId;
