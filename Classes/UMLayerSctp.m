@@ -370,20 +370,27 @@
                     [self logDebug:[NSString stringWithFormat:@" using _directSocket"]];
     #endif
 
-                    if(sendAbort)
+                    @try
                     {
-                        for(NSString *addr in _configured_remote_addresses)
+                        if(sendAbort)
                         {
-                            [_directSocket abortToAddress:addr
-                                                     port:_configured_remote_port
-                                                    assoc:0
-                                                   stream:0
-                                                 protocol:0];
+                            for(NSString *addr in _configured_remote_addresses)
+                            {
+                                [_directSocket abortToAddress:addr
+                                                         port:_configured_remote_port
+                                                        assoc:0
+                                                       stream:0
+                                                     protocol:0];
+                            }
                         }
+                        err = [_directSocket connectToAddresses:_configured_remote_addresses
+                                                            port:_configured_remote_port
+                                                           assoc:&tmp_assocId];
                     }
-                    err = [_directSocket connectToAddresses:_configured_remote_addresses
-                                                        port:_configured_remote_port
-                                                       assoc:&tmp_assocId];
+                    @catch(NSException *e)
+                    {
+                        
+                    }
                     if(tmp_assocId != -1)
                     {
                         _assocId = tmp_assocId;
@@ -421,12 +428,12 @@
         }
         @catch (NSException *exception)
         {
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
+ //  #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"%@ %@",exception.name,exception.reason]];
             }
-    #endif
+ //   #endif
             if(exception.userInfo)
             {
                 NSNumber *e = exception.userInfo[@"errno"];
