@@ -76,6 +76,7 @@
     {
         listener = [[UMSocketSCTPListener alloc]initWithPort:port localIpAddresses:ips];
         listener.logLevel = _logLevel;
+        listener.sendAborts = _sendAborts;
         [self addListener:listener];
     }
     [_lock unlock];
@@ -166,6 +167,7 @@
         if(e==NULL)
         {
             e = [[UMSocketSCTPListener alloc]initWithPort:port localIpAddresses:ips];
+            e.sendAborts = _sendAborts;
             e.registry = self;
             NSString *key1 =[UMSocketSCTPRegistry keyForPort:port ips:ips];
             _entries[key1]=e;

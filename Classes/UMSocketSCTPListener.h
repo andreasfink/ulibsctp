@@ -28,6 +28,7 @@
     int                         _configuredMtu;
     BOOL                        _firstMessage;
     BOOL                        _isInvalid;
+    BOOL                        _sendAborts;
     UMLogLevel                  _logLevel;
 }
 
@@ -40,6 +41,7 @@
 @property(readwrite,assign) int     mtu;
 @property(readwrite,assign) BOOL    firstMessage;
 @property(readwrite,assign) BOOL    isInvalid;
+@property(readwrite,assign) BOOL    sendAborts;
 @property(readwrite,assign) UMLogLevel logLevel;
 
 - (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses;

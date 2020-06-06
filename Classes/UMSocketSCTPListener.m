@@ -253,17 +253,19 @@
                 else
                 {
                     /* we have not found anyone listening to this so we send abort */
-#if 0
-                    UMSocketError err = [_umsocket abortToAddress:rx.remoteAddress
-                                                             port:rx.remotePort
-                                                            assoc:(sctp_assoc_t) rx.assocId.longValue
-                                                           stream:rx.streamId
-                                                         protocol:rx.protocolId];
-                    if(err !=UMSocketError_no_error)
+                    if(_sendAborts)
                     {
-                        NSLog(@"abortToAddress  %@ port %d. error %@",rx.remoteAddress,rx.remotePort, [UMSocket getSocketErrorString:err]);
+                        uint32_t assoc = rx.assocId.unsignedIntValue;
+                        UMSocketError err = [_umsocket abortToAddress:rx.remoteAddress
+                                                                 port:rx.remotePort
+                                                                assoc:assoc
+                                                               stream:rx.streamId
+                                                             protocol:rx.protocolId];
+                        if(err !=UMSocketError_no_error)
+                        {
+                            NSLog(@"abortToAddress  %@ port %d. error %@",rx.remoteAddress,rx.remotePort, [UMSocket getSocketErrorString:err]);
+                        }
                     }
-#endif
                 }
             }
         }
