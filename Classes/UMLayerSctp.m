@@ -514,7 +514,9 @@
             ssize_t sent_packets = 0;
             
             int attempts=0;
-            while(1)
+            
+            /* we try to send as long as no ASSOC down has been received or at least once (as we might not have a direct socket yet */
+            while((attempts==0) ||  (self.status==UMSOCKET_STATUS_IS))
             {
                 [_linkLock lock];
                 linkLocked = YES;
@@ -569,12 +571,13 @@
                 }
 
                 /* we have EAGAIN */
-                /* lets try up to 100 times and wait 100ms every 10th time */
+                /* lets try up to 50 times and wait 200ms every 10th time */
+                /* if thats still not succeeding, we declare this connection dead */
                 if(attempts % 10==0)
                 {
                     [sleeper sleepSeconds:0.2];
                 }
-                if(attempts < 100)
+                if(attempts < 50)
                 {
                     continue;
                 }
@@ -654,7 +657,7 @@
                         break;
                     case EAGAIN:
                         @throw([NSException exceptionWithName:@"EAGAIN"
-                                                       reason:@"tried sending packet 100 times and still failed"
+                                                       reason:@"tried sending packet 50 times and still failed"
                                                      userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
                         break;
                     case ENOBUFS:
