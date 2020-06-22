@@ -917,7 +917,7 @@
     #endif
         }
 
-        if(rx.err==UMSocketError_connection_reset)
+        else if(rx.err==UMSocketError_connection_reset)
         {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
             NSLog(@"receiveData: UMSocketError_connection_reset returned by receiveSCTP");
@@ -927,7 +927,7 @@
             [self reportStatus];
         }
 
-        if(rx.err==UMSocketError_connection_aborted)
+        else if(rx.err==UMSocketError_connection_aborted)
         {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
             NSLog(@"receiveData: UMSocketError_connection_aborted returned by receiveSCTP");
@@ -936,17 +936,17 @@
             [self powerdownInReceiverThread];
             [self reportStatus];
         }
-        if(rx.err==UMSocketError_connection_refused)
+        else if(rx.err==UMSocketError_connection_refused)
         {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
             NSLog(@"receiveData: UMSocketError_connection_refused returned by receiveSCTP");
     #endif
-      /*      [self logDebug:@"ECONNREFUSED"];
+            [self logDebug:@"ECONNREFUSED"];
+            sleep(1);
             [self powerdownInReceiverThread];
             [self reportStatus];
-       */
         }
-        if(rx.err != UMSocketError_no_error)
+        else if(rx.err != UMSocketError_no_error)
         {
             [self logMinorError:[NSString stringWithFormat:@"receiveData: Error %d %@ returned by receiveSCTP",rx.err,[UMSocket getSocketErrorString:rx.err]]];
             [self powerdownInReceiverThread];
@@ -1137,13 +1137,13 @@
         [self.logFeed majorError:snp->sn_assoc_change.sac_error withText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)->OFF"];
         self.status=UMSOCKET_STATUS_OFF;
         [self powerdownInReceiverThread];
+        [self reportStatus];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",_reconnectTimer.seconds]];
         }
 #endif
-
     }
 }
 
