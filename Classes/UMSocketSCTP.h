@@ -131,5 +131,5 @@ struct sctp_sndrcvinfo;
 - (void)updateMtu:(int)newMtu;
 - (UMSocketError)setHeartbeat:(BOOL)enable;
 - (NSArray *)getRemoteIpAddressesForAssoc:(uint32_t)assoc;
-
+- (int)bindx:(struct sockaddr *)localAddress;
 @end
