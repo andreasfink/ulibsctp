@@ -700,8 +700,6 @@
                                                      userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
                         break;
                 }
-                [self powerdown];
-                [self reportStatus];
             }
         }
         @catch (NSException *exception)
@@ -732,7 +730,7 @@
                                   reason:exception.reason
                                errorInfo:errDict];
             }
-            
+            [self powerdown];
         }
         [self reportStatus];
     }
