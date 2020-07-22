@@ -100,9 +100,9 @@
 @property(readwrite,strong) UMSocketSCTPRegistry *registry;
 @property(readwrite,strong) UMSocketSCTPListener *listener;
 @property(readwrite,assign) uint32_t        assocId;
-@property(readwrite,assign) BOOL assocIdPresent;
-@property(readwrite,assign) int mtu;
-@property(readwrite,assign) BOOL newDestination;
+@property(readwrite,assign) BOOL    assocIdPresent;
+@property(readwrite,assign) int     mtu;
+@property(readwrite,assign) BOOL    newDestination;
 @property(readwrite,strong,atomic)      UMSocketSCTP        *directSocket;
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq;
