@@ -734,7 +734,6 @@
             }
             
         }
-        [self powerdown];
         [self reportStatus];
     }
 }
