@@ -581,7 +581,7 @@
                 {
                     continue;
                 }
-                /* if we get here we have attempted 100 times and failed */
+                /* if we get here we have attempted 50 times and failed */
                 /* we can assume this connection dead */
                 failed=YES;
             }
@@ -623,9 +623,9 @@
             else
             {
                 NSLog(@"Error %d %s",errno,strerror(errno));
-                if(errno!=EISCONN)
+                if(errno==EISCONN)
                 {
-                    NSLog(@"still connected");
+                    NSLog(@"already connected");
                 }
                 switch(errno)
                 {
@@ -657,7 +657,7 @@
                         break;
                     case EAGAIN:
                         @throw([NSException exceptionWithName:@"EAGAIN"
-                                                       reason:@"tried sending packet 50 times and still failed"
+                                                       reason:@"Resource temporarily unavailable"
                                                      userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
                         break;
                     case ENOBUFS:
@@ -700,8 +700,6 @@
                                                      userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
                         break;
                 }
-                //[self powerdown];
-                [self reportStatus];
             }
         }
         @catch (NSException *exception)
@@ -734,6 +732,7 @@
             }
             [self powerdown];
         }
+        [self reportStatus];
     }
 }
 
