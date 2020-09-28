@@ -6,6 +6,7 @@
 Makefile
 Makefile.linux
 Makefile.osx
+Makefile.freebsd
 config.h
 config.log
 config.status
