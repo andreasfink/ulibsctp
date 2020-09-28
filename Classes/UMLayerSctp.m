@@ -279,7 +279,7 @@
         {
             if(self.status == UMSOCKET_STATUS_FOOS)
             {
-                NSLog(@"UMSOCKET_STATUS_FOOS");
+                NSLog(@"UMSOCKET_STATUS_FOOS"); 
                 @throw([NSException exceptionWithName:@"FOOS" reason:@"failed due to manual forced out of service status" userInfo:@{@"errno":@(EBUSY), @"backtrace": UMBacktrace(NULL,0)}]);
             }
             if(self.status == UMSOCKET_STATUS_OOS)
