@@ -1152,7 +1152,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
     int flags=SCTP_ABORT;
 
-
+#define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
 #if defined(ULIBSCTP_SCTP_SENDV_SUPPORTED)
     struct sctp_sndinfo  send_info;
     memset(&send_info,0x00,sizeof(struct sctp_sndinfo));
