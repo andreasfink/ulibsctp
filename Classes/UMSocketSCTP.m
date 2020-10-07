@@ -1180,7 +1180,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     if(sp<0)
     {
         int e = errno;
-            /* FIXME: error 40 is returned as too long here under MacOS X */
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"errno: %d %s",e, strerror(e));
 #endif

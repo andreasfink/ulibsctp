@@ -873,7 +873,6 @@
     }
 }
 
-
 - (void) reportStatus
 {
     @autoreleasepool
@@ -896,17 +895,35 @@
 {
     @autoreleasepool
     {
-
     #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSMutableString *s = [[NSMutableString alloc]init];
         [s appendFormat:@"processReceivedData: \n%@",rx.description];
         [self logDebug:s];
     #endif
-
-        if(rx.assocId !=0)
+        
+        if(rx.assocId !=NULL)
         {
-            _assocId = (uint32_t)[rx.assocId unsignedIntValue];
-            _assocIdPresent = YES;
+            if((_assocId == -1) || (_assocIdPresent == NO) || (_directSocket == NULL))
+            {
+                _assocId = (uint32_t)[rx.assocId unsignedLongValue];
+                _assocIdPresent = YES;
+            }
+        }
+        if(_directSocket == NULL)
+        {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+            [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %lu",(unsigned long)tmp_assocId]];
+#endif
+            UMSocketError err = UMSocketError_no_error;
+            _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+            [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
+#endif
+            if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
+            {
+                [_directSocket close];
+                _directSocket = NULL;
+            }
         }
 
         if(rx.err==UMSocketError_try_again)

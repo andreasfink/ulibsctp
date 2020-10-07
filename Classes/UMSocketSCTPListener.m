@@ -218,7 +218,8 @@
 #endif
     if(rx.err == UMSocketError_no_error)
     {
-        if(rx.assocId)
+        BOOL processed=NO;
+        if(rx.assocId != NULL)
         {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             NSLog(@"Looking into registry: %@",_registry);
@@ -227,46 +228,40 @@
             if(layer)
             {
                 [layer processReceivedData:rx];
+                processed = YES;
             }
-            else
+        }
+        if(processed==NO)
+        {
+            /* we have not seen this association id before */
+            /* lets find it by source / destination IP */
+            for(NSString *ip in _localIpAddresses)
             {
-                /* we have not seen this association id before */
-                /* lets find it by source / destination IP */
-                for(NSString *ip in _localIpAddresses)
-                {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-                    NSLog(@"_registry\n\tlayerForLocalIp:%@\n\tlocalPort:%d\n\tremoteIp:%@\n\tremotePort:%d\n",ip,_port,rx.remoteAddress,rx.remotePort);
+                NSLog(@"_registry\n\tlayerForLocalIp:%@\n\tlocalPort:%d\n\tremoteIp:%@\n\tremotePort:%d\n",ip,_port,rx.remoteAddress,rx.remotePort);
 #endif
-                    layer = [_registry layerForLocalIp:ip
-                                             localPort:_port
-                                              remoteIp:rx.remoteAddress
-                                            remotePort:rx.remotePort];
-                    if(layer)
-                    {
-                        break;
-                    }
-                }
+                UMLayerSctp *layer = [_registry layerForLocalIp:ip
+                                                      localPort:_port
+                                                       remoteIp:rx.remoteAddress
+                                                     remotePort:rx.remotePort];
                 if(layer)
                 {
                     [layer processReceivedData:rx];
+                    processed=YES;
                 }
-                else
-                {
-                    /* we have not found anyone listening to this so we send abort */
-                    if(_sendAborts)
-                    {
-                        uint32_t assoc = rx.assocId.unsignedIntValue;
-                        UMSocketError err = [_umsocket abortToAddress:rx.remoteAddress
-                                                                 port:rx.remotePort
-                                                                assoc:assoc
-                                                               stream:rx.streamId
-                                                             protocol:rx.protocolId];
-                        if(err !=UMSocketError_no_error)
-                        {
-                            NSLog(@"abortToAddress  %@ port %d. error %@",rx.remoteAddress,rx.remotePort, [UMSocket getSocketErrorString:err]);
-                        }
-                    }
-                }
+            }
+        }
+        if((processed==NO) && (_sendAborts))
+        {
+            uint32_t assoc = rx.assocId.unsignedIntValue;
+            UMSocketError err = [_umsocket abortToAddress:rx.remoteAddress
+                                                     port:rx.remotePort
+                                                    assoc:assoc
+                                                   stream:rx.streamId
+                                                 protocol:rx.protocolId];
+            if(err !=UMSocketError_no_error)
+            {
+                NSLog(@"abortToAddress  %@ port %d. error %@",rx.remoteAddress,rx.remotePort, [UMSocket getSocketErrorString:err]);
             }
         }
     }
