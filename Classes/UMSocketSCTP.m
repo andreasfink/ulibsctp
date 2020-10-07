@@ -1150,28 +1150,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     int count = 0;
     NSArray *addrs = @[addr];
     NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
-    int flags=SCTP_ABORT;
-
-#define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
-#if defined(ULIBSCTP_SCTP_SENDV_SUPPORTED)
-    struct sctp_sndinfo  send_info;
-    memset(&send_info,0x00,sizeof(struct sctp_sndinfo));
-    send_info.snd_sid = streamId;
-    send_info.snd_flags = flags;
-    send_info.snd_ppid = htonl(protocolId);
-    send_info.snd_context = 0;
-    send_info.snd_assoc_id = assoc;
-
-    sp = sctp_sendv(_sock,
-                    NULL,
-                    0,
-                    (struct sockaddr *)remote_sockaddr.bytes,
-                    count,
-                    &send_info,
-                    sizeof(struct sctp_sndinfo),
-                    SCTP_SENDV_SNDINFO,
-                    flags);
-#else
 
 
     uint32_t timetolive=8000;
@@ -1195,13 +1173,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                       (struct sockaddr *)remote_sockaddr.bytes,
                       (socklen_t)remote_sockaddr.length,
                       htonl(protocolId),
-                      flags, /* flags */
+                      SCTP_ABORT, /* flags */
                       streamId,
                       timetolive, // timetolive,
                       context); // context);
-
-#endif
-
     if(sp<0)
     {
         int e = errno;

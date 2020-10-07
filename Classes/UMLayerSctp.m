@@ -837,11 +837,11 @@
             _assocIdPresent = NO;
             for(NSString *addr in _configured_remote_addresses)
             {
-                [_directSocket abortToAddress:addr
-                                         port:(_active_remote_port>0 ? _active_remote_port :  _configured_remote_port)
-                                        assoc:_assocId
-                                       stream:0
-                                     protocol:0];
+                [_listener.umsocket abortToAddress:addr
+                                              port:(_active_remote_port>0 ? _active_remote_port :  _configured_remote_port)
+                                             assoc:_assocId
+                                            stream:0
+                                          protocol:0];
             }
             [_directSocket close];
             _directSocket = NULL;
