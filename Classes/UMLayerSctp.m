@@ -369,8 +369,6 @@
     #if defined(ULIBSCTP_CONFIG_DEBUG)
                     [self logDebug:[NSString stringWithFormat:@" using _directSocket"]];
     #endif
-
-                    
                     if(sendAbort)
                     {
                         for(NSString *addr in _configured_remote_addresses)
@@ -382,11 +380,11 @@
                                 {
                                     a = _assocId;
                                 }
-                                [_directSocket abortToAddress:addr
-                                                         port:_configured_remote_port
-                                                        assoc:a
-                                                       stream:0
-                                                     protocol:0];
+                                [_listener.umsocket abortToAddress:addr
+                                                              port:_configured_remote_port
+                                                             assoc:a
+                                                            stream:0
+                                                          protocol:0];
                             }
                             @catch(NSException *e)
                             {
@@ -835,6 +833,7 @@
             [_registry unregisterAssoc:@(_assocId)];
             _assocId = -1;
             _assocIdPresent = NO;
+            /*
             for(NSString *addr in _configured_remote_addresses)
             {
                 [_listener.umsocket abortToAddress:addr
@@ -843,6 +842,7 @@
                                             stream:0
                                           protocol:0];
             }
+            */
             [_directSocket close];
             _directSocket = NULL;
         }
