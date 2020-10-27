@@ -912,7 +912,7 @@
         if(_directSocket == NULL)
         {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %lu",(unsigned long)tmp_assocId]];
+            [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %lu",(unsigned long)_assocId]];
 #endif
             UMSocketError err = UMSocketError_no_error;
             _directSocket = [_listener peelOffAssoc:_assocId error:&err];
