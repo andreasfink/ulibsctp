@@ -1150,7 +1150,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     int count = 0;
     NSArray *addrs = @[addr];
     NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
-
+    int flags = SCTP_ABORT;
 
     uint32_t timetolive=8000;
     uint32_t context=0;
@@ -1173,7 +1173,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                       (struct sockaddr *)remote_sockaddr.bytes,
                       (socklen_t)remote_sockaddr.length,
                       htonl(protocolId),
-                      SCTP_ABORT, /* flags */
+                      flags, /* flags */
                       streamId,
                       timetolive, // timetolive,
                       context); // context);
