@@ -591,8 +591,8 @@
 #endif
             if(sent_packets>0)
             {
+                [_outboundThroughputPackets increaseBy:1];
                 [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
-                [_outboundThroughputPackets increaseBy:(uint32_t)sent_packets];
                 NSArray *usrs = [_users arrayCopy];
                 for(UMLayerSctpUser *u in usrs)
                 {
@@ -1554,10 +1554,9 @@
                         protocolId:(uint16_t)protocolId
 {
     @autoreleasepool
-        {
-
-        [_inboundThroughputBytes increaseBy:(int)data.length];
+    {
         [_inboundThroughputPackets increaseBy:1];
+        [_inboundThroughputBytes increaseBy:(int)data.length];
 
     #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
