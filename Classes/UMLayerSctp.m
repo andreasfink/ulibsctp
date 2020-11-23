@@ -797,6 +797,7 @@
                 }
     #endif
                 [self reportStatus];
+                break; 
             case UMSOCKET_STATUS_LISTENING:
             #if defined(ULIBSCTP_CONFIG_DEBUG)
                 if(self.logLevel <=UMLOG_DEBUG)
