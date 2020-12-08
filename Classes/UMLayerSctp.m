@@ -1123,24 +1123,21 @@
         _assocId = snp->sn_assoc_change.sac_assoc_id;
         _assocIdPresent=YES;
         [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF (assocID=%ld)",(long)_assocId]];
-        self.status=UMSOCKET_STATUS_OFF;
+        [self powerdownInReceiverThread];
         [self reportStatus];
-        //[self powerdownInReceiverThread];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",_reconnectTimer.seconds]];
         }
 #endif
-
         [_reconnectTimer start];
     }
     else if(snp->sn_assoc_change.sac_state==SCTP_CANT_STR_ASSOC)
     {
         [self.logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_CANT_STR_ASSOC"];
-        self.status=UMSOCKET_STATUS_OOS;
+        [self powerdownInReceiverThread];
         [self reportStatus];
-        //[self powerdownInReceiverThread];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
@@ -1152,7 +1149,6 @@
     else if(snp->sn_assoc_change.sac_error!=0)
     {
         [self.logFeed majorError:snp->sn_assoc_change.sac_error withText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)->OFF"];
-        self.status=UMSOCKET_STATUS_OFF;
         [self powerdownInReceiverThread];
         [self reportStatus];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
