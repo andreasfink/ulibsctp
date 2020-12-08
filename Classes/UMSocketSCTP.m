@@ -75,6 +75,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (void)initNetworkSocket
 {
+    _historyLog = [[UMHistoryLog alloc]initWithMaxLines:100];
     _sock = -1;
     switch(type)
     {
@@ -319,10 +320,17 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
     if(usable_ips <= 0)
     {
+        [_historyLog addLogEntry:@"bind: no usable IPs"];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"bind(SCTP): usable_ips=%d",usable_ips);
 #endif
         return UMSocketError_address_not_available;
+    }
+    else
+    {
+        NSString *s = [useable_local_addr componentsJoinedByString:@","];
+        s = [NSString stringWithFormat:@"bind: %@",s];
+        [_historyLog addLogEntry:s];
     }
     _useableLocalAddresses = useable_local_addr;
     return UMSocketError_no_error;
@@ -336,6 +344,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     /* ENABLING EVENTS    */
     /**********************/
 
+    [_historyLog addLogEntry:@"enableEvents"];
     memset((void *)&event,0x00, sizeof(struct sctp_event_subscribe));
     event.sctp_data_io_event            = 1;
     event.sctp_association_event        = 1;
@@ -354,7 +363,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         return [UMSocket umerrFromErrno:errno];
     }
     return UMSocketError_no_error;
-
 }
 
 - (int)mtu
@@ -364,6 +372,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (void)setMtu:(int)newMtu
 {
+    [_historyLog addLogEntry:[NSString stringWithFormat:@"setMtu:%d",newMtu]];
     _mtu = newMtu;
     struct sctp_paddrparams params;
     socklen_t len = sizeof(params);
@@ -423,6 +432,14 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (UMSocketError)setHeartbeat:(BOOL)enable
 {
+    if(enable)
+    {
+        [_historyLog addLogEntry:@"enable heartbeat"];
+    }
+    else
+    {
+        [_historyLog addLogEntry:@"disable heartbeat"];
+    }
     struct sctp_paddrparams heartbeat;
     socklen_t len = sizeof(heartbeat);
 
@@ -467,6 +484,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         }
         return UMSocketError_no_error;
     }
+    if(errno)
+    {
+        [_historyLog addLogEntry:[NSString stringWithFormat:@"errno=%d %s",errno,strerror(errno)]];
+    }
     return [UMSocket umerrFromErrno:errno];
 }
 
@@ -485,6 +506,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
     setsockopt(_sock,IPPROTO_SCTP,SCTP_DISABLE_FRAGMENTS, &disableFragments, sizeof(int));
     setsockopt(_sock,IPPROTO_SCTP,SCTP_MAXSEG, &newMaxSeg, sizeof(int));
+    
+    [_historyLog addLogEntry:[NSString stringWithFormat:@"setMaxSegment %d errno=%d %s",newMaxSeg,errno,strerror(errno)]];
+
     _maxSeg = newMaxSeg;
 }
 
@@ -509,7 +533,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 {
 #if defined(SCTP_FUTURE_ASSOC) && defined(SCTP_ADAPTATION_INDICATION)
     struct sctp_event event;
-
+    UMSocketError r = UMSocketError_no_error;
     /* Enable the events of interest. */
     memset(&event, 0, sizeof(event));
     event.se_assoc_id = SCTP_FUTURE_ASSOC;
@@ -517,10 +541,11 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     event.se_type = SCTP_ADAPTATION_INDICATION;
     if (setsockopt(_sock, IPPROTO_SCTP, SCTP_EVENT, &event, sizeof(event)) < 0)
     {
-        return [UMSocket umerrFromErrno:errno];
+        r = [UMSocket umerrFromErrno:errno];
     }
+    [_historyLog addLogEntry:[NSString stringWithFormat:@"enableFutureAssoc: errno=%d %s",errno,strerror(errno)]];
 #endif
-    return UMSocketError_no_error;
+    return r;
 
 }
 
@@ -643,16 +668,18 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 {
     uint32_t assoc;
 
-    return [self connectToAddresses:_requestedRemoteAddresses
+    UMSocketError e = [self connectToAddresses:_requestedRemoteAddresses
                         port:_requestedRemotePort
                        assoc:&assoc];
+    return e;
 }
 
 - (UMSocketError) connectAssoc:(uint32_t *)assoc;
 {
-    return [self connectToAddresses:_requestedRemoteAddresses
-                               port:_requestedRemotePort
-                              assoc:assoc];
+    UMSocketError e = [self connectToAddresses:_requestedRemoteAddresses
+                                          port:_requestedRemotePort
+                                         assoc:assoc];
+    return e;
 }
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
@@ -660,6 +687,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                                assoc:(uint32_t *)assocptr
 {
 	UMAssert(assocptr!=NULL,@"assocptr can not be NULL");
+
+    sctp_assoc_t assoc = -1;
 
     int count = 0;
     NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
@@ -680,7 +709,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         NSLog(@"calling sctp_connectx (%@)", [addrs componentsJoinedByString:@" "]);
 #endif
         memset(assocptr,0,sizeof(sctp_assoc_t));
-        sctp_assoc_t assoc = -1;
+        assoc = -1;
         int err =  sctp_connectx(_sock,(struct sockaddr *)remote_sockaddr.bytes,count,&assoc);
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"sctp_connectx: returns %d. errno = %d %s assoc=%lu",err,errno,strerror(errno),(unsigned long)*assocptr);
@@ -710,6 +739,12 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             returnValue = UMSocketError_no_error;
         }
     }
+    
+    [_historyLog addLogEntry:[NSString stringWithFormat:@"connect(%@:%d) assoc=%lu %@",
+                           [addrs componentsJoinedByString:@","],
+                           remotePort,
+                           (unsigned long)assoc,
+                           [UMSocket getSocketErrorString:returnValue]]];
     return returnValue;
 }
 
@@ -818,6 +853,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         [newcon updateMtu:_mtu];
         [newcon updateName];
         newcon.objectStatisticsName = @"UMSocket(accept)";
+        newcon.historyLog = [[UMHistoryLog alloc]initWithMaxLines:100];
         [self reportStatus:@"accept () successful"];
         /* TODO: start SSL if required here */
         *ret = UMSocketError_no_error;
