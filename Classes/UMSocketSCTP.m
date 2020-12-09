@@ -531,6 +531,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (UMSocketError) enableFutureAssoc
 {
+    UMSocketError r = UMSocketError_no_error;
+
 #if defined(SCTP_FUTURE_ASSOC) && defined(SCTP_ADAPTATION_INDICATION)
     struct sctp_event event;
     UMSocketError r = UMSocketError_no_error;
