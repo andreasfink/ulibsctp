@@ -23,7 +23,6 @@
 		A634B49A1A2E9AF700854472 /* UMLayerSctpUserProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */; };
 		A634B49B1A2E9AF700854472 /* UMLayerSctpUserProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */; };
 		A648DF4F247C370000F25226 /* ulibsctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6C78D0D1A29271D006C66A2 /* ulibsctp.framework */; };
-		A666CA311B4B127D00854472 /* sctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A666CA2F1B4B102000854472 /* sctp.framework */; };
 		A6827E121E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = A6827E101E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A68974271A2D1EF800854472 /* UMSctpTask_AdminSetConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = A68974251A2D1EF800854472 /* UMSctpTask_AdminSetConfig.h */; };
 		A68974281A2D1EF800854472 /* UMSctpTask_AdminSetConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = A68974261A2D1EF800854472 /* UMSctpTask_AdminSetConfig.m */; };
@@ -64,7 +63,6 @@
 		A6C78DC71A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.h in Headers */ = {isa = PBXBuildFile; fileRef = A6C78DC51A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A6C78DC81A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m in Sources */ = {isa = PBXBuildFile; fileRef = A6C78DC61A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m */; };
 		A6C78DC91A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m in Sources */ = {isa = PBXBuildFile; fileRef = A6C78DC61A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m */; };
-		A6E3D78B22BABD6800D5B1B6 /* sctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A666CA2F1B4B102000854472 /* sctp.framework */; };
 		A6F1C627247BEA1E00FE7402 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A6F1C626247BEA1D00FE7402 /* main.m */; };
 		A6F1C629247BEC8600FE7402 /* sctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A69BCFF4240675D20083657F /* sctp.framework */; };
 		A6F1C62A247BEC8900FE7402 /* ulib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6C78D731A2942EC006C66A2 /* ulib.framework */; };
@@ -107,7 +105,6 @@
 		A61F7D501A2C9D380090FC94 /* UMLayerSctpUserProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpUserProtocol.h; sourceTree = "<group>"; };
 		A634B4971A2E9AF700854472 /* UMLayerSctpUserProfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpUserProfile.h; sourceTree = "<group>"; };
 		A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMLayerSctpUserProfile.m; sourceTree = "<group>"; };
-		A666CA2F1B4B102000854472 /* sctp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = sctp.framework; path = /Library/Frameworks/sctp.framework; sourceTree = "<absolute>"; };
 		A6827E101E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpApplicationContextProtocol.h; sourceTree = "<group>"; };
 		A68974251A2D1EF800854472 /* UMSctpTask_AdminSetConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMSctpTask_AdminSetConfig.h; sourceTree = "<group>"; };
 		A68974261A2D1EF800854472 /* UMSctpTask_AdminSetConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMSctpTask_AdminSetConfig.m; sourceTree = "<group>"; };
@@ -115,7 +112,7 @@
 		A68974781A2D440F00854472 /* UMLayerSctpUser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMLayerSctpUser.m; sourceTree = "<group>"; };
 		A689747B1A2D4C5D00854472 /* UMSctpTask_AdminDetach.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMSctpTask_AdminDetach.h; sourceTree = "<group>"; };
 		A689747C1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMSctpTask_AdminDetach.m; sourceTree = "<group>"; };
-		A69BCFF4240675D20083657F /* sctp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = sctp.framework; path = "../../../../../Library/Application Support/FinkTelecomServices/frameworks/sctp.framework"; sourceTree = "<group>"; };
+		A69BCFF4240675D20083657F /* sctp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = sctp.framework; path = "/Library/Application Support/FinkTelecomServices/frameworks/sctp.framework"; sourceTree = "<absolute>"; };
 		A6B8BE4E20A9B102004D4004 /* UMSocketSCTP.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UMSocketSCTP.h; sourceTree = "<group>"; };
 		A6B8BE4F20A9B102004D4004 /* UMSocketSCTP.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UMSocketSCTP.m; sourceTree = "<group>"; };
 		A6C78D0D1A29271D006C66A2 /* ulibsctp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ulibsctp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -157,7 +154,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A6E3D78B22BABD6800D5B1B6 /* sctp.framework in Frameworks */,
 				A6C78D741A2942EC006C66A2 /* ulib.framework in Frameworks */,
 				A69BCFF5240675D20083657F /* sctp.framework in Frameworks */,
 			);
@@ -169,7 +165,6 @@
 			files = (
 				A6C78D751A2942EC006C66A2 /* ulib.framework in Frameworks */,
 				A6C78D191A29271D006C66A2 /* ulibsctp.framework in Frameworks */,
-				A666CA311B4B127D00854472 /* sctp.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -291,7 +286,6 @@
 			isa = PBXGroup;
 			children = (
 				A6F1C62C247BECBE00FE7402 /* ulibsctp.framework */,
-				A666CA2F1B4B102000854472 /* sctp.framework */,
 				A69BCFF4240675D20083657F /* sctp.framework */,
 				A6C78D731A2942EC006C66A2 /* ulib.framework */,
 			);
