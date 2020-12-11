@@ -19,6 +19,7 @@
     int                         _port;
     NSArray *                   _localIpAddresses;
     UMSocketSCTP                *_umsocket;
+    UMSocket                    *_umsocketEncapsulated;
     BOOL                        _isListening;
     UMMutex                     *_lock;
     NSInteger                   _listeningCount;
@@ -35,6 +36,7 @@
 @property(readwrite,assign) int port;
 @property(readwrite,strong) NSArray *localIpAddresses;
 @property(readwrite,strong) UMSocketSCTP *umsocket;
+@property(readwrite,strong) UMSocket *umsocketEncapsulated;
 @property(readwrite,strong) UMSocketSCTPRegistry *registry;
 @property(readwrite,strong) NSString *name;
 @property(readwrite,assign) BOOL    isListening;

@@ -44,14 +44,14 @@ struct sctp_sndrcvinfo;
     BOOL            _connectx_pending;
     NSData          *_localAddressesSockaddr;
     int             _localAddressesSockaddrCount;
-    int _mtu;
-    int _maxSeg;
+    int             _mtu;
+    int             _maxSeg;
     
-    int _maxInStreams;
-    int _numOStreams;
-    int _maxInitAttempts;
-    int _initTimeout;
-	NSNumber				*_xassoc;
+    int             _maxInStreams;
+    int             _numOStreams;
+    int             _maxInitAttempts;
+    int             _initTimeout;
+	NSNumber		*_xassoc;
 }
 
 @property(readwrite,strong) NSArray        *requestedLocalAddresses;

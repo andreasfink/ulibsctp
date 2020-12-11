@@ -21,7 +21,7 @@
     NSMutableArray<UMLayerSctp *>           *_outboundLayers;
     NSMutableArray<UMSocketSCTPListener *>  *_listeners;
     int                                     _timeoutInMs;
-    UMSocketSCTPRegistry *_registry;
+    UMSocketSCTPRegistry                    *_registry;
 }
 
 - (UMSocketSCTPReceiver *)initWithRegistry:(UMSocketSCTPRegistry *)_registry;

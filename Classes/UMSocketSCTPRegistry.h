@@ -53,8 +53,10 @@
 
 - (void)registerOutgoingLayer:(UMLayerSctp *)layer;
 - (void)registerOutgoingLayer:(UMLayerSctp *)layer allowAnyRemotePortIncoming:(BOOL)anyPort;
+
 - (void)registerIncomingLayer:(UMLayerSctp *)layer;
 - (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer;
+
 - (void)unregisterAssoc:(NSNumber *)assocId;
 
 - (void)unregisterLayer:(UMLayerSctp *)sctp;

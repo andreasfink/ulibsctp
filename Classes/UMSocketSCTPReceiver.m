@@ -11,6 +11,7 @@
 #import "UMSocketSCTP.h"
 #import "UMSocketSCTPListener.h"
 #import "UMSocketSCTPRegistry.h"
+#import "UMSctpOverTcp.h"
 
 #include <poll.h>
 @implementation UMSocketSCTPReceiver
@@ -168,9 +169,10 @@
         /* we have some event to handle. */
         returnValue = UMSocketError_no_error;
 
-        UMLayerSctp *outbound = NULL;
-        UMSocketSCTPListener *listener = NULL;
-        UMSocketSCTP *socket = NULL;
+        UMLayerSctp             *outbound = NULL;
+        UMSocketSCTPListener    *listener = NULL;
+        UMSocketSCTP            *socket = NULL;
+        UMSocket                *socketEncap = NULL;
 
         j = 0;
         for(NSUInteger i=0;i<listeners_count;i++)
@@ -179,11 +181,13 @@
             if(listener.isInvalid==NO)
             {
                 socket = listener.umsocket;
+                socketEncap  = listener.umsocketEncapsulated;
                 int revent = pollfds[j].revents;
                 UMSocketError r = [self handlePollResult:revent
 												listener:listener
 												   layer:NULL
-												  socket:socket
+                                                  socket:socket
+                                             socketEncap:socketEncap
 											   poll_time:poll_time];
                 if(r != UMSocketError_no_error)
                 {
@@ -198,11 +202,13 @@
             if(outbound.directSocket!=NULL)
             {
                 socket = outbound.directSocket;
+                socketEncap  = outbound.directTcpEncapsulatedSocket;
                 int revent = pollfds[j].revents;
                 UMSocketError r = [self handlePollResult:revent
 												listener:NULL
 												   layer:outbound
 												  socket:socket
+                                             socketEncap:socketEncap
 											   poll_time:poll_time];
                 if(r != UMSocketError_no_error)
                 {
@@ -237,7 +243,8 @@
 - (UMSocketError)handlePollResult:(int)revent
 						 listener:(UMSocketSCTPListener *)listener
 							layer:(UMLayerSctp *)layer
-						   socket:(UMSocketSCTP *)socket
+                           socket:(UMSocketSCTP *)socket
+                      socketEncap:(UMSocket *)socketEncap
 						poll_time:(UMMicroSec)poll_time
 {
 	if((listener==NULL) && (layer==NULL))
@@ -257,7 +264,14 @@
     int revent_invalid = 0;
     if(revent & POLLERR)
     {
-        revent_error = [socket getSocketError];
+        if(socket)
+        {
+            revent_error = [socket getSocketError];
+        }
+        else
+        {
+            revent_error = [socketEncap getSocketError];
+        }
         [layer processError:revent_error];
         [listener processError:revent_error];
     }
@@ -287,7 +301,15 @@
     }
     if(revent_has_data)
     {
-        UMSocketSCTPReceivedPacket *rx = [socket receiveSCTP];
+        UMSocketSCTPReceivedPacket *rx;
+        if(socket)
+        {
+            rx = [socket receiveSCTP];
+        }
+        else
+        {
+            [self receiveEncapsulatedPacket:socketEncap];
+        }
         if(rx.data.length > 0)
         {
             rx.rx_time = ulib_microsecondTime();
@@ -317,4 +339,52 @@
     }
     return returnValue;
 }
+
+-(UMSocketSCTPReceivedPacket *)receiveEncapsulatedPacket:(UMSocket *)umsocket
+{
+    BOOL protocolViolation = NO;
+    NSData *receivedData = NULL;
+    sctp_over_tcp_header header;
+    UMSocketSCTPReceivedPacket *rx = NULL;
+    [umsocket.dataLock lock];
+    if(umsocket.receiveBuffer.length > sizeof(sctp_over_tcp_header))
+    {
+        memcpy(&header,umsocket.receiveBuffer.bytes,sizeof(header));
+        header.header_length = ntohl(header.header_length);
+        header.payload_length = ntohl(header.payload_length);
+        header.protocolId = ntohl(header.protocolId);
+        header.streamId = ntohs(header.streamId);
+        header.flags = ntohs(header.flags);
+        if(header.header_length != sizeof(header))
+        {
+            protocolViolation = YES;
+        }
+        else
+        {
+            if(header.payload_length > 0)
+            {
+                if(umsocket.receiveBuffer.length > sizeof(sctp_over_tcp_header) + header.payload_length)
+                {
+                    const void *start = umsocket.receiveBuffer.bytes;
+                    start += header.header_length;
+                    receivedData = [NSData dataWithBytes:start length:header.payload_length];
+                    rx = [[UMSocketSCTPReceivedPacket alloc]init];
+                    rx.streamId = header.streamId;
+                    rx.protocolId = header.protocolId;
+                    rx.context = 0;
+                    rx.data = receivedData;
+                    rx.remoteAddress = umsocket.connectedRemoteAddress;
+                    rx.remotePort  = umsocket.connectedRemotePort;
+                    rx.localAddress = umsocket.connectedLocalAddress;
+                    rx.localPort  = umsocket.connectedLocalPort;
+                    rx.flags = header.flags;
+                    rx.isNotification = NO;
+                }
+            }
+        }
+    }
+    [umsocket.dataLock unlock];
+    return rx;
+}
+
 @end

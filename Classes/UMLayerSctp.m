@@ -330,87 +330,147 @@
                     [self logDebug:[NSString stringWithFormat:@"asking listener to connect to %@ on port %d",addrs,_configured_remote_port]];
                 }
     #endif
-                if(_directSocket==NULL)
+                if(_encapsulatedOverTcp)
                 {
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
-                    [self logDebug:@"_directSocket==NULL"];
-    #endif
-
-                    tmp_assocId = -1;
-                    err = [_listener connectToAddresses:_configured_remote_addresses
-                                                   port:_configured_remote_port
-                                                  assoc:&tmp_assocId
-                                                  layer:self];
-                    if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
+                    if(_directTcpEncapsulatedSocket == NULL)
                     {
+        #if defined(ULIBSCTP_CONFIG_DEBUG)
+                        [self logDebug:@"_directTcpEncapsulatedSocket==NULL"];
+        #endif
+
+                        tmp_assocId = -1;
+                        if(_configured_remote_addresses.count < 0)
+                        {
+                            err = UMSocketError_invalid_port_or_address;
+                        }
+                        else
+                        {
+                            UMHost *host = [[UMHost alloc]initWithAddress:_configured_remote_addresses[0]];
+                            [_directTcpEncapsulatedSocket setRemoteHost:host];
+                            [_directTcpEncapsulatedSocket setRemotePort:_configured_remote_port];
+                            err = [_directTcpEncapsulatedSocket connect];
+                            tmp_assocId = _directTcpEncapsulatedSocket.sock;
+                        }
+                        if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
+                        {
+                            if(tmp_assocId != -1)
+                            {
+                                _assocId = tmp_assocId;
+                                if((err != UMSocketError_no_error)
+                                && (err !=UMSocketError_in_progress))
+                                {
+                                    [_directTcpEncapsulatedSocket close];
+                                    _directTcpEncapsulatedSocket = NULL;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+        #if defined(ULIBSCTP_CONFIG_DEBUG)
+                        [self logDebug:[NSString stringWithFormat:@" using _directTcpEncapsulatedSocket"]];
+        #endif
+                        if(sendAbort)
+                        {
+                            [_directTcpEncapsulatedSocket close];
+                        }
+
+                        UMHost *host = [[UMHost alloc]initWithAddress:_configured_remote_addresses[0]];
+                        [_directTcpEncapsulatedSocket setRemoteHost:host];
+                        [_directTcpEncapsulatedSocket setRemotePort:_configured_remote_port];
+                        err = [_directTcpEncapsulatedSocket connect];
+                        tmp_assocId = _directTcpEncapsulatedSocket.sock;
+
                         if(tmp_assocId != -1)
                         {
                             _assocId = tmp_assocId;
-
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
-                            [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %lu",(unsigned long)tmp_assocId]];
-    #endif
-                            _directSocket = [_listener peelOffAssoc:_assocId error:&err];
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
-                            [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
-    #endif
-
-                            if((err != UMSocketError_no_error)
-                            && (err !=UMSocketError_in_progress))
-                            {
-                                [_directSocket close];
-                                _directSocket = NULL;
-                            }
                         }
                     }
                 }
                 else
                 {
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
-                    [self logDebug:[NSString stringWithFormat:@" using _directSocket"]];
-    #endif
-                    if(sendAbort)
+                    if(_directSocket==NULL)
                     {
-                        for(NSString *addr in _configured_remote_addresses)
+        #if defined(ULIBSCTP_CONFIG_DEBUG)
+                        [self logDebug:@"_directSocket==NULL"];
+        #endif
+
+                        tmp_assocId = -1;
+                        err = [_listener connectToAddresses:_configured_remote_addresses
+                                                       port:_configured_remote_port
+                                                      assoc:&tmp_assocId
+                                                      layer:self];
+                        if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
                         {
-                            @try
+                            if(tmp_assocId != -1)
                             {
-                                uint32_t a=0;
-                                if(_assocId > 0)
+                                _assocId = tmp_assocId;
+
+        #if defined(ULIBSCTP_CONFIG_DEBUG)
+                                [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %lu",(unsigned long)tmp_assocId]];
+        #endif
+                                _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+        #if defined(ULIBSCTP_CONFIG_DEBUG)
+                                [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
+        #endif
+
+                                if((err != UMSocketError_no_error)
+                                && (err !=UMSocketError_in_progress))
                                 {
-                                    a = _assocId;
+                                    [_directSocket close];
+                                    _directSocket = NULL;
                                 }
-                                [_listener.umsocket abortToAddress:addr
-                                                              port:_configured_remote_port
-                                                             assoc:a
-                                                            stream:0
-                                                          protocol:0];
-                            }
-                            @catch(NSException *e)
-                            {
                             }
                         }
                     }
-                    err = [_directSocket connectToAddresses:_configured_remote_addresses
-                                                        port:_configured_remote_port
-                                                       assoc:&tmp_assocId];                    
-                    if(tmp_assocId != -1)
+                    else
                     {
-                        _assocId = tmp_assocId;
+        #if defined(ULIBSCTP_CONFIG_DEBUG)
+                        [self logDebug:[NSString stringWithFormat:@" using _directSocket"]];
+        #endif
+                        if(sendAbort)
+                        {
+                            for(NSString *addr in _configured_remote_addresses)
+                            {
+                                @try
+                                {
+                                    uint32_t a=0;
+                                    if(_assocId > 0)
+                                    {
+                                        a = _assocId;
+                                    }
+                                    [_listener.umsocket abortToAddress:addr
+                                                                  port:_configured_remote_port
+                                                                 assoc:a
+                                                                stream:0
+                                                              protocol:0];
+                                }
+                                @catch(NSException *e)
+                                {
+                                }
+                            }
+                        }
+                        err = [_directSocket connectToAddresses:_configured_remote_addresses
+                                                            port:_configured_remote_port
+                                                           assoc:&tmp_assocId];
+                        if(tmp_assocId != -1)
+                        {
+                            _assocId = tmp_assocId;
+                        }
+                    }
+
+                    if(_assocId!= -1)
+                    {
+                        _assocIdPresent = YES;
+                    }
+                    if(self.logLevel <= UMLOG_DEBUG)
+                    {
+                        NSString *e = [UMSocket getSocketErrorString:err];
+                        [self logDebug:[NSString stringWithFormat:@"returns %d %@",err,e]];
                     }
                 }
-
-                if(_assocId!= -1)
-                {
-                    _assocIdPresent = YES;
-                }
-                if(self.logLevel <= UMLOG_DEBUG)
-                {
-                    NSString *e = [UMSocket getSocketErrorString:err];
-                    [self logDebug:[NSString stringWithFormat:@"returns %d %@",err,e]];
-                }
             }
-            [_registry registerOutgoingLayer:self allowAnyRemotePortIncoming:_allowAnyRemotePortIncoming];
+            [_registry registerOutgoingLayer:self allowAnyRemotePortIncoming:_allowAnyRemotePortIncoming tcapEncapsulation:_encapsulatedOverTcp];
 
             if ((err == UMSocketError_in_progress) || (err == UMSocketError_no_error))
             {

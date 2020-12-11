@@ -37,6 +37,7 @@
     UMSocketSCTPRegistry *_registry;
     UMSocketSCTPListener *_listener;
     UMSocketSCTP         *_directSocket; /* after peeloff */
+    UMSocket             *_directTcpEncapsulatedSocket; /* after peeloff */
     NSDate               *_startButtonPressed;
     NSDate               *_stopButtonPressed;
 
@@ -67,7 +68,9 @@
     UMSocketStatus      _status;
     int                 _maxInitTimeout;
     int                 _maxInitAttempts;
+    BOOL                _encapsulatedOverTcp;
 }
+
 
 //@property(readwrite,strong) UMSocketSCTP    *sctpSocket;
 //@property(readwrite,strong) NSNumber          *assocId;
@@ -99,11 +102,13 @@
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputBytes;
 @property(readwrite,strong) UMSocketSCTPRegistry *registry;
 @property(readwrite,strong) UMSocketSCTPListener *listener;
-@property(readwrite,assign) uint32_t        assocId;
-@property(readwrite,assign) BOOL    assocIdPresent;
-@property(readwrite,assign) int     mtu;
-@property(readwrite,assign) BOOL    newDestination;
+@property(readwrite,assign) uint32_t    assocId;
+@property(readwrite,assign) BOOL        assocIdPresent;
+@property(readwrite,assign) int         mtu;
+@property(readwrite,assign) BOOL        newDestination;
 @property(readwrite,strong,atomic)      UMSocketSCTP        *directSocket;
+@property(readwrite,strong,atomic)      UMSocket            *directTcpEncapsulatedSocket;
+@property(readwrite,assign,atomic)      BOOL                encapsulatedOverTcp;
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq;
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name;

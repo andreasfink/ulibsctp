@@ -318,24 +318,25 @@
         {
             for(NSString *remoteAddr in remoteAddrs)
             {
-                NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d",
+                NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d(%@)",
                                  localAddr,
                                  layer.configured_local_port,
                                  remoteAddr,
-                                 layer.configured_remote_port];
+                                 layer.configured_remote_port,
+                                 (layer.encapsulatedOverTcp? @"tcp" : @"sctp")];
                 _outgoingLayersByIpsAndPorts[key] = layer;
                 if(anyPort)
                 {
-                    NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d",
+                    NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d(%@)",
                                      localAddr,
                                      layer.configured_local_port,
                                      remoteAddr,
-                                     0];
+                                     0,
+                                     (layer.encapsulatedOverTcp ? @"tcp" : @"sctp")];
                     _outgoingLayersByIpsAndPorts[key] = layer;
                 }
             }
         }
-
         [_outgoingLayers removeObject:layer];
         [_outgoingLayers addObject:layer];
         [_lock unlock];
@@ -371,46 +372,6 @@
 }
 
 
-#if 0
-- (void)registerOutgoingLayer:(UMLayerSctp *)layer forAssoc:(NSNumber *)assocId;
-{
-    if(layer)
-    {
-
-        [_lock lock];
-
-        if(assocId)
-        {
-            /* an active outbound connection */
-            _assocs[assocId] = layer;
-        }
-        /* we register every local IP / remote IP pair combination */
-
-        NSArray *localAddrs = layer.configured_local_addresses;
-        NSArray *remoteAddrs = layer.configured_remote_addresses;
-        for(NSString *localAddr in localAddrs)
-        {
-            for(NSString *remoteAddr in remoteAddrs)
-            {
-                NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d",
-                                 localAddr,
-                                 layer.configured_local_port,
-                                 remoteAddr,
-                                 layer.configured_remote_port];
-                NSLog(@"registerLayer:%@",layer.layerName);
-                NSLog(@" key=%@",key);
-                NSLog(@" assoc=%@",assocId);
-                _outgoingLayersByIpsAndPorts[key] = layer;
-            }
-        }
-
-        [_outgoingLayers removeObject:layer];
-        [_outgoingLayers addObject:layer];
-        [_lock unlock];
-    }
-}
-#endif
-
 - (void)unregisterLayer:(UMLayerSctp *)layer
 {
     if(layer)
@@ -428,12 +389,12 @@
         {
             for(NSString *remoteAddr in remoteAddrs)
             {
-                NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d",
+                NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d(%@)",
                                  localAddr,
                                  layer.configured_local_port,
                                  remoteAddr,
-                                 layer.configured_remote_port];
-                
+                                 layer.configured_remote_port,
+                                 (layer.encapsulatedOverTcp ? @"tcp" : @"sctp")];
                 [_outgoingLayersByIpsAndPorts removeObjectForKey:key];
             }
         }
@@ -478,6 +439,7 @@
     }
     [_lock unlock];
 }
+
 - (NSString *)webStat
 {
     NSMutableString *s = [[NSMutableString alloc]init];
@@ -500,7 +462,6 @@
     [s appendString:@"        <th class=\"object_title\">Object Type</th>\r\n"];
     [s appendString:@"        <th class=\"object_title\">Count</th>\r\n"];
     [s appendString:@"    </tr>\r\n"];
-
 
     [s appendString:@"    <tr>\r\n"];
     [s appendFormat:@"        <td class=\"object_name\">_entries</td>\r\n"];
