@@ -470,7 +470,7 @@
                     }
                 }
             }
-            [_registry registerOutgoingLayer:self allowAnyRemotePortIncoming:_allowAnyRemotePortIncoming tcapEncapsulation:_encapsulatedOverTcp];
+            [_registry registerOutgoingLayer:self allowAnyRemotePortIncoming:_allowAnyRemotePortIncoming];
 
             if ((err == UMSocketError_in_progress) || (err == UMSocketError_no_error))
             {
