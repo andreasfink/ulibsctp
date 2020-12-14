@@ -305,10 +305,15 @@
                 NSString *addrs = [_configured_local_addresses componentsJoinedByString:@","];
                 [self logDebug:[NSString stringWithFormat:@"getting listener on %@ on port %d",addrs,_configured_local_port]];
             }
-
-            _listener =  [_registry getOrAddListenerForPort:_configured_local_port localIps:_configured_local_addresses];
+            if(_encapsulatedOverTcp)
+            {
+                _listener = [_registry getOrAddListenerForTcpPort:_configured_local_port];
+            }
+            else
+            {
+                _listener =  [_registry getOrAddListenerForPort:_configured_local_port localIps:_configured_local_addresses];
+            }
             _listener.mtu = _mtu;
-        
             if(self.logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"asking listener %@ to start",_listener]];
@@ -1682,7 +1687,7 @@
 - (void)setConfig:(NSDictionary *)cfg applicationContext:(id<UMLayerSctpApplicationContextProtocol>)appContext
 {
     @autoreleasepool
-        {
+    {
 
         if(_registry==NULL)
         {
@@ -1772,6 +1777,16 @@
             _reconnectTimer.seconds = _reconnectTimerValue;
         }
 
+        if ([cfg[@"tcp-client"] boolValue]==YES)
+        {
+            _encapsulatedOverTcp = YES;
+            _isPassive = NO;
+        }
+        if ([cfg[@"tcp-server"] boolValue]==YES)
+        {
+            _encapsulatedOverTcp = YES;
+            _isPassive = YES;
+        }
         if (cfg[@"mtu"])
         {
             _mtu = [cfg[@"mtu"] intValue];

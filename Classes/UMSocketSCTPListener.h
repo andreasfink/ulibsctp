@@ -45,6 +45,7 @@
 @property(readwrite,assign) BOOL    isInvalid;
 @property(readwrite,assign) BOOL    sendAborts;
 @property(readwrite,assign) UMLogLevel logLevel;
+@property(readonly,assign)  BOOL tcapEncapsulating;
 
 - (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses;
 - (void)startListeningFor:(UMLayerSctp *)layer;
@@ -53,6 +54,13 @@
 - (void)processError:(UMSocketError)err;
 - (void)processHangUp;
 - (void)processInvalidSocket;
+
+- (void)logMinorError:(NSString *)s;
+- (void)logMajorError:(NSString *)s;
+- (void)logDebug:(NSString *)s;
+- (int)mtu;
+- (void)setMtu:(int)mtu;
+
 
 #if defined(ULIBSCTP_INTERNAL)
 - (UMSocketError) connectToAddresses:(NSArray *)addrs

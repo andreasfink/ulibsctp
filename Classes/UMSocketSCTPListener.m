@@ -63,8 +63,18 @@
     _umsocket.mtu = mtu;
 }
 
+- (BOOL) tcapEncapsulating
+{
+    return NO;
+}
+
 - (void)startListeningFor:(UMLayerSctp *)layer
 {
+    if(layer.encapsulatedOverTcp == YES)
+    {
+        [self startListeningForTcp:layer];
+        return;
+    }
     /* multiple UMLayerSctp objects can call startListening and ask a listener to listen for incoming
      packets on a specific port. Only the first such request is actually starting a listening process
      the subsequents just increase the counter. When a layer stops listening then the counter is decreased.
@@ -186,6 +196,82 @@
     {
         [_umsocket close];
         _umsocket = NULL;
+    }
+    [_lock unlock];
+}
+
+- (void)startListeningForTcp:(UMLayerSctp *)layer
+{
+    /* multiple UMLayerSctp objects can call startListening and ask a listener to listen for incoming
+     packets on a specific tcp port. Only the first such request is actually starting a listening process
+     the subsequents just increase the counter. When a layer stops listening then the counter is decreased.
+     If all layers stop listening, then the counter reaches zero and the socket is closed.
+    */
+
+    [_lock lock];
+    if(_isListening)
+    {
+        _layers[layer.layerName] =layer;
+        _listeningCount = _layers.count;
+    }
+    else
+    {
+        NSAssert(_umsocket == NULL,@"calling startListening with _umsocket already existing");
+
+        _umsocketEncapsulated = [[UMSocket alloc]initWithType:UMSOCKET_TYPE_TCP name:_name];
+        _umsocketEncapsulated.localHost = [[UMHost alloc]initWithLocalhost];
+        _umsocketEncapsulated.requestedLocalPort = _port;
+        [_umsocketEncapsulated switchToNonBlocking];
+        UMSocketError err = [_umsocket setIPDualStack];
+        if(err!=UMSocketError_no_error)
+        {
+            [self logMinorError:[NSString stringWithFormat:@"can not disable IPV6_V6ONLY option on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
+        }
+        else
+        {
+            [self logDebug:[NSString stringWithFormat:@"%@:  setIPDualStack successful",_name]];
+        }
+        err = [_umsocketEncapsulated setLinger];
+        if(err!=UMSocketError_no_error)
+        {
+            [self logMinorError:[NSString stringWithFormat:@"can not set SO_LINGER option on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
+        }
+        else
+        {
+            [self logDebug:[NSString stringWithFormat:@"%@:  setLinger successful",_name]];
+        }
+
+        err = [_umsocketEncapsulated setReuseAddr];
+        if(err!=UMSocketError_no_error)
+        {
+            [self logMinorError:[NSString stringWithFormat:@"can not set SO_REUSEADDR option on %@: %d %@",_name,err,[UMSocket getSocketErrorString:err]]];
+        }
+        else
+        {
+            [self logDebug:[NSString stringWithFormat:@"%@:  setReuseAddr successful",_name]];
+        }
+        
+        err = [_umsocketEncapsulated bind];
+        if(err == UMSocketError_no_error)
+        {
+            [self logDebug:[NSString stringWithFormat:@"%@:  bind successful",_name]];
+            err = [_umsocketEncapsulated listen:128];
+            if(err!=UMSocketError_no_error)
+            {
+                [self logMinorError:[NSString stringWithFormat:@"can not enable sctp events on sctp-listener port %d: %d %@",_port,err,[UMSocket getSocketErrorString:err]]];
+            }
+            else
+            {
+                [self logDebug:[NSString stringWithFormat:@"%@:  listen successful",_name]];
+                _isListening = YES;
+                _listeningCount++;
+            }
+        }
+    }
+    if(_isListening==NO)
+    {
+        [_umsocketEncapsulated close];
+        _umsocketEncapsulated = NULL;
     }
     [_lock unlock];
 }

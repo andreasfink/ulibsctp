@@ -8,6 +8,7 @@
 
 #import "UMSocketSCTPRegistry.h"
 #import "UMSocketSCTPListener.h"
+#import "UMSocketSCTPTCPListener.h"
 #import "UMSocketSCTPReceiver.h"
 #import "UMLayerSctp.h"
 
@@ -83,6 +84,21 @@
     return listener;
 }
 
+- (UMSocketSCTPListener *)getOrAddListenerForTcpPort:(int)port
+{
+    [_lock lock];
+    UMSocketSCTPListener *listener = [self getListenerForTcpPort:port];
+    if(listener == NULL)
+    {
+        listener = [[UMSocketSCTPTCPListener alloc]initWithTcpPort:port];
+        listener.logLevel = _logLevel;
+        listener.sendAborts = _sendAborts;
+        [self addListener:listener];
+    }
+    [_lock unlock];
+    return listener;
+}
+
 - (UMSocketSCTPListener *)getListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips
 {
     NSArray *ips2 = [ips sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
@@ -90,6 +106,16 @@
     return [self getListenerForPort:port localIp:s];
 }
 
+
+- (UMSocketSCTPListener *)getListenerForTcpPort:(int)port
+{
+    UMSocketSCTPListener *e = NULL;
+    [_lock lock];
+    NSString *key =[UMSocketSCTPRegistry keyForPort:port ip:@"0.0.0.0"];
+    e = _entries[key];
+    [_lock unlock];
+    return e;
+}
 
 - (UMSocketSCTPListener *)getListenerForPort:(int)port localIp:(NSString *)ip
 {

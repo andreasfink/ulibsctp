@@ -38,6 +38,8 @@
 + (NSString *)keyForPort:(int)port ip:(NSString *)ip;
 
 - (UMSocketSCTPListener *)getOrAddListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips;
+- (UMSocketSCTPListener *)getOrAddListenerForTcpPort:(int)port;
+
 - (UMSocketSCTPListener *)getListenerForPort:(int)port localIp:(NSString *)ip;
 - (UMSocketSCTPListener *)getListenerForPort:(int)port localIps:(NSArray *)ips;
 
