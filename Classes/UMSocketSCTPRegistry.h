@@ -69,6 +69,7 @@
 
 - (NSArray *)allListeners;
 - (NSArray *)allOutboundLayers;
+- (NSArray *)allInboundLayers;
 - (void)startReceiver;
 - (void)stopReceiver;
 

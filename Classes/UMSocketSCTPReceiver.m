@@ -89,8 +89,10 @@
     UMSocketError returnValue = UMSocketError_generic_error;
     NSArray *listeners = [_registry allListeners];
     NSArray *outbound_layers = [_registry allOutboundLayers];
+    NSArray *inbound_layers = [_registry allInboundLayers];
     NSUInteger listeners_count = listeners.count;
     NSUInteger outbound_count = outbound_layers.count;
+    NSUInteger inbound_count = inbound_layers.count;
     if((listeners_count == 0) && (outbound_count==0))
     {
         sleep(1);
@@ -137,6 +139,20 @@
 #endif
         }
     }
+    for(NSUInteger i=0;i<inbound_count;i++)
+    {
+        UMLayerSctp *layer = inbound_layers[i];
+        if(layer.directSocket!=NULL)
+        {
+            pollfds[j].fd = layer.directSocket.fileDescriptor;
+            pollfds[j].events = events;
+            j++;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+            NSLog(@"pollfds[%d] = %d (direct) assoc=%@",(int)j,(int)layer.directSocket.fileDescriptor,layer.directSocket.xassoc);
+#endif
+        }
+    }
+
     /* we could add a wakeup pipe here if we want. thats why the size of pollfds is +1 */
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     NSLog(@"calling poll(timeout=%8.2fs)",((double)_timeoutInMs)/1000.0);
@@ -169,8 +185,9 @@
         /* we have some event to handle. */
         returnValue = UMSocketError_no_error;
 
-        UMLayerSctp             *outbound = NULL;
         UMSocketSCTPListener    *listener = NULL;
+        UMLayerSctp             *outbound = NULL;
+        UMLayerSctp             *inbound = NULL;
         UMSocketSCTP            *socket = NULL;
         UMSocket                *socketEncap = NULL;
 
@@ -188,7 +205,8 @@
 												   layer:NULL
                                                   socket:socket
                                              socketEncap:socketEncap
-											   poll_time:poll_time];
+											   poll_time:poll_time
+                                                    type:0];
                 if(r != UMSocketError_no_error)
                 {
                     returnValue= r;
@@ -209,7 +227,30 @@
 												   layer:outbound
 												  socket:socket
                                              socketEncap:socketEncap
-											   poll_time:poll_time];
+											   poll_time:poll_time
+                                                    type:1];
+                if(r != UMSocketError_no_error)
+                {
+                    returnValue = r;
+                }
+                j++;
+            }
+        }
+        for(NSUInteger i=0;i<inbound_count;i++)
+        {
+            inbound = inbound_layers[i];
+            if(inbound.directSocket!=NULL)
+            {
+                socket = inbound.directSocket;
+                socketEncap  = inbound.directTcpEncapsulatedSocket;
+                int revent = pollfds[j].revents;
+                UMSocketError r = [self handlePollResult:revent
+                                                listener:NULL
+                                                   layer:inbound
+                                                  socket:socket
+                                             socketEncap:socketEncap
+                                               poll_time:poll_time
+                                                    type:2];
                 if(r != UMSocketError_no_error)
                 {
                     returnValue = r;
@@ -246,6 +287,7 @@
                            socket:(UMSocketSCTP *)socket
                       socketEncap:(UMSocket *)socketEncap
 						poll_time:(UMMicroSec)poll_time
+                             type:(int)type /* 0 = listener, 1 = outbound, 2 = inbound */
 {
 	if((listener==NULL) && (layer==NULL))
 	{
@@ -306,9 +348,21 @@
         {
             rx = [socket receiveSCTP];
         }
-        else
+        else if(socketEncap)
         {
-            [self receiveEncapsulatedPacket:socketEncap];
+            if(type==0) /* listener. we must accept */
+            {
+                UMSocket *rs = (UMSocket *)socketEncap;
+                rs = [rs accept:&returnValue];
+                [rs switchToNonBlocking];
+                [rs setIPDualStack];
+                [rs setLinger];
+                [rs setReuseAddr];
+            }
+            else
+            {
+                rx = [self receiveEncapsulatedPacket:socketEncap];
+            }
         }
         if(rx.data.length > 0)
         {

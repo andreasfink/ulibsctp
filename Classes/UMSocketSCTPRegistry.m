@@ -49,6 +49,14 @@
     return a;
 }
 
+- (NSArray *)allInboundLayers
+{
+    [_lock lock];
+    NSArray *a = [_incomingLayers copy];
+    [_lock unlock];
+    return a;
+}
+
 /*
 + (NSString *)keyForPort:(int)port ips:(NSArray<NSString *> *)ips
 {

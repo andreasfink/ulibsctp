@@ -465,5 +465,10 @@
     return r;
 }
 
-
+- (BOOL) isTcpEncapsulated
+{
+    if((_umsocket == NULL) && (_umsocketEncapsulated != NULL))
+        return YES;
+    return NO;
+}
 @end
