@@ -1777,15 +1777,9 @@
             _reconnectTimer.seconds = _reconnectTimerValue;
         }
 
-        if ([cfg[@"tcp-client"] boolValue]==YES)
+        if ([cfg[@"sctp-over-tcp"] boolValue]==YES)
         {
             _encapsulatedOverTcp = YES;
-            _isPassive = NO;
-        }
-        if ([cfg[@"tcp-server"] boolValue]==YES)
-        {
-            _encapsulatedOverTcp = YES;
-            _isPassive = YES;
         }
         if (cfg[@"mtu"])
         {
