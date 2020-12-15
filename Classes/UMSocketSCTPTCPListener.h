@@ -13,7 +13,7 @@
     UMSocket                    *_umsocketTcp;
 }
 
-- (UMSocketSCTPTCPListener *)initWithTcpPort:(int)port;
+- (UMSocketSCTPTCPListener *)initWithPort:(int)localPort;
 
 @property(readwrite,strong) UMSocket *umsocketTcp;
 

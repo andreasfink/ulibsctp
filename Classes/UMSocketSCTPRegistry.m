@@ -90,7 +90,7 @@
     UMSocketSCTPListener *listener = [self getListenerForTcpPort:port];
     if(listener == NULL)
     {
-        listener = [[UMSocketSCTPTCPListener alloc]initWithTcpPort:port];
+        listener = [[UMSocketSCTPTCPListener alloc]initWithPort:port];
         listener.logLevel = _logLevel;
         listener.sendAborts = _sendAborts;
         [self addListener:listener];

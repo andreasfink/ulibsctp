@@ -305,7 +305,7 @@
                 NSString *addrs = [_configured_local_addresses componentsJoinedByString:@","];
                 [self logDebug:[NSString stringWithFormat:@"getting listener on %@ on port %d",addrs,_configured_local_port]];
             }
-            if(_encapsulatedOverTcp)
+            if((_encapsulatedOverTcp) && (_isPassive))
             {
                 _listener = [_registry getOrAddListenerForTcpPort:_configured_local_port];
             }
