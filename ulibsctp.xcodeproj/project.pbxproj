@@ -409,7 +409,7 @@
 		A6C78D041A29271D006C66A2 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1220;
+				LastUpgradeCheck = 1230;
 				ORGANIZATIONNAME = "Andreas Fink (andreas@fink.org)";
 				TargetAttributes = {
 					A6C78D0C1A29271D006C66A2 = {

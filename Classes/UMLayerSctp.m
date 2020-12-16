@@ -1825,6 +1825,9 @@
         config[@"reconnect-timer"] = @(_reconnectTimerValue);
         config[@"heartbeat"] = @(_heartbeatSeconds);
         config[@"mtu"] = @(_mtu);
+        config[@"max-init-timeout"] = @(_maxInitTimeout);
+        config[@"max-init-attempts"] = @ (_maxInitAttempts);
+        config[@"sctp-over-tcp"] = @(_encapsulatedOverTcp);
         return config;
     }
 }
