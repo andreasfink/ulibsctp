@@ -69,6 +69,7 @@
     int                 _maxInitTimeout;
     int                 _maxInitAttempts;
     BOOL                _encapsulatedOverTcp;
+    NSString            *_encapsulatedOverTcpSessionKey;
 }
 
 
@@ -109,6 +110,7 @@
 @property(readwrite,strong,atomic)      UMSocketSCTP        *directSocket;
 @property(readwrite,strong,atomic)      UMSocket            *directTcpEncapsulatedSocket;
 @property(readwrite,assign,atomic)      BOOL                encapsulatedOverTcp;
+@property(readwrite,strong,atomic)      NSString            *encapsulatedOverTcpSessionKey;
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq;
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name;

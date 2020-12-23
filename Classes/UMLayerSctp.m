@@ -45,6 +45,7 @@
 
 
 #import "UMLayerSctpUser.h"
+#import "UMSctpOverTcp.h"
 
 
 @implementation UMLayerSctp
@@ -354,6 +355,16 @@
                             [_directTcpEncapsulatedSocket setRemoteHost:host];
                             [_directTcpEncapsulatedSocket setRemotePort:_configured_remote_port];
                             err = [_directTcpEncapsulatedSocket connect];
+                            if(err == 0)
+                            {
+                                tmp_assocId = _directTcpEncapsulatedSocket.sock;
+                                [self sendEncapsulated:[_encapsulatedOverTcpSessionKey dataValue]
+                                                 assoc:&tmp_assocId
+                                                stream:0
+                                              protocol:0
+                                                 error:&err
+                                                 flags:SCTP_OVER_TCP_SETUP | SCTP_OVER_TCP_NOTIFICATION];
+                            }
                             tmp_assocId = _directTcpEncapsulatedSocket.sock;
                         }
                         if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
@@ -594,13 +605,25 @@
 
                     uint32_t        tmp_assocId = _assocId;
                     attempts++;
-                    sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
-                                                             port:_configured_remote_port
-                                                            assoc:&tmp_assocId
-                                                             data:task.data
-                                                           stream:task.streamId
-                                                         protocol:task.protocolId
-                                                            error:&err];
+                    if(_encapsulatedOverTcp)
+                    {
+                        sent_packets = [self sendEncapsulated:task.data
+                                                        assoc:&tmp_assocId
+                                                       stream:task.streamId
+                                                     protocol:task.protocolId
+                                                        error:&err
+                                                        flags:0];
+                    }
+                    else
+                    {
+                        sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
+                                                                 port:_configured_remote_port
+                                                                assoc:&tmp_assocId
+                                                                 data:task.data
+                                                               stream:task.streamId
+                                                             protocol:task.protocolId
+                                                                error:&err];
+                    }
                     _assocId = tmp_assocId;
 
                 }
@@ -1781,6 +1804,10 @@
         {
             _encapsulatedOverTcp = YES;
         }
+        if (cfg[@"sctp-over-tcp-session-key"])
+        {
+            _encapsulatedOverTcpSessionKey = [cfg[@"sctp-over-tcp-session-key"] stringValue];
+        }
         if (cfg[@"mtu"])
         {
             _mtu = [cfg[@"mtu"] intValue];
@@ -1962,6 +1989,53 @@
         [self powerdown];
         [self reportStatus];
     }
+}
+
+
+
+
+- (ssize_t) sendEncapsulated:(NSData *)data
+                      assoc:(uint32_t *)assocptr
+                     stream:(uint16_t)streamId
+                   protocol:(u_int32_t)protocolId
+                      error:(UMSocketError *)err2
+                       flags:(int)flags
+{
+    UMSocketError err = UMSocketError_no_error;
+    if (*assocptr==-1)
+    {
+        if(err2)
+        {
+            *err2 = UMSocketError_not_connected;
+        }
+        return -1;
+    }
+
+    sctp_over_tcp_header header;
+    memset(&header,0,sizeof(header));
+    header.header_length = htonl(sizeof(header));
+    header.payload_length = htonl(data.length);
+    header.protocolId = htonl(protocolId);
+    header.streamId = htons(streamId);
+    header.flags = htons(flags);
+
+    
+    NSMutableData *data2 = [[NSMutableData alloc]initWithBytes:&header length:sizeof(header)];
+    if(data)
+    {
+        [data2 appendData:data];
+    }
+    err = [_directTcpEncapsulatedSocket sendData:data2];
+    
+    if(err2)
+    {
+        *err2 = err;
+    }
+    if(err2 == UMSocketError_no_error)
+    {
+        return data2.length;
+    }
+    return -1;
 }
 
 @end

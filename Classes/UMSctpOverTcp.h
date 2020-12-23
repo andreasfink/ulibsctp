@@ -49,16 +49,12 @@ typedef struct sctp_over_tcp_header
 #define SCTP_OVER_TCP_SETUP            0x0080 /* setup message reserved for SCTP over TCP */
 
 
-/* the setup message contains a payload which contains the local ip addresses
-   and port as if it would be on sctp while on TCP it might have been altered
-   due to NAT, port forwarding etc. This allows the server side to act as if its
+/* the setup message contains a payload which contains the session key so the remote can figure out which connection we are referring to
    a norma SCTP multihomed connection from a config point of view.
  
  packet payload format
  +-----------------------------------------+
- | 16bit length  | sockaddr structure data |
- | 16bit length  | sockaddr structure data |
- | ....          | .....                   |
+ | non zero terminated UTF8String          |
  +-----------------------------------------+
 
 
