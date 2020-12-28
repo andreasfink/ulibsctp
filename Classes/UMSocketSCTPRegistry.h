@@ -33,6 +33,7 @@
     BOOL                    _receiverStarted;
     BOOL                    _sendAborts;
     UMLogLevel              _logLevel;
+    NSMutableDictionary     *_layersBySessionKey;
 }
 
 @property (readwrite,assign,atomic)   UMLogLevel logLevel;
@@ -58,6 +59,10 @@
 - (UMSocketSCTPTCPListener *)getTcpListenerForPort:(int)port;
 - (void)addTcpListener:(UMSocketSCTPTCPListener *)listener;
 - (void)removeTcpListener:(UMSocketSCTPTCPListener *)listener;
+
+- (void)registerSessionKey:(NSString *)session_key forLayer:(UMLayerSctp *)layer;
+- (void)unregisterSessionKey:(NSString *)session_key;
+
 
 //- (UMSocketSCTPListener *)listenerForPort:(int)port localIps:(NSArray *)ips;
 //- (void)unregisterListener:(UMSocketSCTPListener *)e;

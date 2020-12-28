@@ -31,6 +31,7 @@
         _incomingTcpListeners = [[NSMutableDictionary alloc] init];
         _outgoingLayersByIpsAndPorts = [[NSMutableDictionary alloc]init];
         _outgoingLayersByAssoc = [[NSMutableDictionary alloc]init];
+        _layersBySessionKey = [[NSMutableDictionary alloc]init];
         _logLevel = UMLOG_MINOR;
 
     }
@@ -382,6 +383,10 @@
         [_lock lock];
         [_incomingTcpLayers removeObject:layer];
         [_incomingTcpLayers addObject:layer];
+        if(layer.encapsulatedOverTcpSessionKey)
+        {
+            [self registerSessionKey:layer.encapsulatedOverTcpSessionKey forLayer:layer];
+        }
         [_lock unlock];
     }
 }
@@ -392,6 +397,10 @@
     {
         [_lock lock];
         [_incomingTcpLayers removeObject:layer];
+        if(layer.encapsulatedOverTcpSessionKey)
+        {
+            [self unregisterSessionKey:layer.encapsulatedOverTcpSessionKey];
+        }
         [_lock unlock];
     }
 }
@@ -410,6 +419,10 @@
         [_lock lock];
         [_outgoingTcpLayers removeObject:layer];
         [_outgoingTcpLayers addObject:layer];
+        if(layer.encapsulatedOverTcpSessionKey)
+        {
+            [self registerSessionKey:layer.encapsulatedOverTcpSessionKey forLayer:layer];
+        }
         [_lock unlock];
     }
 }
@@ -482,6 +495,23 @@
 }
 
 
+- (void)registerSessionKey:(NSString *)session_key forLayer:(UMLayerSctp *)layer
+{
+    if(layer.encapsulatedOverTcpSessionKey)
+    {
+        [_lock lock];
+        _layersBySessionKey[session_key] = layer;
+        [_lock unlock];
+    }
+}
+
+- (void)unregisterSessionKey:(NSString *)session_key
+{
+    [_lock lock];
+    [_layersBySessionKey removeObjectForKey:session_key];
+    [_lock unlock];
+}
+
 - (void)unregisterLayer:(UMLayerSctp *)layer
 {
     if(layer)
@@ -510,6 +540,12 @@
         }
         [_outgoingLayers removeObject:layer];
         [_incomingLayers removeObject:layer];
+        [_outgoingTcpLayers removeObject:layer];
+        [_incomingTcpLayers removeObject:layer];
+        if(layer.encapsulatedOverTcpSessionKey)
+        {
+            [self unregisterSessionKey:layer.encapsulatedOverTcpSessionKey];
+        }
         [_lock unlock];
     }
 }
@@ -603,4 +639,13 @@
     [_lock unlock];
     return s;
 }
+
+- (UMLayerSctp *)layerForSessionKey:(NSString *)sessionKey
+{
+    [_lock lock];
+    UMLayerSctp *layer = _layersBySessionKey[sessionKey];
+    [_lock unlock];
+    return layer;
+}
+
 @end
