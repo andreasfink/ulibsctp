@@ -28,7 +28,7 @@
         _outgoingTcpLayers = [[NSMutableArray alloc]init];
         _incomingTcpLayers = [[NSMutableArray alloc]init];
         _incomingListeners = [[NSMutableArray alloc]init];
-        _incomingTcpListeners = [[NSMutableArray alloc]init];
+        _incomingTcpListeners = [[NSMutableDictionary alloc] init];
         _outgoingLayersByIpsAndPorts = [[NSMutableDictionary alloc]init];
         _outgoingLayersByAssoc = [[NSMutableDictionary alloc]init];
         _logLevel = UMLOG_MINOR;
@@ -121,27 +121,6 @@
     return listener;
 }
 
-- (UMSocketSCTPTCPListener *)getOrAddListenerForTcpPort:(int)port
-{
-    [_lock lock];
-    UMSocketSCTPTCPListener *listener = [self getTcpListenerForPort:port];
-    if(listener == NULL)
-    {
-        listener = [[UMSocketSCTPTCPListener alloc]initWithPort:port];
-        [self addTcpListener:listener];
-    }
-    [_lock unlock];
-    return listener;
-}
-
-- (UMSocketSCTPTCPListener *)getTcpListenerForPort:(int)port
-{
-    [_lock lock];
-    UMSocketSCTPTCPListener *e =  _incomingTcpListeners[@(port)];
-    [_lock unlock];
-    return e;
-}
-
 - (UMSocketSCTPListener *)getListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips
 {
     NSArray *ips2 = [ips sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
@@ -149,16 +128,6 @@
     return [self getListenerForPort:port localIp:s];
 }
 
-
-- (UMSocketSCTPListener *)getListenerForTcpPort:(int)port
-{
-    UMSocketSCTPListener *e = NULL;
-    [_lock lock];
-    NSString *key =[UMSocketSCTPRegistry keyForPort:port ip:@"0.0.0.0"];
-    e = _entries[key];
-    [_lock unlock];
-    return e;
-}
 
 - (UMSocketSCTPListener *)getListenerForPort:(int)port localIp:(NSString *)ip
 {
@@ -215,6 +184,27 @@
     [_lock unlock];
 }
 
+
+- (UMSocketSCTPTCPListener *)getOrAddTcpListenerForPort:(int)port;
+{
+    [_lock lock];
+    UMSocketSCTPTCPListener *listener = [self getTcpListenerForPort:port];
+    if(listener == NULL)
+    {
+        listener = [[UMSocketSCTPTCPListener alloc]initWithPort:port];
+        [self addTcpListener:listener];
+    }
+    [_lock unlock];
+    return listener;
+}
+
+- (UMSocketSCTPTCPListener *)getTcpListenerForPort:(int)port
+{
+    [_lock lock];
+    UMSocketSCTPTCPListener *e =  _incomingTcpListeners[@(port)];
+    [_lock unlock];
+    return e;
+}
 
 - (void)addTcpListener:(UMSocketSCTPTCPListener *)listener
 {

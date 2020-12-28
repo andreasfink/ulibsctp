@@ -55,7 +55,7 @@
 - (void)removeListener:(UMSocketSCTPListener *)listener forPort:(int)port localIp:(NSString *)ips;
 
 - (UMSocketSCTPTCPListener *)getOrAddTcpListenerForPort:(int)port;
-- (UMSocketSCTPTCPListener *)getTcpListenerForTcpPort:(int)port;
+- (UMSocketSCTPTCPListener *)getTcpListenerForPort:(int)port;
 - (void)addTcpListener:(UMSocketSCTPTCPListener *)listener;
 - (void)removeTcpListener:(UMSocketSCTPTCPListener *)listener;
 
