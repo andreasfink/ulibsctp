@@ -34,6 +34,11 @@
     return self;
 }
 
+- (int)port
+{
+    return _port;
+}
+
 - (int)mtu
 {
     return 0;

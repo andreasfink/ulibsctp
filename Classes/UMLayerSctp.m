@@ -24,6 +24,7 @@
 #import "UMLayerSctpUserProfile.h"
 #import "UMLayerSctpApplicationContextProtocol.h"
 #import "UMSocketSCTPListener.h"
+#import "UMSocketSCTPTCPListener.h"
 #import "UMSocketSCTPRegistry.h"
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -308,7 +309,7 @@
             }
             if((_encapsulatedOverTcp) && (_isPassive))
             {
-                _listener = [_registry getOrAddListenerForTcpPort:_configured_local_port];
+                _listener = [_registry getOrAddTcpListenerForPort:_configured_local_port];
             }
             else
             {
@@ -932,8 +933,20 @@
                                           protocol:0];
             }
             */
-            [_directSocket close];
+            if(_directSocket)
+            {
+                [_directSocket close];
+            }
+            if(_directTcpEncapsulatedSocket)
+            {
+                [_directTcpEncapsulatedSocket close];
+                if(_isPassive)
+                {
+                    [_registry unregisterIncomingTcpLayer:self];
+                }
+            }
             _directSocket = NULL;
+            _directTcpEncapsulatedSocket = NULL;
         }
     }
 }

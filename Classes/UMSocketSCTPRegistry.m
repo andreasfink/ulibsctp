@@ -24,7 +24,11 @@
         _lock = [[UMMutex alloc]initWithName:@"umsocket-sctp-registry"];
         _receiver = [[UMSocketSCTPReceiver alloc]initWithRegistry:self];
         _outgoingLayers = [[NSMutableArray alloc]init];
+        _incomingLayers = [[NSMutableArray alloc]init];
+        _outgoingTcpLayers = [[NSMutableArray alloc]init];
+        _incomingTcpLayers = [[NSMutableArray alloc]init];
         _incomingListeners = [[NSMutableArray alloc]init];
+        _incomingTcpListeners = [[NSMutableArray alloc]init];
         _outgoingLayersByIpsAndPorts = [[NSMutableDictionary alloc]init];
         _outgoingLayersByAssoc = [[NSMutableDictionary alloc]init];
         _logLevel = UMLOG_MINOR;
@@ -41,6 +45,15 @@
     return a;
 }
 
+- (NSArray *)allTcpListeners
+{
+    [_lock lock];
+    NSArray *a = [_incomingTcpListeners copy];
+    [_lock unlock];
+    return a;
+}
+
+
 - (NSArray *)allOutboundLayers
 {
     [_lock lock];
@@ -53,6 +66,22 @@
 {
     [_lock lock];
     NSArray *a = [_incomingLayers copy];
+    [_lock unlock];
+    return a;
+}
+
+- (NSArray *)allOutboundTcpLayers
+{
+    [_lock lock];
+    NSArray *a = [_outgoingTcpLayers copy];
+    [_lock unlock];
+    return a;
+}
+
+- (NSArray *)allInboundTcpLayers
+{
+    [_lock lock];
+    NSArray *a = [_incomingTcpLayers copy];
     [_lock unlock];
     return a;
 }
@@ -92,19 +121,25 @@
     return listener;
 }
 
-- (UMSocketSCTPListener *)getOrAddListenerForTcpPort:(int)port
+- (UMSocketSCTPTCPListener *)getOrAddListenerForTcpPort:(int)port
 {
     [_lock lock];
-    UMSocketSCTPListener *listener = [self getListenerForTcpPort:port];
+    UMSocketSCTPTCPListener *listener = [self getTcpListenerForPort:port];
     if(listener == NULL)
     {
         listener = [[UMSocketSCTPTCPListener alloc]initWithPort:port];
-        listener.logLevel = _logLevel;
-        listener.sendAborts = _sendAborts;
-        [self addListener:listener];
+        [self addTcpListener:listener];
     }
     [_lock unlock];
     return listener;
+}
+
+- (UMSocketSCTPTCPListener *)getTcpListenerForPort:(int)port
+{
+    [_lock lock];
+    UMSocketSCTPTCPListener *e =  _incomingTcpListeners[@(port)];
+    [_lock unlock];
+    return e;
 }
 
 - (UMSocketSCTPListener *)getListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips
@@ -146,6 +181,7 @@
     [self addListener:listener forPort:listener.port localIp:s];
 }
 
+
 - (void)addListener:(UMSocketSCTPListener *)listener forPort:(int)port localIp:(NSString *)ip
 {
     [_lock lock];
@@ -179,6 +215,23 @@
     [_lock unlock];
 }
 
+
+- (void)addTcpListener:(UMSocketSCTPTCPListener *)listener
+{
+    
+    [_lock lock];
+    listener.registry = self;
+    _incomingTcpListeners[@(listener.port)] = listener;
+    [_lock unlock];
+}
+
+- (void)removeTcpListener:(UMSocketSCTPTCPListener *)listener
+{
+    [_lock lock];
+    listener.registry = NULL;
+    [_incomingTcpListeners removeObjectForKey:@(listener.port)];
+    [_lock unlock];
+}
 
 #if 0
 - (UMSocketSCTPListener *)listenerForPort:(int)port localIps:(NSArray *)ips;
@@ -332,10 +385,43 @@
     }
 }
 
+- (void)registerIncomingTcpLayer:(UMLayerSctp *)layer
+{
+    if(layer)
+    {
+        [_lock lock];
+        [_incomingTcpLayers removeObject:layer];
+        [_incomingTcpLayers addObject:layer];
+        [_lock unlock];
+    }
+}
+
+- (void)unregisterIncomingTcpLayer:(UMLayerSctp *)layer
+{
+    if(layer)
+    {
+        [_lock lock];
+        [_incomingTcpLayers removeObject:layer];
+        [_lock unlock];
+    }
+}
+
+
 - (void)registerOutgoingLayer:(UMLayerSctp *)layer
 {
     [self registerOutgoingLayer:layer allowAnyRemotePortIncoming:NO];
 
+}
+
+- (void)registerOutgoingTcpLayer:(UMLayerSctp *)layer
+{
+    if(layer)
+    {
+        [_lock lock];
+        [_outgoingTcpLayers removeObject:layer];
+        [_outgoingTcpLayers addObject:layer];
+        [_lock unlock];
+    }
 }
 
 - (void)registerOutgoingLayer:(UMLayerSctp *)layer allowAnyRemotePortIncoming:(BOOL)anyPort

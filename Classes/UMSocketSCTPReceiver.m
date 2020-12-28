@@ -10,6 +10,7 @@
 #import "UMLayerSctp.h"
 #import "UMSocketSCTP.h"
 #import "UMSocketSCTPListener.h"
+#import "UMSocketSCTPTCPListener.h"
 #import "UMSocketSCTPRegistry.h"
 #import "UMSctpOverTcp.h"
 
@@ -29,6 +30,7 @@
     {
         _outboundLayers = [[NSMutableArray alloc]init];
         _listeners      = [[NSMutableArray alloc]init];
+        _tcpListeners   = [[NSMutableArray alloc]init];
         //_lock           = [[UMMutex alloc]initWithName:@"socket-sctp-receiver-lock"];
         _timeoutInMs    = 5000;
         _registry       = r;
@@ -82,17 +84,34 @@
 
 
 
+typedef enum PollSocketType_enum
+{
+    POLL_SOCKET_TYPE_LISTENER_SCTP  = 0,
+    POLL_SOCKET_TYPE_LISTENER_TCP   = 1,
+    POLL_SOCKET_TYPE_OUTBOUND       = 2,
+    POLL_SOCKET_TYPE_INBOUND        = 3,
+    POLL_SOCKET_TYPE_OUTBOUND_TCP   = 4,
+    POLL_SOCKET_TYPE_INBOUND_TCP    = 5,
+} PollSocketType_enum;
+
 - (UMSocketError) waitAndHandleData
 {
     UMAssert(_registry!=NULL,@"_registry is NULL");
 
     UMSocketError returnValue = UMSocketError_generic_error;
     NSArray *listeners = [_registry allListeners];
+    NSArray *tcp_listeners = [_registry allTcpListeners];
     NSArray *outbound_layers = [_registry allOutboundLayers];
     NSArray *inbound_layers = [_registry allInboundLayers];
+    NSArray *outbound_tcp_layers = [_registry allOutboundTcpLayers];
+    NSArray *inbound_tcp_layers = [_registry allInboundTcpLayers];
     NSUInteger listeners_count = listeners.count;
+    NSUInteger tcp_listeners_count = _tcpListeners.count;
     NSUInteger outbound_count = outbound_layers.count;
     NSUInteger inbound_count = inbound_layers.count;
+    NSUInteger outbound_tcp_count = outbound_tcp_layers.count;
+    NSUInteger inbound_tcp_count = inbound_tcp_layers.count;
+
     if((listeners_count == 0) && (outbound_count==0))
     {
         sleep(1);
@@ -116,6 +135,19 @@
     for(NSUInteger i=0;i<listeners_count;i++)
     {
         UMSocketSCTPListener *listener = listeners[i];
+        if(listener.isInvalid==NO)
+        {
+            pollfds[j].fd = listener.umsocket.fileDescriptor;
+            pollfds[j].events = events;
+            j++;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+            NSLog(@"pollfds[%d] = %d  (listener)",(int)j,(int)listener.umsocket.fileDescriptor);
+#endif
+        }
+    }
+    for(NSUInteger i=0;i<tcp_listeners_count;i++)
+    {
+        UMSocketSCTPTCPListener *listener = tcp_listeners[i];
         if(listener.isInvalid==NO)
         {
             pollfds[j].fd = listener.umsocket.fileDescriptor;
@@ -152,7 +184,26 @@
 #endif
         }
     }
-
+    for(NSUInteger i=0;i<outbound_tcp_count;i++)
+    {
+        UMLayerSctp *layer = outbound_tcp_layers[i];
+        if(layer.directTcpEncapsulatedSocket!=NULL)
+        {
+            pollfds[j].fd = layer.directTcpEncapsulatedSocket.fileDescriptor;
+            pollfds[j].events = events;
+            j++;
+        }
+    }
+    for(NSUInteger i=0;i<inbound_tcp_count;i++)
+    {
+        UMLayerSctp *layer = inbound_tcp_layers[i];
+        if(layer.directTcpEncapsulatedSocket!=NULL)
+        {
+            pollfds[j].fd = layer.directTcpEncapsulatedSocket.fileDescriptor;
+            pollfds[j].events = events;
+            j++;
+        }
+    }
     /* we could add a wakeup pipe here if we want. thats why the size of pollfds is +1 */
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     NSLog(@"calling poll(timeout=%8.2fs)",((double)_timeoutInMs)/1000.0);
@@ -206,7 +257,29 @@
                                                   socket:socket
                                              socketEncap:socketEncap
 											   poll_time:poll_time
-                                                    type:0];
+                                                    type:POLL_SOCKET_TYPE_LISTENER_SCTP];
+                if(r != UMSocketError_no_error)
+                {
+                    returnValue= r;
+                }
+                j++;
+            }
+        }
+        for(NSUInteger i=0;i<tcp_listeners_count;i++)
+        {
+            listener = tcp_listeners[i];
+            if(listener.isInvalid==NO)
+            {
+                socket = listener.umsocket;
+                socketEncap  = listener.umsocketEncapsulated;
+                int revent = pollfds[j].revents;
+                UMSocketError r = [self handlePollResult:revent
+                                                listener:listener
+                                                   layer:NULL
+                                                  socket:socket
+                                             socketEncap:socketEncap
+                                               poll_time:poll_time
+                                                    type:POLL_SOCKET_TYPE_LISTENER_TCP];
                 if(r != UMSocketError_no_error)
                 {
                     returnValue= r;
@@ -228,7 +301,7 @@
 												  socket:socket
                                              socketEncap:socketEncap
 											   poll_time:poll_time
-                                                    type:1];
+                                                    type:POLL_SOCKET_TYPE_OUTBOUND];
                 if(r != UMSocketError_no_error)
                 {
                     returnValue = r;
@@ -250,7 +323,7 @@
                                                   socket:socket
                                              socketEncap:socketEncap
                                                poll_time:poll_time
-                                                    type:2];
+                                                    type:POLL_SOCKET_TYPE_INBOUND];
                 if(r != UMSocketError_no_error)
                 {
                     returnValue = r;
@@ -287,7 +360,7 @@
                            socket:(UMSocketSCTP *)socket
                       socketEncap:(UMSocket *)socketEncap
 						poll_time:(UMMicroSec)poll_time
-                             type:(int)type /* 0 = listener, 1 = outbound, 2 = inbound */
+                             type:(PollSocketType_enum)type
 {
 	if((listener==NULL) && (layer==NULL))
 	{
@@ -344,13 +417,12 @@
     if(revent_has_data)
     {
         UMSocketSCTPReceivedPacket *rx;
-        if(socket)
+        switch(type)
         {
-            rx = [socket receiveSCTP];
-        }
-        else if(socketEncap)
-        {
-            if(type==0) /* listener. we must accept */
+            case POLL_SOCKET_TYPE_LISTENER_SCTP:
+                rx = [socket receiveSCTP];
+                break;
+            case POLL_SOCKET_TYPE_LISTENER_TCP:
             {
                 UMSocket *rs = (UMSocket *)socketEncap;
                 rs = [rs accept:&returnValue];
@@ -358,19 +430,26 @@
                 [rs setIPDualStack];
                 [rs setLinger];
                 [rs setReuseAddr];
+                rx = [self receiveEncapsulatedPacket:rs];
+                if(rx.flags & SCTP_OVER_TCP_SETUP)
+                {
+                    NSString *session_key = [rx.data stringValue];
+                    UMLayerSctp *session = [_registry layerForSessionKey:session_key];
+                    if(session)
+                    {
+                        [_registry registerIncomingTcpLayer:session];
+                    }
+                }
             }
-            else
-            {
+                break;
+            case POLL_SOCKET_TYPE_OUTBOUND:
+            case POLL_SOCKET_TYPE_INBOUND:
+                rx = [socket receiveSCTP];
+                break;
+            case POLL_SOCKET_TYPE_OUTBOUND_TCP:
+            case POLL_SOCKET_TYPE_INBOUND_TCP:
                 rx = [self receiveEncapsulatedPacket:socketEncap];
-            }
-        }
-        if(rx.data.length > 0)
-        {
-            rx.rx_time = ulib_microsecondTime();
-            rx.poll_time = poll_time;
-            [layer processReceivedData:rx];
-            [listener processReceivedData:rx];
-            rx.process_time = ulib_microsecondTime();
+                break;
         }
         if(revent_hup)
         {

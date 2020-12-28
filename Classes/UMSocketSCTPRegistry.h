@@ -10,6 +10,7 @@
 @class UMSocketSCTPListener;
 @class UMLayerSctp;
 @class UMSocketSCTPReceiver;
+@class UMSocketSCTPTCPListener;
 
 @interface UMSocketSCTPRegistry : UMObject
 {
@@ -17,8 +18,13 @@
     NSMutableDictionary     *_assocs;
 
     NSMutableArray          *_outgoingLayers;
-    NSMutableArray          *_incomingListeners;
+    NSMutableArray<UMSocketSCTPListener *>      *_incomingListeners;
+    NSMutableDictionary<NSNumber *,UMSocketSCTPTCPListener *>   *_incomingTcpListeners; /* key is @(port) */
     NSMutableArray          *_incomingLayers; /* once peeled of the listener */
+    
+    NSMutableArray          *_outgoingTcpLayers;
+    NSMutableArray          *_incomingTcpLayers;
+
     NSMutableDictionary     *_outgoingLayersByIpsAndPorts;
     NSMutableDictionary     *_outgoingLayersByAssoc;
     
@@ -38,25 +44,34 @@
 + (NSString *)keyForPort:(int)port ip:(NSString *)ip;
 
 - (UMSocketSCTPListener *)getOrAddListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips;
-- (UMSocketSCTPListener *)getOrAddListenerForTcpPort:(int)port;
 
 - (UMSocketSCTPListener *)getListenerForPort:(int)port localIp:(NSString *)ip;
 - (UMSocketSCTPListener *)getListenerForPort:(int)port localIps:(NSArray *)ips;
+
 
 - (void)addListener:(UMSocketSCTPListener *)listener;
 - (void)addListener:(UMSocketSCTPListener *)listener forPort:(int)port localIp:(NSString *)ip;
 - (void)removeListener:(UMSocketSCTPListener *)listener;
 - (void)removeListener:(UMSocketSCTPListener *)listener forPort:(int)port localIp:(NSString *)ips;
 
+- (UMSocketSCTPTCPListener *)getOrAddTcpListenerForPort:(int)port;
+- (UMSocketSCTPTCPListener *)getTcpListenerForTcpPort:(int)port;
+- (void)addTcpListener:(UMSocketSCTPTCPListener *)listener;
+- (void)removeTcpListener:(UMSocketSCTPTCPListener *)listener;
+
 //- (UMSocketSCTPListener *)listenerForPort:(int)port localIps:(NSArray *)ips;
 //- (void)unregisterListener:(UMSocketSCTPListener *)e;
 
 - (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId;
+- (UMLayerSctp *)layerForSessionKey:(NSString *)sessionKey;
 
 - (void)registerOutgoingLayer:(UMLayerSctp *)layer;
+- (void)registerOutgoingTcpLayer:(UMLayerSctp *)layer;
 - (void)registerOutgoingLayer:(UMLayerSctp *)layer allowAnyRemotePortIncoming:(BOOL)anyPort;
 
 - (void)registerIncomingLayer:(UMLayerSctp *)layer;
+- (void)registerIncomingTcpLayer:(UMLayerSctp *)layer;
+
 - (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer;
 
 - (void)unregisterAssoc:(NSNumber *)assocId;
@@ -68,8 +83,15 @@
                       remotePort:(int)port2;
 
 - (NSArray *)allListeners;
+- (NSArray *)allTcpListeners;
 - (NSArray *)allOutboundLayers;
 - (NSArray *)allInboundLayers;
+
+- (NSArray *)allOutboundTcpLayers;
+- (NSArray *)allInboundTcpLayers;
+
+- (void)unregisterIncomingTcpLayer:(UMLayerSctp *)layer;
+
 - (void)startReceiver;
 - (void)stopReceiver;
 
