@@ -112,7 +112,7 @@ typedef enum PollSocketType_enum
     NSUInteger outbound_tcp_count = outbound_tcp_layers.count;
     NSUInteger inbound_tcp_count = inbound_tcp_layers.count;
     
-    NSUInteger listeners_count_valid = 0:
+    NSUInteger listeners_count_valid = 0;
     NSUInteger tcp_listeners_count_valid = 0;
     NSUInteger outbound_count_valid = 0;
     NSUInteger inbound_count_valid = 0;
@@ -209,7 +209,7 @@ typedef enum PollSocketType_enum
         UMLayerSctp *layer = outbound_layers[i];
         if(layer.directSocket!=NULL)
         {
-            outbound_count_valid;
+            outbound_count_valid++;
             pollfds[j].fd = layer.directSocket.fileDescriptor;
             pollfds[j].events = events;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -336,7 +336,7 @@ typedef enum PollSocketType_enum
         }
         for(NSUInteger i=0;i<outbound_count_valid;i++)
         {
-            outbound = outbound_layers[j]++;
+            outbound = outbound_layers[j++];
             socket = outbound.directSocket;
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
