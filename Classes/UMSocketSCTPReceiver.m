@@ -189,7 +189,7 @@ typedef enum PollSocketType_enum
             pollfds[j].events = events;
             j++;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"pollfds[%d] = %d  (listener)",(int)j,(int)listener.umsocket.fileDescriptor);
+            NSLog(@"pollfds[%d] = %d  (listener-tcp)",(int)j,(int)listener.umsocket.fileDescriptor);
 #endif
         }
     }
@@ -200,10 +200,10 @@ typedef enum PollSocketType_enum
         {
             pollfds[j].fd = layer.directSocket.fileDescriptor;
             pollfds[j].events = events;
-            j++;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"pollfds[%d] = %d (direct) assoc=%@",(int)j,(int)layer.directSocket.fileDescriptor,layer.directSocket.xassoc);
+            NSLog(@"pollfds[%d] = %d (outbound) assoc=%@",(int)j,(int)layer.directSocket.fileDescriptor,layer.directSocket.xassoc);
 #endif
+            j++;
         }
     }
     for(NSUInteger i=0;i<inbound_count;i++)
@@ -213,10 +213,10 @@ typedef enum PollSocketType_enum
         {
             pollfds[j].fd = layer.directSocket.fileDescriptor;
             pollfds[j].events = events;
-            j++;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"pollfds[%d] = %d (direct) assoc=%@",(int)j,(int)layer.directSocket.fileDescriptor,layer.directSocket.xassoc);
+            NSLog(@"pollfds[%d] = %d (inbound) assoc=%@",(int)j,(int)layer.directSocket.fileDescriptor,layer.directSocket.xassoc);
 #endif
+            j++;
         }
     }
     for(NSUInteger i=0;i<outbound_tcp_count;i++)
@@ -226,6 +226,9 @@ typedef enum PollSocketType_enum
         {
             pollfds[j].fd = layer.directTcpEncapsulatedSocket.fileDescriptor;
             pollfds[j].events = events;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+            NSLog(@"pollfds[%d] = %d (outbound-tcp)",(int)j,(int)layer.directTcpEncapsulatedSocket.fileDescriptor);
+#endif
             j++;
         }
     }
@@ -236,6 +239,9 @@ typedef enum PollSocketType_enum
         {
             pollfds[j].fd = layer.directTcpEncapsulatedSocket.fileDescriptor;
             pollfds[j].events = events;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+            NSLog(@"pollfds[%d] = %d (inbound-tcp)",(int)j,(int)layer.directTcpEncapsulatedSocket.fileDescriptor);
+#endif
             j++;
         }
     }
