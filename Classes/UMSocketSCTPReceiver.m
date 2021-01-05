@@ -111,6 +111,14 @@ typedef enum PollSocketType_enum
     NSUInteger inbound_count = inbound_layers.count;
     NSUInteger outbound_tcp_count = outbound_tcp_layers.count;
     NSUInteger inbound_tcp_count = inbound_tcp_layers.count;
+    
+    NSUInteger listeners_count_valid = 0:
+    NSUInteger tcp_listeners_count_valid = 0;
+    NSUInteger outbound_count_valid = 0;
+    NSUInteger inbound_count_valid = 0;
+    NSUInteger outbound_tcp_count_valid = 0;
+    NSUInteger inbound_tcp_count_valid = 0;
+
 #if defined(ULIBSCTP_CONFIG_DEBUG)
 
     if(listeners==NULL)
@@ -172,12 +180,14 @@ typedef enum PollSocketType_enum
         UMSocketSCTPListener *listener = listeners[i];
         if(listener.isInvalid==NO)
         {
+            
+            listeners_count_valid++;
             pollfds[j].fd = listener.umsocket.fileDescriptor;
             pollfds[j].events = events;
-            j++;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             NSLog(@"pollfds[%d] = %d  (listener)",(int)j,(int)listener.umsocket.fileDescriptor);
 #endif
+            j++;
         }
     }
     for(NSUInteger i=0;i<tcp_listeners_count;i++)
@@ -185,12 +195,13 @@ typedef enum PollSocketType_enum
         UMSocketSCTPTCPListener *listener = tcp_listeners[i];
         if(listener.isInvalid==NO)
         {
+            tcp_listeners_count_valid++;
             pollfds[j].fd = listener.umsocket.fileDescriptor;
             pollfds[j].events = events;
-            j++;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             NSLog(@"pollfds[%d] = %d  (listener-tcp)",(int)j,(int)listener.umsocket.fileDescriptor);
 #endif
+            j++;
         }
     }
     for(NSUInteger i=0;i<outbound_count;i++)
@@ -198,6 +209,7 @@ typedef enum PollSocketType_enum
         UMLayerSctp *layer = outbound_layers[i];
         if(layer.directSocket!=NULL)
         {
+            outbound_count_valid;
             pollfds[j].fd = layer.directSocket.fileDescriptor;
             pollfds[j].events = events;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -211,6 +223,7 @@ typedef enum PollSocketType_enum
         UMLayerSctp *layer = inbound_layers[i];
         if(layer.directSocket!=NULL)
         {
+            inbound_count_valid++;
             pollfds[j].fd = layer.directSocket.fileDescriptor;
             pollfds[j].events = events;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -224,6 +237,7 @@ typedef enum PollSocketType_enum
         UMLayerSctp *layer = outbound_tcp_layers[i];
         if(layer.directTcpEncapsulatedSocket!=NULL)
         {
+            outbound_tcp_count_valid++;
             pollfds[j].fd = layer.directTcpEncapsulatedSocket.fileDescriptor;
             pollfds[j].events = events;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -237,6 +251,7 @@ typedef enum PollSocketType_enum
         UMLayerSctp *layer = inbound_tcp_layers[i];
         if(layer.directTcpEncapsulatedSocket!=NULL)
         {
+            inbound_tcp_count_valid++;
             pollfds[j].fd = layer.directTcpEncapsulatedSocket.fileDescriptor;
             pollfds[j].events = events;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -285,126 +300,106 @@ typedef enum PollSocketType_enum
         UMSocket                *socketEncap = NULL;
 
         j = 0;
-        for(NSUInteger i=0;i<listeners_count;i++)
+        for(NSUInteger i=0;i<listeners_count_valid;i++)
         {
             listener = listeners[j++];
-            if(listener.isInvalid==NO)
+            socket = listener.umsocket;
+            int revent = pollfds[j].revents;
+            UMSocketError r = [self handlePollResult:revent
+                                            listener:listener
+                                               layer:NULL
+                                              socket:socket
+                                         socketEncap:NULL
+                                           poll_time:poll_time
+                                                type:POLL_SOCKET_TYPE_LISTENER_SCTP];
+            if(r != UMSocketError_no_error)
             {
-                socket = listener.umsocket;
-                socketEncap  = listener.umsocketEncapsulated;
-                int revent = pollfds[j].revents;
-                UMSocketError r = [self handlePollResult:revent
-												listener:listener
-												   layer:NULL
-                                                  socket:socket
-                                             socketEncap:socketEncap
-											   poll_time:poll_time
-                                                    type:POLL_SOCKET_TYPE_LISTENER_SCTP];
-                if(r != UMSocketError_no_error)
-                {
-                    returnValue= r;
-                }
+                returnValue= r;
             }
         }
-        for(NSUInteger i=0;i<tcp_listeners_count;i++)
+        for(NSUInteger i=0;i<tcp_listeners_count_valid;i++)
         {
             listener = tcp_listeners[j++];
-            if(listener.isInvalid==NO)
+            socketEncap  = listener.umsocketEncapsulated;
+            int revent = pollfds[j].revents;
+            UMSocketError r = [self handlePollResult:revent
+                                            listener:listener
+                                               layer:NULL
+                                              socket:NULL
+                                         socketEncap:socketEncap
+                                           poll_time:poll_time
+                                                type:POLL_SOCKET_TYPE_LISTENER_TCP];
+            if(r != UMSocketError_no_error)
             {
-                socket = listener.umsocket;
-                socketEncap  = listener.umsocketEncapsulated;
-                int revent = pollfds[j].revents;
-                UMSocketError r = [self handlePollResult:revent
-                                                listener:listener
-                                                   layer:NULL
-                                                  socket:socket
-                                             socketEncap:socketEncap
-                                               poll_time:poll_time
-                                                    type:POLL_SOCKET_TYPE_LISTENER_TCP];
-                if(r != UMSocketError_no_error)
-                {
-                    returnValue= r;
-                }
+                returnValue= r;
             }
         }
-        for(NSUInteger i=0;i<outbound_count;i++)
+        for(NSUInteger i=0;i<outbound_count_valid;i++)
         {
-            outbound = outbound_layers[j++];
-            if(outbound.directSocket!=NULL)
+            outbound = outbound_layers[j]++;
+            socket = outbound.directSocket;
+            int revent = pollfds[j].revents;
+            UMSocketError r = [self handlePollResult:revent
+                                            listener:NULL
+                                               layer:outbound
+                                              socket:socket
+                                         socketEncap:NULL
+                                           poll_time:poll_time
+                                                type:POLL_SOCKET_TYPE_OUTBOUND];
+            if(r != UMSocketError_no_error)
             {
-                socket = outbound.directSocket;
-                int revent = pollfds[j].revents;
-                UMSocketError r = [self handlePollResult:revent
-												listener:NULL
-												   layer:outbound
-												  socket:socket
-                                             socketEncap:NULL
-											   poll_time:poll_time
-                                                    type:POLL_SOCKET_TYPE_OUTBOUND];
-                if(r != UMSocketError_no_error)
-                {
-                    returnValue = r;
-                }
+                returnValue = r;
             }
         }
-        for(NSUInteger i=0;i<inbound_count;i++)
+        for(NSUInteger i=0;i<inbound_count_valid;i++)
         {
             inbound = inbound_layers[j++];
-            if(inbound.directSocket!=NULL)
+            socket = inbound.directSocket;
+            int revent = pollfds[j].revents;
+            UMSocketError r = [self handlePollResult:revent
+                                            listener:NULL
+                                               layer:inbound
+                                              socket:socket
+                                         socketEncap:NULL
+                                           poll_time:poll_time
+                                                type:POLL_SOCKET_TYPE_INBOUND];
+            if(r != UMSocketError_no_error)
             {
-                socket = inbound.directSocket;
-                int revent = pollfds[j].revents;
-                UMSocketError r = [self handlePollResult:revent
-                                                listener:NULL
-                                                   layer:inbound
-                                                  socket:socket
-                                             socketEncap:NULL
-                                               poll_time:poll_time
-                                                    type:POLL_SOCKET_TYPE_INBOUND];
-                if(r != UMSocketError_no_error)
-                {
-                    returnValue = r;
-                }
+                returnValue = r;
             }
         }
-        for(NSUInteger i=0;i<outbound_tcp_count;i++)
+        for(NSUInteger i=0;i<outbound_tcp_count_valid;i++)
         {
             outbound = outbound_tcp_layers[j++];
-            if(outbound.directSocket!=NULL)
+            socketEncap  = outbound.directTcpEncapsulatedSocket;
+            int revent = pollfds[j].revents;
+            UMSocketError r = [self handlePollResult:revent
+                                            listener:NULL
+                                               layer:outbound
+                                              socket:NULL
+                                         socketEncap:socketEncap
+                                           poll_time:poll_time
+                                                type:POLL_SOCKET_TYPE_OUTBOUND_TCP];
+            if(r != UMSocketError_no_error)
             {
-                socketEncap  = outbound.directTcpEncapsulatedSocket;
-                int revent = pollfds[j].revents;
-                UMSocketError r = [self handlePollResult:revent
-                                                listener:NULL
-                                                   layer:outbound
-                                                  socket:NULL
-                                             socketEncap:socketEncap
-                                               poll_time:poll_time
-                                                    type:POLL_SOCKET_TYPE_OUTBOUND_TCP];
-                if(r != UMSocketError_no_error)
-                {
-                    returnValue = r;
-                }
+                returnValue = r;
             }
         }
-        for(NSUInteger i=0;i<inbound_tcp_count;i++)
+        for(NSUInteger i=0;i<inbound_tcp_count_valid;i++)
         {
             inbound = inbound_tcp_layers[j++];
-            if(inbound.directSocket!=NULL)
+            socketEncap  = inbound.directTcpEncapsulatedSocket;
+            int revent = pollfds[j].revents;
+            UMSocketError r = [self handlePollResult:revent
+                                            listener:NULL
+                                               layer:inbound
+                                              socket:NULL
+                                         socketEncap:socketEncap
+                                           poll_time:poll_time
+                                                type:POLL_SOCKET_TYPE_INBOUND_TCP];
+            if(r != UMSocketError_no_error)
             {
-                socketEncap  = inbound.directTcpEncapsulatedSocket;
-                int revent = pollfds[j].revents;
-                UMSocketError r = [self handlePollResult:revent
-                                                listener:NULL
-                                                   layer:inbound
-                                                  socket:NULL
-                                             socketEncap:socketEncap
-                                               poll_time:poll_time
-                                                    type:POLL_SOCKET_TYPE_INBOUND_TCP];
-                if(r != UMSocketError_no_error)
-                {
-                    returnValue = r;
-                }
+                returnValue = r;
             }
         }
     }
