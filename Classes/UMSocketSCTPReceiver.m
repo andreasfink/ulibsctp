@@ -154,17 +154,18 @@ typedef enum PollSocketType_enum
     NSLog(@"inbound_tcp_count=%d",(int)inbound_tcp_count);
 #endif
 
+    NSUInteger total_count = listeners_count + tcp_listeners_count + outbound_count + inbound_count + outbound_tcp_count + inbound_tcp_count;
 
-    if((listeners_count == 0) && (outbound_count==0))
+    if(total_count == 0)
     {
         sleep(1);
         return UMSocketError_no_data;
     }
 
-    struct pollfd *pollfds = calloc(listeners_count+outbound_count+1,sizeof(struct pollfd));
+    struct pollfd *pollfds = calloc((total_count+1),sizeof(struct pollfd));
     NSAssert(pollfds !=0,@"can not allocate memory for poll()");
 
-    memset(pollfds, 0x00,listeners_count+1  * sizeof(struct pollfd));
+    memset(pollfds, 0x00,(total_count+1)  * sizeof(struct pollfd));
     int events = POLLIN | POLLPRI | POLLERR | POLLHUP | POLLNVAL;
 #ifdef POLLRDBAND
     events |= POLLRDBAND;
@@ -268,10 +269,9 @@ typedef enum PollSocketType_enum
 
     NSAssert(_timeoutInMs > 100,@"UMSocketSCTP Receiver: _timeoutInMs is smaller than 100ms");
 
+    total_count = j;
     int ret1 = poll(pollfds, j, _timeoutInMs);
-
     UMMicroSec poll_time = ulib_microsecondTime();
-
     if (ret1 < 0)
     {
         int eno = errno;
@@ -290,6 +290,14 @@ typedef enum PollSocketType_enum
     }
     else /* ret1 > 0 */
     {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    NSLog(@"listeners_count_valid=%d",(int)listeners_count_valid);
+    NSLog(@"tcp_listeners_count_valid=%d",(int)tcp_listeners_count_valid);
+    NSLog(@"outbound_count_valid=%d",(int)outbound_count_valid);
+    NSLog(@"inbound_count_valid=%d",(int)inbound_count_valid);
+    NSLog(@"outbound_tcp_count_valid=%d",(int)outbound_tcp_count_valid);
+    NSLog(@"inbound_tcp_count_valid=%d",(int)inbound_tcp_count_valid);
+#endif
         /* we have some event to handle. */
         returnValue = UMSocketError_no_error;
 
