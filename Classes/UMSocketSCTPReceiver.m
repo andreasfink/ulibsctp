@@ -310,7 +310,7 @@ typedef enum PollSocketType_enum
         j = 0;
         for(NSUInteger i=0;i<listeners_count_valid;i++)
         {
-            listener = listeners[j++];
+            listener = listeners[j];
             socket = listener.umsocket;
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
@@ -324,10 +324,11 @@ typedef enum PollSocketType_enum
             {
                 returnValue= r;
             }
+            j++;
         }
         for(NSUInteger i=0;i<tcp_listeners_count_valid;i++)
         {
-            listener = tcp_listeners[j++];
+            listener = tcp_listeners[j];
             socketEncap  = listener.umsocketEncapsulated;
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
@@ -341,10 +342,11 @@ typedef enum PollSocketType_enum
             {
                 returnValue= r;
             }
+            j++;
         }
         for(NSUInteger i=0;i<outbound_count_valid;i++)
         {
-            outbound = outbound_layers[j++];
+            outbound = outbound_layers[j];
             socket = outbound.directSocket;
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
@@ -358,10 +360,11 @@ typedef enum PollSocketType_enum
             {
                 returnValue = r;
             }
+            j++;
         }
         for(NSUInteger i=0;i<inbound_count_valid;i++)
         {
-            inbound = inbound_layers[j++];
+            inbound = inbound_layers[j];
             socket = inbound.directSocket;
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
@@ -375,10 +378,11 @@ typedef enum PollSocketType_enum
             {
                 returnValue = r;
             }
+            j++;
         }
         for(NSUInteger i=0;i<outbound_tcp_count_valid;i++)
         {
-            outbound = outbound_tcp_layers[j++];
+            outbound = outbound_tcp_layers[j];
             socketEncap  = outbound.directTcpEncapsulatedSocket;
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
@@ -392,10 +396,11 @@ typedef enum PollSocketType_enum
             {
                 returnValue = r;
             }
+            j++;
         }
         for(NSUInteger i=0;i<inbound_tcp_count_valid;i++)
         {
-            inbound = inbound_tcp_layers[j++];
+            inbound = inbound_tcp_layers[j];
             socketEncap  = inbound.directTcpEncapsulatedSocket;
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
@@ -409,6 +414,7 @@ typedef enum PollSocketType_enum
             {
                 returnValue = r;
             }
+            j++;
         }
     }
     switch(returnValue)
