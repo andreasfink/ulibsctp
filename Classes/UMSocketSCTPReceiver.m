@@ -408,7 +408,7 @@ typedef enum PollSocketType_enum
             {
                 returnValue = r;
             }
-            j++;f
+            j++;
         }
         for(NSUInteger i=0;i<inbound_tcp_count_valid;i++)
         {
