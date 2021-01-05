@@ -143,7 +143,7 @@ typedef enum PollSocketType_enum
     NSLog(@"outbound_count=%d",(int)outbound_count);
     NSLog(@"inbound_count=%d",(int)inbound_count);
     NSLog(@"outbound_tcp_count=%d",(int)outbound_tcp_count);
-    NSLog(@"inbound_tcp_count=%d",(int)inbound_tcp_layers);
+    NSLog(@"inbound_tcp_count=%d",(int)inbound_tcp_count);
 #endif
 
 
@@ -241,7 +241,7 @@ typedef enum PollSocketType_enum
     }
     /* we could add a wakeup pipe here if we want. thats why the size of pollfds is +1 */
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    _timeoutInMs = 10.0;
+    _timeoutInMs = 10000;
     NSLog(@"calling poll(timeout=%8.2fs)",((double)_timeoutInMs)/1000.0);
 #endif
 
