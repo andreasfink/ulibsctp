@@ -119,6 +119,13 @@ typedef enum PollSocketType_enum
     NSUInteger outbound_tcp_count_valid = 0;
     NSUInteger inbound_tcp_count_valid = 0;
 
+    NSMutableArray *valid_listeners = [[NSMutableArray alloc]init];
+    NSMutableArray *valid_tcp_listeners = [[NSMutableArray alloc]init];
+    NSMutableArray *valid_outbound_layers = [[NSMutableArray alloc]init];
+    NSMutableArray *valid_inbound_layers = [[NSMutableArray alloc]init];
+    NSMutableArray *valid_outbound_tcp_layers = [[NSMutableArray alloc]init];
+    NSMutableArray *valid_inbound_tcp_layers = [[NSMutableArray alloc]init];
+
 #if defined(ULIBSCTP_CONFIG_DEBUG)
 
     if(listeners==NULL)
@@ -181,8 +188,8 @@ typedef enum PollSocketType_enum
         UMSocketSCTPListener *listener = listeners[i];
         if(listener.isInvalid==NO)
         {
-            
             listeners_count_valid++;
+            [valid_listeners addObject:listener];
             pollfds[j].fd = listener.umsocket.fileDescriptor;
             pollfds[j].events = events;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -197,6 +204,7 @@ typedef enum PollSocketType_enum
         if(listener.isInvalid==NO)
         {
             tcp_listeners_count_valid++;
+            [valid_tcp_listeners addObject:listener];
             pollfds[j].fd = listener.umsocket.fileDescriptor;
             pollfds[j].events = events;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -211,6 +219,7 @@ typedef enum PollSocketType_enum
         if(layer.directSocket!=NULL)
         {
             outbound_count_valid++;
+            [valid_outbound_layers addObject:layer];
             pollfds[j].fd = layer.directSocket.fileDescriptor;
             pollfds[j].events = events;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -225,6 +234,7 @@ typedef enum PollSocketType_enum
         if(layer.directSocket!=NULL)
         {
             inbound_count_valid++;
+            [valid_inbound_layers addObject:layer];
             pollfds[j].fd = layer.directSocket.fileDescriptor;
             pollfds[j].events = events;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -239,6 +249,7 @@ typedef enum PollSocketType_enum
         if(layer.directTcpEncapsulatedSocket!=NULL)
         {
             outbound_tcp_count_valid++;
+            [valid_outbound_tcp_layers addObject:layer];
             pollfds[j].fd = layer.directTcpEncapsulatedSocket.fileDescriptor;
             pollfds[j].events = events;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -253,6 +264,7 @@ typedef enum PollSocketType_enum
         if(layer.directTcpEncapsulatedSocket!=NULL)
         {
             inbound_tcp_count_valid++;
+            [valid_inbound_tcp_layers addObject:layer];
             pollfds[j].fd = layer.directTcpEncapsulatedSocket.fileDescriptor;
             pollfds[j].events = events;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -310,7 +322,7 @@ typedef enum PollSocketType_enum
         j = 0;
         for(NSUInteger i=0;i<listeners_count_valid;i++)
         {
-            listener = listeners[j];
+            listener = valid_listeners[i];
             socket = listener.umsocket;
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
@@ -328,7 +340,7 @@ typedef enum PollSocketType_enum
         }
         for(NSUInteger i=0;i<tcp_listeners_count_valid;i++)
         {
-            listener = tcp_listeners[j];
+            listener = valid_tcp_listeners[i];
             socketEncap  = listener.umsocketEncapsulated;
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
@@ -346,7 +358,7 @@ typedef enum PollSocketType_enum
         }
         for(NSUInteger i=0;i<outbound_count_valid;i++)
         {
-            outbound = outbound_layers[j];
+            outbound = valid_outbound_layers[i];
             socket = outbound.directSocket;
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
@@ -364,7 +376,7 @@ typedef enum PollSocketType_enum
         }
         for(NSUInteger i=0;i<inbound_count_valid;i++)
         {
-            inbound = inbound_layers[j];
+            inbound = valid_inbound_layers[i];
             socket = inbound.directSocket;
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
@@ -382,7 +394,7 @@ typedef enum PollSocketType_enum
         }
         for(NSUInteger i=0;i<outbound_tcp_count_valid;i++)
         {
-            outbound = outbound_tcp_layers[j];
+            outbound = valid_outbound_tcp_layers[i];
             socketEncap  = outbound.directTcpEncapsulatedSocket;
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
@@ -396,11 +408,11 @@ typedef enum PollSocketType_enum
             {
                 returnValue = r;
             }
-            j++;
+            j++;f
         }
         for(NSUInteger i=0;i<inbound_tcp_count_valid;i++)
         {
-            inbound = inbound_tcp_layers[j];
+            inbound = valid_inbound_tcp_layers[i];
             socketEncap  = inbound.directTcpEncapsulatedSocket;
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
