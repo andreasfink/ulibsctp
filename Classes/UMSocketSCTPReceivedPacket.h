@@ -22,6 +22,7 @@
     NSString    *_localAddress;
     int         _localPort;
     int         _flags;
+    int         _tcp_flags;
     BOOL        _isNotification;
 
     UMMicroSec  _poll_time;
@@ -41,6 +42,7 @@
 @property(readwrite,atomic,strong)  NSString *localAddress;
 @property(readwrite,atomic,assign)  int localPort;
 @property(readwrite,atomic,assign)  int flags;
+@property(readwrite,atomic,assign)  int tcp_flags;
 @property(readwrite,atomic,assign)  BOOL isNotification;
 @property(readwrite,atomic,assign)  UMMicroSec  poll_time;
 @property(readwrite,atomic,assign)  UMMicroSec  rx_time;

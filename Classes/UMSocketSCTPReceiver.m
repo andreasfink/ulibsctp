@@ -594,7 +594,7 @@
     }
     if(revent_has_data)
     {
-        UMSocketSCTPReceivedPacket *rx;
+        UMSocketSCTPReceivedPacket *rx = NULL;
         
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  receiving packet");
@@ -616,7 +616,7 @@
                 [rs setLinger];
                 [rs setReuseAddr];
                 rx = [self receiveEncapsulatedPacket:rs];
-                if(rx.flags & SCTP_OVER_TCP_SETUP)
+                if(rx.tcp_flags & SCTP_OVER_TCP_SETUP)
                 {
                     NSString *session_key = [rx.data stringValue];
                     UMLayerSctp *session = [_registry layerForSessionKey:session_key];
@@ -642,6 +642,7 @@
                 rx = [self receiveEncapsulatedPacket:socketEncap];
                 break;
         }
+
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(rx==NULL)
         {
@@ -652,6 +653,11 @@
             NSLog(@"  rx=\n%@",rx);
         }
 #endif
+        if(rx)
+        {
+            [layer processReceivedData:rx];
+            [listener processReceivedData:rx];
+        }
         if(revent_hup)
         {
             returnValue = UMSocketError_has_data_and_hup;
@@ -719,7 +725,7 @@
                     rx.remotePort  = umsocket.connectedRemotePort;
                     rx.localAddress = umsocket.connectedLocalAddress;
                     rx.localPort  = umsocket.connectedLocalPort;
-                    rx.flags = header.flags;
+                    rx.tcp_flags = header.flags;
                     rx.isNotification = NO;
                 }
             }
