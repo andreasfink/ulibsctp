@@ -450,12 +450,12 @@
 {
     
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    NSLog(@"- (UMSocketError)handlePollResult:(int)revent");
-    NSLog(@"                         listener:(UMSocketSCTPListener *)listener");
-    NSLog(@"                            layer:(UMLayerSctp *)layer");
+    NSLog(@"- (UMSocketError)handlePollResult:revent=%d",revent);
+    NSLog(@"                         listener:",listener ? listener.description : @"NULL");
+    NSLog(@"                            layer:%@",layer ? layer.layerName : @"NULL");
     NSLog(@"                           socket:%@", socket ? socket.description : @"NULL");
     NSLog(@"                      socketEncap:%@", socketEncap ? socketEncap.description : @"NULL");
-    NSLog(@"                        poll_time:%ld",poll_time);
+    NSLog(@"                        poll_time:%lld",poll_time);
     switch(type)
     {
         case SCTP_SOCKET_TYPE_LISTENER_SCTP:

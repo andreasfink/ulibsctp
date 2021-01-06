@@ -47,6 +47,7 @@
 @property(readwrite,assign) UMLogLevel logLevel;
 @property(readonly,assign)  BOOL tcapEncapsulating;
 
+
 - (BOOL) isTcpEncapsulated;
 - (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses;
 - (void)startListeningFor:(UMLayerSctp *)layer;

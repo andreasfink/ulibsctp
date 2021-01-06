@@ -468,7 +468,16 @@
 - (BOOL) isTcpEncapsulated
 {
     if((_umsocket == NULL) && (_umsocketEncapsulated != NULL))
+    {
         return YES;
+    }
     return NO;
+}
+
+- (NSString *)description
+{
+    NSMutableString *s = [[NSMutableString alloc]init];
+    [s appendFormat:@"UMSocketListener %@ (%@:%d) %@",_name,[_localIpAddresses componentsJoinedByString:@","], _port, self.isTcpEncapsulated ? @"tcpencap=yes" : @""];
+    return s;
 }
 @end
