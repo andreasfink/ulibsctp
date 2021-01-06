@@ -450,7 +450,46 @@
 {
     
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    NSLog(@"- (UMSocketError)handlePollResult:revent=%d",revent);
+    
+    NSMutableArray *a = [[NSMutableArray alloc]init];
+    if(revent & POLLIN)
+    {
+        [a addObject:@"POLLIN"];
+    }
+    if(revent & POLLPRI)
+    {
+        [a addObject:@"POLLPRI"];
+    }
+    if(revent & POLLOUT)
+    {
+        [a addObject:@"POLLOUT"];
+    }
+    if(revent & POLLRDNORM)
+    {
+        [a addObject:@"POLLRDNORM"];
+    }
+    if(revent & POLLRDBAND)
+    {
+        [a addObject:@"POLLRDBAND"];
+    }
+    if(revent & POLLWRBAND)
+    {
+        [a addObject:@"POLLWRBAND"];
+    }
+    if(revent & POLLERR)
+    {
+        [a addObject:@"POLLERR"];
+    }
+    if(revent & POLLHUP)
+    {
+        [a addObject:@"POLLHUP"];
+    }
+    if(revent & POLLNVAL)
+    {
+        [a addObject:@"POLLNVAL"];
+    }
+
+    NSLog(@"- (UMSocketError)handlePollResult:revent=%d %@",revent,[a componentsJoinedByString:@" | "]);
     NSLog(@"                         listener:%@",listener ? listener.description : @"NULL");
     NSLog(@"                            layer:%@",layer ? layer.layerName : @"NULL");
     NSLog(@"                           socket:%@", socket ? socket.description : @"NULL");
@@ -505,44 +544,72 @@
         {
             revent_error = [socketEncap getSocketError];
         }
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        NSLog(@"  Error: %@",[UMSocket getSocketErrorString:revent_error];
+#endif
         [layer processError:revent_error];
         [listener processError:revent_error];
     }
     if(revent & POLLHUP)
     {
         revent_hup = 1;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        NSLog(@"  revent_hup = 1");
+#endif
+
     }
 #ifdef POLLRDHUP
     if(revent & POLLRDHUP)
     {
         revent_hup = 1;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        NSLog(@"  revent_hup = 1");
+#endif
     }
 #endif
     if(revent & POLLNVAL)
     {
         revent_invalid = 1;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        NSLog(@"  revent_invalid = 1");
+#endif
+
     }
 #ifdef POLLRDBAND
         if(revent & POLLRDBAND)
         {
             revent_has_data = 1;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        NSLog(@"  revent_has_data = 1");
+#endif
+
         }
 #endif
     if(revent & (POLLIN | POLLPRI))
     {
         revent_has_data = 1;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        NSLog(@"  revent_has_data = 1");
+#endif
     }
     if(revent_has_data)
     {
         UMSocketSCTPReceivedPacket *rx;
+        
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        NSLog(@"  receiving packet");
+#endif
+
         switch(type)
         {
             case SCTP_SOCKET_TYPE_LISTENER_SCTP:
+                UMAssert(socket != NULL, @"socket can not be null here");
                 rx = [socket receiveSCTP];
                 break;
             case SCTP_SOCKET_TYPE_LISTENER_TCP:
             {
-                UMSocket *rs = (UMSocket *)socketEncap;
+                UMAssert(socketEncap != NULL, @"socketEncap can not be null here");
+                UMSocket *rs = socketEncap;
                 rs = [rs accept:&returnValue];
                 [rs switchToNonBlocking];
                 [rs setIPDualStack];
@@ -562,13 +629,29 @@
                 break;
             case SCTP_SOCKET_TYPE_OUTBOUND:
             case SCTP_SOCKET_TYPE_INBOUND:
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+                NSLog(@"  calling receiveSCTP");
+#endif
                 rx = [socket receiveSCTP];
                 break;
             case SCTP_SOCKET_TYPE_OUTBOUND_TCP:
             case SCTP_SOCKET_TYPE_INBOUND_TCP:
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+                NSLog(@"  calling receiveEncapsulatedPacket");
+#endif
                 rx = [self receiveEncapsulatedPacket:socketEncap];
                 break;
         }
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        if(rx==NULL)
+        {
+            NSLog(@"  rx=NULL");
+        }
+        else
+        {
+            NSLog(@"  rx=\n%@",rx);
+        }
+#endif
         if(revent_hup)
         {
             returnValue = UMSocketError_has_data_and_hup;
@@ -580,11 +663,19 @@
     }
     if(revent_hup)
     {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        NSLog(@"  calling processHangUp");
+
+#endif
         [layer processHangUp];
         [listener processHangUp];
     }
     if(revent_invalid)
     {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        NSLog(@"  calling processInvalidSocket");
+
+#endif
         [layer processInvalidSocket];
         [listener processInvalidSocket];
     }
