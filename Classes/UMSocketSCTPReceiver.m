@@ -545,7 +545,7 @@
             revent_error = [socketEncap getSocketError];
         }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"  Error: %@",[UMSocket getSocketErrorString:revent_error];
+        NSLog(@"  Error: %@",[UMSocket getSocketErrorString:revent_error]);
 #endif
         [layer processError:revent_error];
         [listener processError:revent_error];
@@ -616,7 +616,7 @@
                 [rs setLinger];
                 [rs setReuseAddr];
                 rx = [self receiveEncapsulatedPacket:rs];
-                if(rx.flags & SCTP_OVER_TCP_SETUP)
+                if(rx.tcp_flags & SCTP_OVER_TCP_SETUP)
                 {
                     NSString *session_key = [rx.data stringValue];
                     UMLayerSctp *session = [_registry layerForSessionKey:session_key];
@@ -719,7 +719,7 @@
                     rx.remotePort  = umsocket.connectedRemotePort;
                     rx.localAddress = umsocket.connectedLocalAddress;
                     rx.localPort  = umsocket.connectedLocalPort;
-                    rx.flags = header.flags;
+                    rx.tcp_flags = header.flags;
                     rx.isNotification = NO;
                 }
             }

@@ -7,7 +7,48 @@
 //
 
 #import "UMSocketSCTPReceivedPacket.h"
+#import "UMSctpOverTcp.h"
 
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/poll.h>
+#include <arpa/inet.h>
+#include <string.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/uio.h>
+#include <unistd.h>
+#include <poll.h>
+#include <fcntl.h>
+#include <netinet/tcp.h>
+#include <netdb.h>
+
+#ifdef __APPLE__
+#import <sctp/sctp.h>
+#include <sys/utsname.h>
+#define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
+#define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
+#if defined __APPLE__
+#define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
+#define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
+#endif
+
+#else
+#include <netinet/sctp.h>
+#endif
+
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <unistd.h>
+#include <poll.h>
+#include <fcntl.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <sys/utsname.h>
 @implementation UMSocketSCTPReceivedPacket
 
 - (NSString *)description
@@ -26,7 +67,57 @@
     [s appendFormat:@".localAddress = %@\n",_localAddress];
     [s appendFormat:@".localPort =  %d\n",_localPort];
     [s appendFormat:@".isNotification =  %@\n",_isNotification ? @"YES" : @"NO"];
-    [s appendFormat:@".flags =  %d\n",_flags];
+    
+    NSMutableArray *a = [[NSMutableArray alloc]init];
+    if(_flags & MSG_NOTIFICATION)
+    {
+        [a addObject:@"MSG_NOTIFICATION"];
+    }
+    [s appendFormat:@".flags =  %d %@\n",_flags, [a componentsJoinedByString:@" | "]];
+    
+    a = [[NSMutableArray alloc]init];
+    
+    if(_tcp_flags & SCTP_OVER_TCP_NOTIFICATION)
+    {
+        [a addObject:@"SCTP_OVER_TCP_NOTIFICATION"];
+    }
+    if(_tcp_flags & SCTP_OVER_TCP_COMPLETE)
+    {
+        [a addObject:@"SCTP_OVER_TCP_COMPLETE"];
+    }
+    if(_tcp_flags & SCTP_OVER_TCP_EOF)
+    {
+        [a addObject:@"SCTP_OVER_TCP_EOF"];
+    }
+    if(_tcp_flags & SCTP_OVER_TCP_ABORT)
+    {
+        [a addObject:@"SCTP_OVER_TCP_ABORT"];
+    }
+    if(_tcp_flags & SCTP_OVER_TCP_UNORDERED)
+    {
+        [a addObject:@"SCTP_OVER_TCP_UNORDERED"];
+    }
+    if(_tcp_flags & SCTP_OVER_TCP_ADDR_OVER)
+    {
+        [a addObject:@"SCTP_OVER_TCP_ADDR_OVER"];
+    }
+    if(_tcp_flags & SCTP_OVER_TCP_SENDALL)
+    {
+        [a addObject:@"SCTP_OVER_TCP_SENDALL"];
+    }
+    if(_tcp_flags & SCTP_OVER_TCP_EOR)
+    {
+        [a addObject:@"SCTP_OVER_TCP_EOR"];
+    }
+    if(_tcp_flags & SCTP_OVER_TCP_SACK_IMMEDIATELY)
+    {
+        [a addObject:@"SCTP_OVER_TCP_SACK_IMMEDIATELY"];
+    }
+    if(_tcp_flags & SCTP_OVER_TCP_SETUP)
+    {
+        [a addObject:@"SCTP_OVER_TCP_SETUP"];
+    }
+    [s appendFormat:@".tcp_flags =  %d %@\n",_tcp_flags, [a componentsJoinedByString:@" | "]];
     [s appendFormat:@".data =  %@\n",[_data hexString]];
     [s appendFormat:@"-----------------------------------------------------------\n"];
     return s;
