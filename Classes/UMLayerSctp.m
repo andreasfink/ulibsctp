@@ -19,7 +19,6 @@
 #import "UMSctpTask_Data.h"
 #import "UMSctpTask_Manual_InService.h"
 #import "UMSctpTask_Manual_ForceOutOfService.h"
-#import "UMLayerSctpReceiverThread.h"
 #import "UMLayerSctpUser.h"
 #import "UMLayerSctpUserProfile.h"
 #import "UMLayerSctpApplicationContextProtocol.h"

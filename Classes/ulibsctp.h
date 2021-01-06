@@ -8,7 +8,6 @@
 
 
 #import "UMLayerSctp.h"
-#import "UMLayerSctpReceiverThread.h"
 #import "UMLayerSctpUserProtocol.h"
 #import "UMSctpTask_AdminAttach.h"
 #import "UMSctpTask_AdminInit.h"

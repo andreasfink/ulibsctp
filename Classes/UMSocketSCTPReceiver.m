@@ -31,7 +31,6 @@
         _outboundLayers = [[NSMutableArray alloc]init];
         _listeners      = [[NSMutableArray alloc]init];
         _tcpListeners   = [[NSMutableArray alloc]init];
-        //_lock           = [[UMMutex alloc]initWithName:@"socket-sctp-receiver-lock"];
         _timeoutInMs    = 5000;
         _registry       = r;
     }
@@ -83,16 +82,6 @@
 }
 
 
-
-typedef enum PollSocketType_enum
-{
-    POLL_SOCKET_TYPE_LISTENER_SCTP  = 0,
-    POLL_SOCKET_TYPE_LISTENER_TCP   = 1,
-    POLL_SOCKET_TYPE_OUTBOUND       = 2,
-    POLL_SOCKET_TYPE_INBOUND        = 3,
-    POLL_SOCKET_TYPE_OUTBOUND_TCP   = 4,
-    POLL_SOCKET_TYPE_INBOUND_TCP    = 5,
-} PollSocketType_enum;
 
 - (UMSocketError) waitAndHandleData
 {
@@ -331,7 +320,7 @@ typedef enum PollSocketType_enum
                                               socket:socket
                                          socketEncap:NULL
                                            poll_time:poll_time
-                                                type:POLL_SOCKET_TYPE_LISTENER_SCTP];
+                                                type:SCTP_SOCKET_TYPE_LISTENER_SCTP];
             if(r != UMSocketError_no_error)
             {
                 returnValue= r;
@@ -349,7 +338,7 @@ typedef enum PollSocketType_enum
                                               socket:NULL
                                          socketEncap:socketEncap
                                            poll_time:poll_time
-                                                type:POLL_SOCKET_TYPE_LISTENER_TCP];
+                                                type:SCTP_SOCKET_TYPE_LISTENER_TCP];
             if(r != UMSocketError_no_error)
             {
                 returnValue= r;
@@ -367,7 +356,7 @@ typedef enum PollSocketType_enum
                                               socket:socket
                                          socketEncap:NULL
                                            poll_time:poll_time
-                                                type:POLL_SOCKET_TYPE_OUTBOUND];
+                                                type:SCTP_SOCKET_TYPE_OUTBOUND];
             if(r != UMSocketError_no_error)
             {
                 returnValue = r;
@@ -385,7 +374,7 @@ typedef enum PollSocketType_enum
                                               socket:socket
                                          socketEncap:NULL
                                            poll_time:poll_time
-                                                type:POLL_SOCKET_TYPE_INBOUND];
+                                                type:SCTP_SOCKET_TYPE_INBOUND];
             if(r != UMSocketError_no_error)
             {
                 returnValue = r;
@@ -403,7 +392,7 @@ typedef enum PollSocketType_enum
                                               socket:NULL
                                          socketEncap:socketEncap
                                            poll_time:poll_time
-                                                type:POLL_SOCKET_TYPE_OUTBOUND_TCP];
+                                                type:SCTP_SOCKET_TYPE_OUTBOUND_TCP];
             if(r != UMSocketError_no_error)
             {
                 returnValue = r;
@@ -421,7 +410,7 @@ typedef enum PollSocketType_enum
                                               socket:NULL
                                          socketEncap:socketEncap
                                            poll_time:poll_time
-                                                type:POLL_SOCKET_TYPE_INBOUND_TCP];
+                                                type:SCTP_SOCKET_TYPE_INBOUND_TCP];
             if(r != UMSocketError_no_error)
             {
                 returnValue = r;
@@ -457,8 +446,40 @@ typedef enum PollSocketType_enum
                            socket:(UMSocketSCTP *)socket
                       socketEncap:(UMSocket *)socketEncap
 						poll_time:(UMMicroSec)poll_time
-                             type:(PollSocketType_enum)type
+                             type:(SCTP_SocketType_enum)type
 {
+    
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    NSLog(@"- (UMSocketError)handlePollResult:(int)revent");
+    NSLog(@"                         listener:(UMSocketSCTPListener *)listener");
+    NSLog(@"                            layer:(UMLayerSctp *)layer");
+    NSLog(@"                           socket:%@", socket ? socket.description : @"NULL");
+    NSLog(@"                      socketEncap:%@", socketEncap ? socketEncap.description : @"NULL");
+    NSLog(@"                        poll_time:%ld",poll_time);
+    switch(type)
+    {
+        case SCTP_SOCKET_TYPE_LISTENER_SCTP:
+            NSLog(@"                             type:SCTP_SOCKET_TYPE_LISTENER_SCTP");
+            break;
+        case SCTP_SOCKET_TYPE_LISTENER_TCP:
+            NSLog(@"                             type:SCTP_SOCKET_TYPE_LISTENER_TCP");
+            break;
+        case SCTP_SOCKET_TYPE_OUTBOUND:
+            NSLog(@"                             type:SCTP_SOCKET_TYPE_OUTBOUND");
+            break;
+        case SCTP_SOCKET_TYPE_INBOUND:
+            NSLog(@"                             type:SCTP_SOCKET_TYPE_INBOUND");
+            break;
+        case SCTP_SOCKET_TYPE_OUTBOUND_TCP:
+            NSLog(@"                             type:SCTP_SOCKET_TYPE_OUTBOUND_TCP");
+            break;
+        case SCTP_SOCKET_TYPE_INBOUND_TCP:
+            NSLog(@"                             type:SCTP_SOCKET_TYPE_INBOUND_TCP");
+            break;
+
+    }
+#endif
+    
 	if((listener==NULL) && (layer==NULL))
 	{
 		UMAssert(0,@"Either listener or layer have to be set");
@@ -516,10 +537,10 @@ typedef enum PollSocketType_enum
         UMSocketSCTPReceivedPacket *rx;
         switch(type)
         {
-            case POLL_SOCKET_TYPE_LISTENER_SCTP:
+            case SCTP_SOCKET_TYPE_LISTENER_SCTP:
                 rx = [socket receiveSCTP];
                 break;
-            case POLL_SOCKET_TYPE_LISTENER_TCP:
+            case SCTP_SOCKET_TYPE_LISTENER_TCP:
             {
                 UMSocket *rs = (UMSocket *)socketEncap;
                 rs = [rs accept:&returnValue];
@@ -539,12 +560,12 @@ typedef enum PollSocketType_enum
                 }
             }
                 break;
-            case POLL_SOCKET_TYPE_OUTBOUND:
-            case POLL_SOCKET_TYPE_INBOUND:
+            case SCTP_SOCKET_TYPE_OUTBOUND:
+            case SCTP_SOCKET_TYPE_INBOUND:
                 rx = [socket receiveSCTP];
                 break;
-            case POLL_SOCKET_TYPE_OUTBOUND_TCP:
-            case POLL_SOCKET_TYPE_INBOUND_TCP:
+            case SCTP_SOCKET_TYPE_OUTBOUND_TCP:
+            case SCTP_SOCKET_TYPE_INBOUND_TCP:
                 rx = [self receiveEncapsulatedPacket:socketEncap];
                 break;
         }

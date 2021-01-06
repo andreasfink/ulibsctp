@@ -18,7 +18,6 @@
 #include "netinet/sctp.h"
 #endif
 #include <arpa/inet.h>
-#import "UMLayerSctpReceiverThread.h"
 
 @implementation UMSctpTask_Open
 

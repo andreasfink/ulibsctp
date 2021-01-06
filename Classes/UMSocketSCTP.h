@@ -13,6 +13,17 @@
 
 struct sctp_sndrcvinfo;
 
+
+typedef enum SCTP_SocketType_enum
+{
+    SCTP_SOCKET_TYPE_LISTENER_SCTP  = 0,
+    SCTP_SOCKET_TYPE_LISTENER_TCP   = 1,
+    SCTP_SOCKET_TYPE_OUTBOUND       = 2,
+    SCTP_SOCKET_TYPE_INBOUND        = 3,
+    SCTP_SOCKET_TYPE_OUTBOUND_TCP   = 4,
+    SCTP_SOCKET_TYPE_INBOUND_TCP    = 5,
+} SCTP_SocketType_enum;
+
 @class UMSocketSCTPListener;
 
 @protocol UMSocketSCTP_notificationDelegate
