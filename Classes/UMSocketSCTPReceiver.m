@@ -545,7 +545,7 @@
             revent_error = [socketEncap getSocketError];
         }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"  Error: %@",[UMSocket getSocketErrorString:revent_error];
+        NSLog(@"  Error: %@",[UMSocket getSocketErrorString:revent_error]);
 #endif
         [layer processError:revent_error];
         [listener processError:revent_error];
