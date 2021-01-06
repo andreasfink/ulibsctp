@@ -594,7 +594,7 @@
     }
     if(revent_has_data)
     {
-        UMSocketSCTPReceivedPacket *rx;
+        UMSocketSCTPReceivedPacket *rx = NULL;
         
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  receiving packet");
@@ -642,6 +642,7 @@
                 rx = [self receiveEncapsulatedPacket:socketEncap];
                 break;
         }
+
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(rx==NULL)
         {
@@ -652,6 +653,11 @@
             NSLog(@"  rx=\n%@",rx);
         }
 #endif
+        if(rx)
+        {
+            [layer processReceivedData:rx];
+            [listener processReceivedData:rx];
+        }
         if(revent_hup)
         {
             returnValue = UMSocketError_has_data_and_hup;
