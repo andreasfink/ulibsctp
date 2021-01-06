@@ -996,11 +996,11 @@
 {
     @autoreleasepool
     {
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
         NSMutableString *s = [[NSMutableString alloc]init];
         [s appendFormat:@"processReceivedData: \n%@",rx.description];
         [self logDebug:s];
-    #endif
+#endif
         
         if(rx.assocId !=NULL)
         {

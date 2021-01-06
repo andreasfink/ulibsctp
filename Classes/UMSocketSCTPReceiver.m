@@ -605,6 +605,7 @@
             case SCTP_SOCKET_TYPE_LISTENER_SCTP:
                 UMAssert(socket != NULL, @"socket can not be null here");
                 rx = [socket receiveSCTP];
+                [listener processReceivedData:rx];
                 break;
             case SCTP_SOCKET_TYPE_LISTENER_TCP:
             {
@@ -633,6 +634,7 @@
                 NSLog(@"  calling receiveSCTP");
 #endif
                 rx = [socket receiveSCTP];
+                [layer processReceivedData:rx];
                 break;
             case SCTP_SOCKET_TYPE_OUTBOUND_TCP:
             case SCTP_SOCKET_TYPE_INBOUND_TCP:
@@ -640,23 +642,8 @@
                 NSLog(@"  calling receiveEncapsulatedPacket");
 #endif
                 rx = [self receiveEncapsulatedPacket:socketEncap];
+                [layer processReceivedData:rx];
                 break;
-        }
-
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(rx==NULL)
-        {
-            NSLog(@"  rx=NULL");
-        }
-        else
-        {
-            NSLog(@"  rx=\n%@",rx);
-        }
-#endif
-        if(rx)
-        {
-            [layer processReceivedData:rx];
-            [listener processReceivedData:rx];
         }
         if(revent_hup)
         {

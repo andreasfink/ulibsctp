@@ -339,6 +339,10 @@
         }
         if((processed==NO) && (_sendAborts))
         {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+            NSLog(@"sending abort");
+#endif
+
             uint32_t assoc = rx.assocId.unsignedIntValue;
             UMSocketError err = [_umsocket abortToAddress:rx.remoteAddress
                                                      port:rx.remotePort
