@@ -342,9 +342,11 @@
                         remoteIp:(NSString *)ip2
                       remotePort:(int)port2
 {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
     //NSLog(@"layerForLocalIp:%@ localPort:%d remoteIp:%@ remotePort:%d",ip1,port1,ip2,port2);
+#endif
     [_lock lock];
-    NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d",
+    NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d(sctp)",
                      ip1,
                      port1,
                      ip2,
@@ -441,21 +443,19 @@
         {
             for(NSString *remoteAddr in remoteAddrs)
             {
-                NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d(%@)",
-                                 localAddr,
-                                 layer.configured_local_port,
-                                 remoteAddr,
-                                 layer.configured_remote_port,
-                                 (layer.encapsulatedOverTcp? @"tcp" : @"sctp")];
+                NSString *key = [self registryKeyForLocalAddr:localAddr
+                                                    localPort:layer.configured_local_port
+                                                   remoteAddr:remoteAddr
+                                                   remotePort:layer.configured_remote_port
+                                                 encapsulated:layer.encapsulatedOverTcp];
                 _outgoingLayersByIpsAndPorts[key] = layer;
                 if(anyPort)
                 {
-                    NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d(%@)",
-                                     localAddr,
-                                     layer.configured_local_port,
-                                     remoteAddr,
-                                     0,
-                                     (layer.encapsulatedOverTcp ? @"tcp" : @"sctp")];
+                    NSString *key = [self registryKeyForLocalAddr:localAddr
+                                                        localPort:layer.configured_local_port
+                                                       remoteAddr:remoteAddr
+                                                       remotePort:0
+                                                     encapsulated:layer.encapsulatedOverTcp];
                     _outgoingLayersByIpsAndPorts[key] = layer;
                 }
             }
@@ -529,12 +529,11 @@
         {
             for(NSString *remoteAddr in remoteAddrs)
             {
-                NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d(%@)",
-                                 localAddr,
-                                 layer.configured_local_port,
-                                 remoteAddr,
-                                 layer.configured_remote_port,
-                                 (layer.encapsulatedOverTcp ? @"tcp" : @"sctp")];
+                NSString *key = [self registryKeyForLocalAddr:localAddr
+                                                    localPort:layer.configured_local_port
+                                                   remoteAddr:remoteAddr
+                                                   remotePort:layer.configured_remote_port
+                                                 encapsulated:layer.encapsulatedOverTcp];
                 [_outgoingLayersByIpsAndPorts removeObjectForKey:key];
             }
         }
@@ -646,6 +645,17 @@
     UMLayerSctp *layer = _layersBySessionKey[sessionKey];
     [_lock unlock];
     return layer;
+}
+
+
+- (NSString *)registryKeyForLocalAddr:(NSString *)lo
+                            localPort:(int)lp
+                           remoteAddr:(NSString *)ra
+                           remotePort:(int)rp
+                         encapsulated:(BOOL)encap
+{
+    NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d(%@)",lo,lp,ra,rp,encap ? @"tcp" : @"sctp"];
+    return key;
 }
 
 @end

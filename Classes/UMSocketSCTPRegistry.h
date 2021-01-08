@@ -100,4 +100,10 @@
 - (void)startReceiver;
 - (void)stopReceiver;
 
+- (NSString *)registryKeyForLocalAddr:(NSString *)lo
+                            localPort:(int)lp
+                           remoteAddr:(NSString *)ra
+                           remotePort:(int)rp
+                         encapsulated:(BOOL)encap;
+
 @end
