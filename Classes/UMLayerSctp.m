@@ -354,72 +354,53 @@
     #endif
                 if(_encapsulatedOverTcp)
                 {
-                    if(_directTcpEncapsulatedSocket == NULL)
+                    if(_directTcpEncapsulatedSocket != NULL)
                     {
-        #if defined(ULIBSCTP_CONFIG_DEBUG)
-                        [self logDebug:@"_directTcpEncapsulatedSocket==NULL"];
-        #endif
+                       [_directTcpEncapsulatedSocket close];
+                    }
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+                    [self logDebug:@"_directTcpEncapsulatedSocket==NULL"];
+#endif
 
-                        tmp_assocId = -1;
-                        if(_configured_remote_addresses.count < 0)
-                        {
-                            err = UMSocketError_invalid_port_or_address;
-                        }
-                        else
-                        {
-                            UMHost *lhost = [[UMHost alloc]initWithLocalhost];
-                            UMHost *host = [[UMHost alloc]initWithAddress:_configured_remote_addresses[0]];
-                            _directTcpEncapsulatedSocket = [[UMSocket alloc]initWithType:UMSOCKET_TYPE_TCP];
-                            [_directTcpEncapsulatedSocket setLocalHost:lhost];
-                            [_directTcpEncapsulatedSocket setLocalPort:_configured_local_port];
-                            [_directTcpEncapsulatedSocket setRemoteHost:host];
-                            [_directTcpEncapsulatedSocket setRemotePort:_configured_remote_port];
-                            err = [_directTcpEncapsulatedSocket connect];
-                            if(err == 0)
-                            {
-                                tmp_assocId = _directTcpEncapsulatedSocket.sock;
-                                [self sendEncapsulated:[_encapsulatedOverTcpSessionKey dataValue]
-                                                 assoc:&tmp_assocId
-                                                stream:0
-                                              protocol:0
-                                                 error:&err
-                                                 flags:SCTP_OVER_TCP_SETUP | SCTP_OVER_TCP_NOTIFICATION];
-                            }
-                            tmp_assocId = _directTcpEncapsulatedSocket.sock;
-                        }
-                        if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
-                        {
-                            if(tmp_assocId != -1)
-                            {
-                                _assocId = tmp_assocId;
-                                if((err != UMSocketError_no_error)
-                                && (err !=UMSocketError_in_progress))
-                                {
-                                    [_directTcpEncapsulatedSocket close];
-                                    _directTcpEncapsulatedSocket = NULL;
-                                }
-                            }
-                        }
+                    tmp_assocId = -1;
+                    if(_configured_remote_addresses.count < 0)
+                    {
+                        err = UMSocketError_invalid_port_or_address;
                     }
                     else
                     {
-        #if defined(ULIBSCTP_CONFIG_DEBUG)
-                        [self logDebug:[NSString stringWithFormat:@" using _directTcpEncapsulatedSocket"]];
-        #endif
-                        if(sendAbort)
-                        {
-                            [_directTcpEncapsulatedSocket close];
-                        }
-
+                        UMHost *lhost = [[UMHost alloc]initWithLocalhost];
                         UMHost *host = [[UMHost alloc]initWithAddress:_configured_remote_addresses[0]];
+                        _directTcpEncapsulatedSocket = [[UMSocket alloc]initWithType:UMSOCKET_TYPE_TCP];
+                        [_directTcpEncapsulatedSocket setLocalHost:lhost];
+                        [_directTcpEncapsulatedSocket setLocalPort:_configured_local_port];
                         [_directTcpEncapsulatedSocket setRemoteHost:host];
                         [_directTcpEncapsulatedSocket setRemotePort:_configured_remote_port];
+                    
                         err = [_directTcpEncapsulatedSocket connect];
+                        if(err == 0)
+                        {
+                            tmp_assocId = _directTcpEncapsulatedSocket.sock;
+                            [self sendEncapsulated:[_encapsulatedOverTcpSessionKey dataValue]
+                                             assoc:&tmp_assocId
+                                            stream:0
+                                          protocol:0
+                                             error:&err
+                                             flags:SCTP_OVER_TCP_SETUP | SCTP_OVER_TCP_NOTIFICATION];
+                        }
                         tmp_assocId = _directTcpEncapsulatedSocket.sock;
-
+                    }
+                    if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
+                    {
                         if(tmp_assocId != -1)
                         {
                             _assocId = tmp_assocId;
+                            if((err != UMSocketError_no_error)
+                            && (err !=UMSocketError_in_progress))
+                            {
+                                [_directTcpEncapsulatedSocket close];
+                                _directTcpEncapsulatedSocket = NULL;
+                            }
                         }
                     }
                 }
@@ -506,8 +487,14 @@
                     }
                 }
             }
-            [_registry registerOutgoingLayer:self allowAnyRemotePortIncoming:_allowAnyRemotePortIncoming];
-
+            if(_encapsulatedOverTcp)
+            {
+                [_registry registerOutgoingTcpLayer:self];
+            }
+            else
+            {
+                [_registry registerOutgoingLayer:self allowAnyRemotePortIncoming:_allowAnyRemotePortIncoming];
+            }
             if ((err == UMSocketError_in_progress) || (err == UMSocketError_no_error))
             {
                 self.status = UMSOCKET_STATUS_OOS;

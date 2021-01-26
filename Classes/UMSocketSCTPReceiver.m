@@ -28,8 +28,6 @@
     if(self)
     {
         _outboundLayers = [[NSMutableArray alloc]init];
-        _listeners      = [[NSMutableArray alloc]init];
-        _tcpListeners   = [[NSMutableArray alloc]init];
         _timeoutInMs    = 5000;
         _registry       = r;
     }
@@ -94,7 +92,7 @@
     NSArray *outbound_tcp_layers = [_registry allOutboundTcpLayers];
     NSArray *inbound_tcp_layers = [_registry allInboundTcpLayers];
     NSUInteger listeners_count = listeners.count;
-    NSUInteger tcp_listeners_count = _tcpListeners.count;
+    NSUInteger tcp_listeners_count = tcp_listeners.count;
     NSUInteger outbound_count = outbound_layers.count;
     NSUInteger inbound_count = inbound_layers.count;
     NSUInteger outbound_tcp_count = outbound_tcp_layers.count;
