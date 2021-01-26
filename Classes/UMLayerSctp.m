@@ -1261,6 +1261,24 @@
     }
 }
 
+-(void) handleLinkUpTcpEcnap
+{
+    [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_TCP_ASSOC_CHANGE: SCTP_COMM_UP->IS"]];
+    self.status=UMSOCKET_STATUS_IS;
+    [_reconnectTimer stop];
+    [self reportStatus];
+
+}
+
+-(void) handleLinkDownTcpEcnap
+{
+    _listener.firstMessage=YES;
+    [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_TCP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF"]];
+    self.status=UMSOCKET_STATUS_OFF;
+    [self powerdownInReceiverThread];
+    [self reportStatus];
+    [_reconnectTimer start];
+}
 
 -(void) handlePeerAddrChange:(NSData *)event
                     streamId:(uint32_t)streamId

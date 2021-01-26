@@ -635,6 +635,7 @@
 #endif
                         session.directTcpEncapsulatedSocket = rs;
                         [_registry registerIncomingTcpLayer:session];
+                        [session handleLinkUpTcpEcnap];
                         success = YES;
                     }
                     else

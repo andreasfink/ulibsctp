@@ -174,4 +174,8 @@
 - (void)processError:(UMSocketError)err;
 - (void)processHangUp;
 - (void)processInvalidSocket;
+
+-(void) handleLinkUpTcpEcnap;
+-(void) handleLinkDownTcpEcnap;
+
 @end
