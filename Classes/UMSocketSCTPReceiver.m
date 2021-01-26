@@ -609,11 +609,12 @@
                 UMAssert(socketEncap != NULL, @"socketEncap can not be null here");
                 UMSocket *rs = socketEncap;
                 rs = [rs accept:&returnValue];
-                [rs switchToNonBlocking];
+                [rs switchToBlocking];
                 [rs setIPDualStack];
                 [rs setLinger];
                 [rs setReuseAddr];
-                rx = [self receiveEncapsulatedPacket:rs];
+                rx = [self receiveEncapsulatedPacket:rs timeout:2.0];/* potential DDOS / busyloop */
+                BOOL success = NO;
                 if(rx.tcp_flags & SCTP_OVER_TCP_SETUP)
                 {
                     NSString *session_key = [rx.data stringValue];
@@ -621,7 +622,14 @@
                     if(session)
                     {
                         [_registry registerIncomingTcpLayer:session];
+                        success = YES;
                     }
+                }
+                [rs switchToNonBlocking];
+                if(success==NO)
+                {
+                    [rs close];
+                    rs = NULL;
                 }
             }
                 break;
@@ -672,8 +680,24 @@
     return returnValue;
 }
 
+
+-(UMSocketSCTPReceivedPacket *)receiveEncapsulatedPacket:(UMSocket *)umsocket timeout:(NSTimeInterval)timeout
+{
+    UMSocketSCTPReceivedPacket *rx = NULL;
+    NSDate *start = [NSDate date];
+    NSTimeInterval timeElapsed = 0;
+    while((timeElapsed<timeout) && (rx==NULL))
+    {
+        rx = [self receiveEncapsulatedPacket:umsocket];
+        timeElapsed = [[NSDate date]timeIntervalSinceDate:start];
+    }
+    return rx;
+}
+
 -(UMSocketSCTPReceivedPacket *)receiveEncapsulatedPacket:(UMSocket *)umsocket
 {
+    [umsocket receiveToBufferWithBufferLimit:32768];
+
     BOOL protocolViolation = NO;
     NSData *receivedData = NULL;
     sctp_over_tcp_header header;
