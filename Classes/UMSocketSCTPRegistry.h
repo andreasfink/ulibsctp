@@ -16,8 +16,8 @@
     NSMutableDictionary     *_entries;
     NSMutableDictionary     *_assocs;
 
-    NSMutableArray          *_outgoingLayers;
-    NSMutableArray<UMSocketSCTPListener *>      *_incomingListeners;
+    NSMutableArray                                           *_outgoingLayers;
+    NSMutableArray<UMSocketSCTPListener *>                   *_incomingListeners;
     NSMutableDictionary<NSNumber *,UMSocketSCTPListener *>   *_incomingTcpListeners; /* key is @(port) */
     NSMutableArray          *_incomingLayers; /* once peeled of the listener */
     
