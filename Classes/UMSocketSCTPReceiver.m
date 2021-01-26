@@ -609,7 +609,7 @@
                 UMAssert(socketEncap != NULL, @"socketEncap can not be null here");
                 UMSocket *rs = socketEncap;
                 rs = [rs accept:&returnValue];
-                [rs switchToBlocking];
+                [rs switchToNonBlocking];
                 [rs setIPDualStack];
                 [rs setLinger];
                 [rs setReuseAddr];
@@ -690,6 +690,10 @@
     {
         rx = [self receiveEncapsulatedPacket:umsocket];
         timeElapsed = [[NSDate date]timeIntervalSinceDate:start];
+        if(rx==NULL)
+        {
+            usleep(10000); /* to avoid deadlocks */
+        }
     }
     return rx;
 }
