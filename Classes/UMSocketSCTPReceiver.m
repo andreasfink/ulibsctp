@@ -706,7 +706,7 @@
     sctp_over_tcp_header header;
     UMSocketSCTPReceivedPacket *rx = NULL;
     [umsocket.dataLock lock];
-    if(umsocket.receiveBuffer.length > sizeof(sctp_over_tcp_header))
+    if(umsocket.receiveBuffer.length >= sizeof(sctp_over_tcp_header))
     {
         memcpy(&header,umsocket.receiveBuffer.bytes,sizeof(header));
         header.header_length = ntohl(header.header_length);
@@ -735,7 +735,7 @@
         {
             if(header.payload_length > 0)
             {
-                if(umsocket.receiveBuffer.length > sizeof(sctp_over_tcp_header) + header.payload_length)
+                if(umsocket.receiveBuffer.length >= sizeof(sctp_over_tcp_header) + header.payload_length)
                 {
                     const void *start = umsocket.receiveBuffer.bytes;
                     start += header.header_length;
