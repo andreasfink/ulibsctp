@@ -8,7 +8,6 @@
 
 #import "UMSocketSCTPRegistry.h"
 #import "UMSocketSCTPListener.h"
-#import "UMSocketSCTPTCPListener.h"
 #import "UMSocketSCTPReceiver.h"
 #import "UMLayerSctp.h"
 
@@ -154,6 +153,12 @@
 
 - (void)addListener:(UMSocketSCTPListener *)listener forPort:(int)port localIp:(NSString *)ip
 {
+    if(listener.tcpEncapsulated)
+    {
+        [self addTcpListener:listener];
+        return;
+    }
+
     [_lock lock];
     listener.registry = self;
     NSString *key =[UMSocketSCTPRegistry keyForPort:port ip:ip];
@@ -166,6 +171,11 @@
 
 - (void)removeListener:(UMSocketSCTPListener *)listener
 {
+    if(listener.tcpEncapsulated)
+    {
+        [self removeTcpListener:listener];
+        return;
+    }
     for(NSString *ip in listener.localIpAddresses)
     {
         [self removeListener:listener forPort:listener.port localIp:ip];
@@ -186,37 +196,36 @@
 }
 
 
-- (UMSocketSCTPTCPListener *)getOrAddTcpListenerForPort:(int)port;
+- (UMSocketSCTPListener *)getOrAddTcpListenerForPort:(int)port;
 {
     [_lock lock];
-    UMSocketSCTPTCPListener *listener = [self getTcpListenerForPort:port];
+    UMSocketSCTPListener *listener = [self getTcpListenerForPort:port];
     if(listener == NULL)
     {
-        listener = [[UMSocketSCTPTCPListener alloc]initWithPort:port];
+        listener = [[UMSocketSCTPListener alloc]initWithPort:port localIpAddresses:NULL];
         [self addTcpListener:listener];
     }
     [_lock unlock];
     return listener;
 }
 
-- (UMSocketSCTPTCPListener *)getTcpListenerForPort:(int)port
+- (UMSocketSCTPListener *)getTcpListenerForPort:(int)port
 {
     [_lock lock];
-    UMSocketSCTPTCPListener *e =  _incomingTcpListeners[@(port)];
+    UMSocketSCTPListener *e =  _incomingTcpListeners[@(port)];
     [_lock unlock];
     return e;
 }
 
-- (void)addTcpListener:(UMSocketSCTPTCPListener *)listener
+- (void)addTcpListener:(UMSocketSCTPListener *)listener
 {
-    
     [_lock lock];
     listener.registry = self;
     _incomingTcpListeners[@(listener.port)] = listener;
     [_lock unlock];
 }
 
-- (void)removeTcpListener:(UMSocketSCTPTCPListener *)listener
+- (void)removeTcpListener:(UMSocketSCTPListener *)listener
 {
     [_lock lock];
     listener.registry = NULL;

@@ -17,21 +17,41 @@
 
 - (UMSocketSCTPListener *)initWithPort:(int)localPort localIpAddresses:(NSArray *)addresses
 {
+    return [self initWithPort:localPort localIpAddresses:addresses encapsulated:NO];
+}
+
+- (UMSocketSCTPListener *)initWithPort:(int)localPort localIpAddresses:(NSArray *)addresses encapsulated:(BOOL)tcpEncapsulated
+{
     self = [super init];
     if(self)
     {
+        _tcpEncapsulated = tcpEncapsulated;
         _port = localPort;
+        NSString *lockName;
         _localIpAddresses = addresses;
+        if(_localIpAddresses == NULL)
+        {
+            _localIpAddresses = @[@"0.0.0.0"];
+        }
+        if(tcpEncapsulated)
+        {
+            _name = [NSString stringWithFormat:@"sctptcp-listener:%d",_port];
+            lockName = [NSString stringWithFormat:@"sctptcp-listener-lock:%d",_port];
+        }
+        else
+        {
+            _name = [NSString stringWithFormat:@"sctp-listener[%@]:%d",[_localIpAddresses componentsJoinedByString:@","],_port];
+            lockName = [NSString stringWithFormat:@"sctp-listener-lock[%@]:%d",[_localIpAddresses componentsJoinedByString:@","],_port];
+        }
         _isListening = NO;
         _listeningCount = 0;
         _layers = [[UMSynchronizedDictionary alloc]init];
-        _name = [NSString stringWithFormat:@"sctp-listener[%@]:%d",[_localIpAddresses componentsJoinedByString:@","],_port];
-        NSString *lockName = [NSString stringWithFormat:@"sctp-listener-lock[%@]:%d",[_localIpAddresses componentsJoinedByString:@","],_port];
         _lock = [[UMMutex alloc]initWithName:lockName];
         _logLevel = UMLOG_MINOR;
     }
     return self;
 }
+
 
 - (void)logMinorError:(NSString *)s
 {
@@ -283,7 +303,14 @@
     _listeningCount = _layers.count;
     if(_listeningCount<=0)
     {
-        [_registry removeListener:self];
+        if(_tcpEncapsulated)
+        {
+            [_registry removeTcpListener:self];
+        }
+        else
+        {
+            [_registry removeListener:self];
+        }
         [_umsocket close];
         _umsocket=NULL;
         _listeningCount = 0;

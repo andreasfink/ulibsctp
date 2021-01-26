@@ -5,7 +5,7 @@
 //  Created by Andreas Fink on 14.12.20.
 //  Copyright © 2020 Andreas Fink (andreas@fink.org). All rights reserved.
 //
-
+#if 0
 #import "UMSocketSCTPTCPListener.h"
 #import "UMSocketSCTP.h"
 #import "UMLayerSctp.h"
@@ -15,43 +15,6 @@
 #define _umsocket _dummy
 
 @implementation UMSocketSCTPTCPListener
-
-- (UMSocketSCTPTCPListener *)initWithPort:(int)localPort
-{
-    self = [super init];
-    if(self)
-    {
-        _port = localPort;
-        _isListening = NO;
-        _listeningCount = 0;
-        _layers = [[UMSynchronizedDictionary alloc]init];
-        _name = [NSString stringWithFormat:@"sctptcp-listener:%d",_port];
-        NSString *lockName = [NSString stringWithFormat:@"sctptcp-listener-lock:%d",_port];
-        _lock = [[UMMutex alloc]initWithName:lockName];
-        _logLevel = UMLOG_MINOR;
-        _localIpAddresses = @[@"0.0.0.0"];
-    }
-    return self;
-}
-
-- (int)port
-{
-    return _port;
-}
-
-- (int)mtu
-{
-    return 0;
-}
-
-- (void)setMtu:(int)mtu
-{
-}
-
-- (BOOL) tcapEncapsulating
-{
-    return YES;
-}
 
 - (void)startListeningFor:(UMLayerSctp *)layer
 {
@@ -275,5 +238,5 @@
     return -1;
 }
 
-
 @end
+#endif

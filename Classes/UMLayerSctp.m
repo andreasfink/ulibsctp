@@ -23,7 +23,6 @@
 #import "UMLayerSctpUserProfile.h"
 #import "UMLayerSctpApplicationContextProtocol.h"
 #import "UMSocketSCTPListener.h"
-#import "UMSocketSCTPTCPListener.h"
 #import "UMSocketSCTPRegistry.h"
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -319,7 +318,6 @@
             {
                 [self logDebug:[NSString stringWithFormat:@"asking listener %@ to start",_listener]];
             }
-
             [_listener startListeningFor:self]; /* FIXME: what if we have an error */
             _listenerStarted = _listener.isListening;
             _newDestination = YES;

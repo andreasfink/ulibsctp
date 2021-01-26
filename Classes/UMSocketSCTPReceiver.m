@@ -10,7 +10,6 @@
 #import "UMLayerSctp.h"
 #import "UMSocketSCTP.h"
 #import "UMSocketSCTPListener.h"
-#import "UMSocketSCTPTCPListener.h"
 #import "UMSocketSCTPRegistry.h"
 #import "UMSctpOverTcp.h"
 
@@ -189,7 +188,7 @@
     }
     for(NSUInteger i=0;i<tcp_listeners_count;i++)
     {
-        UMSocketSCTPTCPListener *listener = tcp_listeners[i];
+        UMSocketSCTPListener *listener = tcp_listeners[i];
         if(listener.isInvalid==NO)
         {
             tcp_listeners_count_valid++;

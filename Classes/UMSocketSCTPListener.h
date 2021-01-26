@@ -30,6 +30,7 @@
     BOOL                        _firstMessage;
     BOOL                        _isInvalid;
     BOOL                        _sendAborts;
+    BOOL                        _tcpEncapsulated;
     UMLogLevel                  _logLevel;
 }
 
@@ -45,12 +46,13 @@
 @property(readwrite,assign) BOOL    isInvalid;
 @property(readwrite,assign) BOOL    sendAborts;
 @property(readwrite,assign) UMLogLevel logLevel;
-@property(readonly,assign)  BOOL tcapEncapsulating;
+@property(readonly,assign)  BOOL tcpEncapsulated;
 
-
-- (BOOL) isTcpEncapsulated;
 - (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses;
+- (UMSocketSCTPListener *)initWithPort:(int)localPort localIpAddresses:(NSArray *)addresses encapsulated:(BOOL)tcpEncapsulated;
 - (void)startListeningFor:(UMLayerSctp *)layer;
+- (void)startListeningForTcp:(UMLayerSctp *)layer;
+
 - (void)stopListeningFor:(UMLayerSctp *)layer;
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx;
 - (void)processError:(UMSocketError)err;
