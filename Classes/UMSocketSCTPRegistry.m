@@ -48,7 +48,12 @@
 - (NSArray *)allTcpListeners
 {
     [_lock lock];
-    NSArray *a = [_incomingTcpListeners copy];
+    NSMutableDictionary *dict =  [_incomingTcpListeners copy];
+    NSMutableArray *a = [[NSMutableArray alloc]init];
+    for(id k in dict.allKeys)
+    {
+        [a addObject:dict[k] ];
+    }
     [_lock unlock];
     return a;
 }
