@@ -305,9 +305,16 @@
                 NSString *addrs = [_configured_local_addresses componentsJoinedByString:@","];
                 [self logDebug:[NSString stringWithFormat:@"getting listener on %@ on port %d",addrs,_configured_local_port]];
             }
-            if((_encapsulatedOverTcp) && (_isPassive))
+            if(_encapsulatedOverTcp)
             {
-                _listener = [_registry getOrAddTcpListenerForPort:_configured_local_port];
+                if(_isPassive)
+                {
+                    _listener = [_registry getOrAddTcpListenerForPort:_configured_local_port];
+                }
+                else
+                {
+                    _listener = NULL;
+                }
             }
             else
             {
@@ -318,8 +325,19 @@
             {
                 [self logDebug:[NSString stringWithFormat:@"asking listener %@ to start",_listener]];
             }
-            [_listener startListeningFor:self]; /* FIXME: what if we have an error */
-            _listenerStarted = _listener.isListening;
+            if(_encapsulatedOverTcp)
+            {
+               if(_isPassive)
+               {
+                   [_listener startListeningFor:self]; /* FIXME: what if we have an error */
+                   _listenerStarted = _listener.isListening;
+               }
+            }
+            else
+            {
+                [_listener startListeningFor:self];
+                _listenerStarted = _listener.isListening;
+            }
             _newDestination = YES;
             sleep(1);
             _assocId = -1;
