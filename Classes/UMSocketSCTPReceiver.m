@@ -779,6 +779,11 @@
                     start += header.header_length;
                     receivedData = [NSData dataWithBytes:start length:header.payload_length];
                     rx.data = receivedData;
+                    /* remove the packet data */
+                    [umsocket.receiveBuffer replaceBytesInRange:NSMakeRange(0, sizeof(sctp_over_tcp_header) + header.payload_length)
+                                                      withBytes:nil
+                                                         length:0];
+
                     if(errptr)
                     {
                         *errptr = UMSocketError_no_error;
