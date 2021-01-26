@@ -631,12 +631,6 @@
                 }
                 else
                 {
-        #if defined(ULIBSCTP_CONFIG_DEBUG)
-                    if(self.logLevel <= UMLOG_DEBUG)
-                    {
-                        [self logDebug:@" Calling sctp_sendmsg on _listener"];
-                    }
-        #endif
                     uint32_t tmp_assocId = _assocId;
                     attempts++;
                     sent_packets = [_listener sendToAddresses:_configured_remote_addresses
