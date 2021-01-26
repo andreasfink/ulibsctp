@@ -351,7 +351,11 @@
                         }
                         else
                         {
+                            UMHost *lhost = [[UMHost alloc]initWithLocalhost];
                             UMHost *host = [[UMHost alloc]initWithAddress:_configured_remote_addresses[0]];
+                            _directTcpEncapsulatedSocket = [[UMSocket alloc]initWithType:UMSOCKET_TYPE_TCP];
+                            [_directTcpEncapsulatedSocket setLocalHost:lhost];
+                            [_directTcpEncapsulatedSocket setLocalPort:_configured_local_port];
                             [_directTcpEncapsulatedSocket setRemoteHost:host];
                             [_directTcpEncapsulatedSocket setRemotePort:_configured_remote_port];
                             err = [_directTcpEncapsulatedSocket connect];
@@ -561,7 +565,7 @@
 - (void)_dataTask:(UMSctpTask_Data *)task
 {
     BOOL linkLocked=NO;
-    UMSleeper *sleeper = [[UMSleeper alloc]init];
+    UMSleeper *sleeper = [[UMSleeper alloc]initFromFile:__FILE__ line:__LINE__ function:__func__];
     @autoreleasepool
     {
         id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
@@ -2043,7 +2047,7 @@
     {
         *err2 = err;
     }
-    if(err2 == UMSocketError_no_error)
+    if(err == UMSocketError_no_error)
     {
         return data2.length;
     }
