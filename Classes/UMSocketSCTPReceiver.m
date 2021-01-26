@@ -697,7 +697,10 @@
 -(UMSocketSCTPReceivedPacket *)receiveEncapsulatedPacket:(UMSocket *)umsocket
 {
     [umsocket receiveToBufferWithBufferLimit:32768];
-
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    NSLog(@"Buffer contains: %@",[umsocket.receiveBuffer hexString]);
+#endif
+    
     BOOL protocolViolation = NO;
     NSData *receivedData = NULL;
     sctp_over_tcp_header header;
@@ -711,9 +714,22 @@
         header.protocolId = ntohl(header.protocolId);
         header.streamId = ntohs(header.streamId);
         header.flags = ntohs(header.flags);
+        
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        NSLog(@"sctp-over-tcp-header-received");
+        NSLog(@"rx->header_length=%ld",header.header_length);
+        NSLog(@"rx->payload_length=%ld",header.payload_length);
+        NSLog(@"rx->protocolId=%ld",header.protocolId);
+        NSLog(@"rx->streamId=%ld",header.streamId);
+        NSLog(@"rx->flags=%ld",header.flags);
+#endif
+
         if(header.header_length != sizeof(header))
         {
             protocolViolation = YES;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+            NSLog(@"- header-length-mismatch");
+#endif
         }
         else
         {
@@ -738,6 +754,12 @@
                 }
             }
         }
+    }
+    else
+    {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        NSLog(@"- not enough data");
+#endif
     }
     [umsocket.dataLock unlock];
     return rx;
