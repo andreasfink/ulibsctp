@@ -774,6 +774,7 @@
                     const void *start = umsocket.receiveBuffer.bytes;
                     start += header.header_length;
                     receivedData = [NSData dataWithBytes:start length:header.payload_length];
+                    rx.data = receivedData;
                     if(errptr)
                     {
                         *errptr = UMSocketError_no_error;
