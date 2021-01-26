@@ -191,10 +191,10 @@
         {
             tcp_listeners_count_valid++;
             [valid_tcp_listeners addObject:listener];
-            pollfds[j].fd = listener.umsocket.fileDescriptor;
+            pollfds[j].fd = listener.umsocketEncapsulated.fileDescriptor;
             pollfds[j].events = events;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"pollfds[%d] = %d  (listener-tcp)",(int)j,(int)listener.umsocket.fileDescriptor);
+            NSLog(@"pollfds[%d] = %d  (listener-tcp)",(int)j,(int)listener.umsocketEncapsulated.fileDescriptor);
 #endif
             j++;
         }
