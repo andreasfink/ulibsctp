@@ -613,8 +613,17 @@
                 [rs setIPDualStack];
                 [rs setLinger];
                 [rs setReuseAddr];
-                rx = [self receiveEncapsulatedPacket:rs timeout:2.0];/* potential DDOS / busyloop */
+                UMSocketError err = UMSocketError_no_error;
+                rx = [self receiveEncapsulatedPacket:rs error:&err timeout:2.0];/* potential DDOS / busyloop */
                 BOOL success = NO;
+
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+                if((rx) && (err == UMSocketError_no_error))
+                {
+                    NSString *s = [rx description];
+                    NSLog(@"Received SCTP over TCP packet: %@",s);
+                }
+#endif
                 if(rx.tcp_flags & SCTP_OVER_TCP_SETUP)
                 {
                     NSString *session_key = [rx.data stringValue];
@@ -623,6 +632,12 @@
                     {
                         [_registry registerIncomingTcpLayer:session];
                         success = YES;
+                    }
+                    else
+                    {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+                        NSLog(@"No session with session key %@ found",session_key);
+#endif
                     }
                 }
                 [rs switchToNonBlocking];
@@ -635,20 +650,28 @@
                 break;
             case SCTP_SOCKET_TYPE_OUTBOUND:
             case SCTP_SOCKET_TYPE_INBOUND:
+            {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
                 NSLog(@"  calling receiveSCTP");
 #endif
                 rx = [socket receiveSCTP];
                 [layer processReceivedData:rx];
                 break;
+            }
             case SCTP_SOCKET_TYPE_OUTBOUND_TCP:
             case SCTP_SOCKET_TYPE_INBOUND_TCP:
+            {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
                 NSLog(@"  calling receiveEncapsulatedPacket");
 #endif
-                rx = [self receiveEncapsulatedPacket:socketEncap];
+                UMSocketError err = UMSocketError_no_error;
+                rx = [self receiveEncapsulatedPacket:socketEncap error:&err];
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+                NSLog(@"  err=%d",err);
+#endif
                 [layer processReceivedData:rx];
                 break;
+            }
         }
         if(revent_hup)
         {
@@ -681,16 +704,17 @@
 }
 
 
--(UMSocketSCTPReceivedPacket *)receiveEncapsulatedPacket:(UMSocket *)umsocket timeout:(NSTimeInterval)timeout
+-(UMSocketSCTPReceivedPacket *)receiveEncapsulatedPacket:(UMSocket *)umsocket error:(UMSocketError *)errptr timeout:(NSTimeInterval)timeout
 {
     UMSocketSCTPReceivedPacket *rx = NULL;
     NSDate *start = [NSDate date];
     NSTimeInterval timeElapsed = 0;
-    while((timeElapsed<timeout) && (rx==NULL))
+    UMSocketError err = UMSocketError_no_data;
+    while((timeElapsed<timeout) && (rx==NULL) && (err==UMSocketError_no_data))
     {
-        rx = [self receiveEncapsulatedPacket:umsocket];
+        rx = [self receiveEncapsulatedPacket:umsocket error:&err];
         timeElapsed = [[NSDate date]timeIntervalSinceDate:start];
-        if(rx==NULL)
+        if((rx==NULL) && (err==UMSocketError_no_data))
         {
             usleep(10000); /* to avoid deadlocks */
         }
@@ -698,18 +722,18 @@
     return rx;
 }
 
--(UMSocketSCTPReceivedPacket *)receiveEncapsulatedPacket:(UMSocket *)umsocket
+-(UMSocketSCTPReceivedPacket *)receiveEncapsulatedPacket:(UMSocket *)umsocket error:(UMSocketError *)errptr
 {
     [umsocket receiveToBufferWithBufferLimit:32768];
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-    NSLog(@"Buffer contains: %@",[umsocket.receiveBuffer hexString]);
-#endif
-    
-    BOOL protocolViolation = NO;
     NSData *receivedData = NULL;
     sctp_over_tcp_header header;
     UMSocketSCTPReceivedPacket *rx = NULL;
     [umsocket.dataLock lock];
+    
+    if(errptr)
+    {
+        *errptr = UMSocketError_no_data;
+    }
     if(umsocket.receiveBuffer.length >= sizeof(sctp_over_tcp_header))
     {
         memcpy(&header,umsocket.receiveBuffer.bytes,sizeof(header));
@@ -719,18 +743,13 @@
         header.streamId = ntohs(header.streamId);
         header.flags = ntohs(header.flags);
         
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"sctp-over-tcp-header-received");
-        NSLog(@"rx->header_length=%ld",header.header_length);
-        NSLog(@"rx->payload_length=%ld",header.payload_length);
-        NSLog(@"rx->protocolId=%ld",header.protocolId);
-        NSLog(@"rx->streamId=%d",header.streamId);
-        NSLog(@"rx->flags=%d",header.flags);
-#endif
-
         if(header.header_length != sizeof(header))
         {
-            protocolViolation = YES;
+            if(errptr)
+            {
+                *errptr = UMSocketError_connection_aborted;
+            }
+            return NULL;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             NSLog(@"- header-length-mismatch");
 #endif
@@ -755,11 +774,20 @@
                     const void *start = umsocket.receiveBuffer.bytes;
                     start += header.header_length;
                     receivedData = [NSData dataWithBytes:start length:header.payload_length];
+                    if(errptr)
+                    {
+                        *errptr = UMSocketError_no_error;
+                    }
+
                 }
                 else
                 {
                     /* we have a valid header but not enough data yet */
                     rx = NULL;
+                    if(errptr)
+                    {
+                        *errptr = UMSocketError_no_data;
+                    }
                 }
             }
         }
