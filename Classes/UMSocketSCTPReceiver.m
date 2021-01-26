@@ -630,6 +630,10 @@
                     UMLayerSctp *session = [_registry layerForSessionKey:session_key];
                     if(session)
                     {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+                        NSLog(@"layer found with session key %@",session_key);
+#endif
+                        session.directTcpEncapsulatedSocket = rs;
                         [_registry registerIncomingTcpLayer:session];
                         success = YES;
                     }
