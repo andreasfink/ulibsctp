@@ -720,8 +720,8 @@
         NSLog(@"rx->header_length=%ld",header.header_length);
         NSLog(@"rx->payload_length=%ld",header.payload_length);
         NSLog(@"rx->protocolId=%ld",header.protocolId);
-        NSLog(@"rx->streamId=%ld",header.streamId);
-        NSLog(@"rx->flags=%ld",header.flags);
+        NSLog(@"rx->streamId=%d",header.streamId);
+        NSLog(@"rx->flags=%d",header.flags);
 #endif
 
         if(header.header_length != sizeof(header))
@@ -733,6 +733,17 @@
         }
         else
         {
+            rx = [[UMSocketSCTPReceivedPacket alloc]init];
+            rx.streamId = header.streamId;
+            rx.protocolId = header.protocolId;
+            rx.context = 0;
+            rx.data = receivedData;
+            rx.remoteAddress = umsocket.connectedRemoteAddress;
+            rx.remotePort  = umsocket.connectedRemotePort;
+            rx.localAddress = umsocket.connectedLocalAddress;
+            rx.localPort  = umsocket.connectedLocalPort;
+            rx.tcp_flags = header.flags;
+            rx.isNotification = NO;
             if(header.payload_length > 0)
             {
                 if(umsocket.receiveBuffer.length >= sizeof(sctp_over_tcp_header) + header.payload_length)
@@ -740,17 +751,11 @@
                     const void *start = umsocket.receiveBuffer.bytes;
                     start += header.header_length;
                     receivedData = [NSData dataWithBytes:start length:header.payload_length];
-                    rx = [[UMSocketSCTPReceivedPacket alloc]init];
-                    rx.streamId = header.streamId;
-                    rx.protocolId = header.protocolId;
-                    rx.context = 0;
-                    rx.data = receivedData;
-                    rx.remoteAddress = umsocket.connectedRemoteAddress;
-                    rx.remotePort  = umsocket.connectedRemotePort;
-                    rx.localAddress = umsocket.connectedLocalAddress;
-                    rx.localPort  = umsocket.connectedLocalPort;
-                    rx.tcp_flags = header.flags;
-                    rx.isNotification = NO;
+                }
+                else
+                {
+                    /* we have a valid header but not enough data yet */
+                    rx = NULL;
                 }
             }
         }
