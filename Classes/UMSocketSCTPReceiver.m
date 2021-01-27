@@ -720,6 +720,7 @@
                 if(rx)
                 {
                     [layer processReceivedData:rx];
+                    rx = NULL;
                 }
                 break;
             }
