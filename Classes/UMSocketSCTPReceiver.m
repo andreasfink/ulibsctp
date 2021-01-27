@@ -803,7 +803,7 @@
 
 -(UMSocketSCTPReceivedPacket *)receiveEncapsulatedPacket:(UMSocket *)umsocket error:(UMSocketError *)errptr
 {
-    UMSocketError err =  [umsocket receiveToBufferWithBufferLimit:32768];
+    UMSocketError err =  [umsocket receiveToBufferWithBufferLimit:sizeof(sctp_over_tcp_header)];
     if(err==UMSocketError_has_data_and_hup)
     {
         err = UMSocketError_has_data;
@@ -863,32 +863,44 @@
             rx.isNotification = NO;
             if(header.payload_length > 0)
             {
-                if(umsocket.receiveBuffer.length >= sizeof(sctp_over_tcp_header) + header.payload_length)
+                UMSocketError err =  [umsocket receiveToBufferWithBufferLimit:sizeof(sctp_over_tcp_header)+header.payload_length];
+                if(err)
                 {
-                    const void *start = umsocket.receiveBuffer.bytes;
-                    start += header.header_length;
-                    receivedData = [NSData dataWithBytes:start length:header.payload_length];
-                    rx.data = receivedData;
-                    /* remove the packet data */
-                    [umsocket.receiveBuffer replaceBytesInRange:NSMakeRange(0, sizeof(sctp_over_tcp_header) + header.payload_length)
-                                                      withBytes:nil
-                                                         length:0];
-
                     if(errptr)
                     {
-                        *errptr = UMSocketError_no_error;
+                        *errptr = err;
+                        rx = NULL;
                     }
                 }
                 else
                 {
-                    /* we have a valid header but not enough data yet */
-                    rx = NULL;
-                    if(errptr)
+                    if(umsocket.receiveBuffer.length >= sizeof(sctp_over_tcp_header) + header.payload_length)
                     {
-                        *errptr = UMSocketError_try_again;
+                        const void *start = umsocket.receiveBuffer.bytes;
+                        start += header.header_length;
+                        receivedData = [NSData dataWithBytes:start length:header.payload_length];
+                        rx.data = receivedData;
+                        /* remove the packet data */
+                        [umsocket.receiveBuffer replaceBytesInRange:NSMakeRange(0, sizeof(sctp_over_tcp_header) + header.payload_length)
+                                                          withBytes:nil
+                                                             length:0];
+
+                        if(errptr)
+                        {
+                            *errptr = UMSocketError_no_error;
+                        }
+                    }
+                    else
+                    {
+                        /* we have a valid header but not enough data yet */
+                        rx = NULL;
+                        if(errptr)
+                        {
+                            *errptr = UMSocketError_try_again;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-                        NSLog(@"- header ok but not enough data yet. waiting for %lu additional bytes",(unsigned long)header.payload_length);
+                            NSLog(@"- header ok but not enough data yet. waiting for %lu additional bytes",(unsigned long)header.payload_length);
 #endif
+                        }
                     }
                 }
             }
