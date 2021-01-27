@@ -689,7 +689,7 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
                 if(rx==NULL)
                 {
-                    NSLog(@"Received SCTP over TCP packet: rx=null err=%d %@",err,[UMSocket getSocketErrorString:err]);
+                    NSLog(@"Received SCTP over TCP packet: sock=%d rx=null err=%d %@",rs.sock,err,[UMSocket getSocketErrorString:err]);
                 }
                 else
                 {
@@ -701,7 +701,7 @@
                     else
                     {
                         NSString *s = [rx description];
-                        NSLog(@"Received SCTP over TCP packet with error %d %@: %@",err,[UMSocket getSocketErrorString:err],s);
+                        NSLog(@"Received SCTP over TCP packet with sock=%d error %d %@: %@",rs.sock,err,[UMSocket getSocketErrorString:err],s);
                     }
                 }
 
