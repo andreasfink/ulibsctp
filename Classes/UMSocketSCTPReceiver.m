@@ -781,13 +781,20 @@
 -(UMSocketSCTPReceivedPacket *)receiveEncapsulatedPacket:(UMSocket *)umsocket error:(UMSocketError *)errptr
 {
     UMSocketError err =  [umsocket receiveToBufferWithBufferLimit:32768];
+    if(err==UMSocketError_has_data_and_hup)
+    {
+        err = UMSocketError_has_data;
+    }
     if(err)
     {
         if(errptr)
         {
             *errptr = err;
         }
-        return NULL;
+        if(err!=UMSocketError_has_data)
+        {
+            return NULL;
+        }
     }
     NSData *receivedData = NULL;
     sctp_over_tcp_header header;
