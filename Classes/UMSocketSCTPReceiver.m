@@ -775,6 +775,10 @@
 #if defined (ULIBSCTP_CONFIG_DEBUG)
     NSLog(@"receiveEncapsulatedPacket returns error=%@ on socket %d with rx=%@",[UMSocket getSocketErrorString:err],umsocket.sock,rx.description);
 #endif
+    if(*errptr)
+    {
+        *errptr = err;
+    }
     return rx;
 }
 
