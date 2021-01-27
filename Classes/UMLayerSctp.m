@@ -494,6 +494,13 @@
                 {
                     [_registry registerOutgoingTcpLayer:self];
                 }
+                else
+                {
+                    if(_encapsulatedOverTcpSessionKey)
+                    {
+                        [_registry registerSessionKey:_encapsulatedOverTcpSessionKey forLayer:self];
+                    }
+                }
             }
             else
             {
