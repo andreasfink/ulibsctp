@@ -667,15 +667,21 @@
             case SCTP_SOCKET_TYPE_OUTBOUND_TCP:
             case SCTP_SOCKET_TYPE_INBOUND_TCP:
             {
+                UMSocket *rs = socketEncap;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
                 NSLog(@"  calling receiveEncapsulatedPacket");
 #endif
                 UMSocketError err = UMSocketError_no_error;
-                rx = [self receiveEncapsulatedPacket:socketEncap error:&err];
+                rx = [self receiveEncapsulatedPacket:rs error:&err timeout:0.02];
+                /* potential DDOS / busyloop */
+
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-                NSLog(@"  err=%d",err);
+                NSLog(@"  err=%d %@ (sock=%d)",err,[UMSocket getSocketErrorString:err],rs.sock);
 #endif
-                [layer processReceivedData:rx];
+                if(rx)
+                {
+                    [layer processReceivedData:rx];
+                }
                 break;
             }
         }
@@ -710,13 +716,15 @@
 }
 
 
--(UMSocketSCTPReceivedPacket *)receiveEncapsulatedPacket:(UMSocket *)umsocket error:(UMSocketError *)errptr timeout:(NSTimeInterval)timeout
+-(UMSocketSCTPReceivedPacket *)receiveEncapsulatedPacket:(UMSocket *)umsocket
+                                                   error:(UMSocketError *)errptr
+                                                 timeout:(NSTimeInterval)timeout
 {
     UMSocketSCTPReceivedPacket *rx = NULL;
     NSDate *start = [NSDate date];
     NSTimeInterval timeElapsed = 0;
     UMSocketError err = UMSocketError_no_data;
-    while((timeElapsed<timeout) && (rx==NULL) && (err==UMSocketError_no_data))
+    while((timeElapsed<timeout) && (rx==NULL) && ((err==UMSocketError_no_data) || (err==UMSocketError_try_again)))
     {
         rx = [self receiveEncapsulatedPacket:umsocket error:&err];
         timeElapsed = [[NSDate date]timeIntervalSinceDate:start];
@@ -755,10 +763,10 @@
             {
                 *errptr = UMSocketError_connection_aborted;
             }
-            return NULL;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             NSLog(@"- header-length-mismatch");
 #endif
+            return NULL;
         }
         else
         {
@@ -790,7 +798,6 @@
                     {
                         *errptr = UMSocketError_no_error;
                     }
-
                 }
                 else
                 {
@@ -798,8 +805,18 @@
                     rx = NULL;
                     if(errptr)
                     {
-                        *errptr = UMSocketError_no_data;
+                        *errptr = UMSocketError_try_again;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+                        NSLog(@"- header ok but not enough data yet. waiting for %lu additional bytes",(unsigned long)header.payload_length);
+#endif
                     }
+                }
+            }
+            else
+            {
+                if(errptr)
+                {
+                    *errptr = UMSocketError_no_error;
                 }
             }
         }
