@@ -47,7 +47,7 @@ typedef struct sctp_over_tcp_header
 #define SCTP_OVER_TCP_SACK_IMMEDIATELY 0x4000 /* Set I-Bit */
 
 #define SCTP_OVER_TCP_SETUP            0x0080 /* setup message reserved for SCTP over TCP */
-
+#define SCTP_OVER_TCP_SETUP_CONFIRM    0x0040 /* setup answer  reserved for SCTP over TCP */
 
 /* the setup message contains a payload which contains the session key so the remote can figure out which connection we are referring to
    a norma SCTP multihomed connection from a config point of view.

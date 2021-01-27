@@ -178,4 +178,12 @@
 -(void) handleLinkUpTcpEcnap;
 -(void) handleLinkDownTcpEcnap;
 
+- (ssize_t) sendEncapsulated:(NSData *)data
+                      assoc:(uint32_t *)assocptr
+                     stream:(uint16_t)streamId
+                   protocol:(u_int32_t)protocolId
+                      error:(UMSocketError *)err2
+                       flags:(int)flags;
+
+
 @end

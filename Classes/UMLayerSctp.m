@@ -1013,7 +1013,6 @@
         [s appendFormat:@"processReceivedData: \n%@",rx.description];
         [self logDebug:s];
 #endif
-        
         if(rx.assocId !=NULL)
         {
             if((_assocId == -1) || (_assocIdPresent == NO) || (_directSocket == NULL))
@@ -1083,7 +1082,12 @@
         }
         else
         {
-            if(rx.isNotification)
+            if(rx.flags & SCTP_OVER_TCP_SETUP_CONFIRM)
+            {
+                self.status = UMSOCKET_STATUS_IS;
+                [self reportStatus];
+            }
+            else if(rx.isNotification)
             {
 
                 [self handleEvent:rx.data

@@ -651,6 +651,16 @@
                         [_registry registerIncomingTcpLayer:session];
                         [session handleLinkUpTcpEcnap];
                         success = YES;
+                        
+                        UMSocketError err2 = UMSocketError_no_error;
+                        uint32_t tmp_assocId;
+                        [session sendEncapsulated:rx.data
+                                            assoc:&tmp_assocId
+                                           stream:0
+                                         protocol:0
+                                            error:&err2
+                                            flags:SCTP_OVER_TCP_SETUP_CONFIRM | SCTP_OVER_TCP_NOTIFICATION];
+                        session.status = UMSOCKET_STATUS_IS;
                     }
                     else
                     {
