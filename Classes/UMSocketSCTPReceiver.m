@@ -661,6 +661,7 @@
                                             error:&err2
                                             flags:SCTP_OVER_TCP_SETUP_CONFIRM | SCTP_OVER_TCP_NOTIFICATION];
                         session.status = UMSOCKET_STATUS_IS;
+                        [session reportStatus];
                     }
                     else
                     {

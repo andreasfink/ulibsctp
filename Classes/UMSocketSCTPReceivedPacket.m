@@ -117,6 +117,11 @@
     {
         [a addObject:@"SCTP_OVER_TCP_SETUP"];
     }
+    if(_tcp_flags & SCTP_OVER_TCP_SETUP_CONFIRM)
+    {
+        [a addObject:@"SCTP_OVER_TCP_SETUP_CONFIRM"];
+    }
+
     [s appendFormat:@".tcp_flags =  %d %@\n",_tcp_flags, [a componentsJoinedByString:@" | "]];
     [s appendFormat:@".data =  %@\n",[_data hexString]];
     [s appendFormat:@"-----------------------------------------------------------\n"];
