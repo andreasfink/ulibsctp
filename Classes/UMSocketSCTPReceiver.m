@@ -697,6 +697,10 @@
 #endif
                 UMSocketError err = UMSocketError_no_error;
                 rx = [self receiveEncapsulatedPacket:rs error:&err timeout:0.02];
+                if((err != UMSocketError_has_data) && (err!=UMSocketError_try_again) && (err != UMSocketError_no_error))
+                {
+                    revent_hup = 1;
+                }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
                 if(rx==NULL)
                 {
