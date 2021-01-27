@@ -767,11 +767,14 @@
     {
         rx = [self receiveEncapsulatedPacket:umsocket error:&err];
         timeElapsed = [[NSDate date]timeIntervalSinceDate:start];
-        if((rx==NULL) && (err==UMSocketError_no_data))
+        if((rx==NULL) && ((err==UMSocketError_no_data) || (err==UMSocketError_try_again)))
         {
             usleep(10000); /* to avoid deadlocks */
         }
     }
+#if defined (ULIBSCTP_CONFIG_DEBUG)
+    NSLog(@"receiveEncapsulatedPacket returns error=%@ on socket %d with rx=%@",[UMSocket getSocketErrorString:err],umsocket.sock,rx.description);
+#endif
     return rx;
 }
 
