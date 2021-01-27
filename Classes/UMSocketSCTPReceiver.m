@@ -619,11 +619,24 @@
                 BOOL success = NO;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-                if((rx) && (err == UMSocketError_no_error))
+                if(rx==NULL)
                 {
-                    NSString *s = [rx description];
-                    NSLog(@"Received SCTP over TCP packet: %@",s);
+                    NSLog(@"Received SCTP over TCP packet: rx=null err=%d %@",err,[UMSocket getSocketErrorString:err]);
                 }
+                else
+                {
+                    if (err == UMSocketError_no_error)
+                    {
+                        NSString *s = [rx description];
+                        NSLog(@"Received SCTP over TCP packet: %@",s);
+                    }
+                    else
+                    {
+                        NSString *s = [rx description];
+                        NSLog(@"Received SCTP over TCP packet with error %d %@: %@",err,[UMSocket getSocketErrorString:err],s);
+                    }
+                }
+
 #endif
                 if(rx.tcp_flags & SCTP_OVER_TCP_SETUP)
                 {
@@ -673,10 +686,25 @@
 #endif
                 UMSocketError err = UMSocketError_no_error;
                 rx = [self receiveEncapsulatedPacket:rs error:&err timeout:0.02];
-                /* potential DDOS / busyloop */
-
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-                NSLog(@"  err=%d %@ (sock=%d)",err,[UMSocket getSocketErrorString:err],rs.sock);
+                if(rx==NULL)
+                {
+                    NSLog(@"Received SCTP over TCP packet: rx=null err=%d %@",err,[UMSocket getSocketErrorString:err]);
+                }
+                else
+                {
+                    if (err == UMSocketError_no_error)
+                    {
+                        NSString *s = [rx description];
+                        NSLog(@"Received SCTP over TCP packet: %@",s);
+                    }
+                    else
+                    {
+                        NSString *s = [rx description];
+                        NSLog(@"Received SCTP over TCP packet with error %d %@: %@",err,[UMSocket getSocketErrorString:err],s);
+                    }
+                }
+
 #endif
                 if(rx)
                 {
