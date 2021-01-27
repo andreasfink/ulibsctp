@@ -489,7 +489,10 @@
             }
             if(_encapsulatedOverTcp)
             {
-                [_registry registerOutgoingTcpLayer:self];
+                if(_isPassive == NO)
+                {
+                    [_registry registerOutgoingTcpLayer:self];
+                }
             }
             else
             {
