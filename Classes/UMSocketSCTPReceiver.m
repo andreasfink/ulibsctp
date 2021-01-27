@@ -691,24 +691,23 @@
             case SCTP_SOCKET_TYPE_OUTBOUND_TCP:
             case SCTP_SOCKET_TYPE_INBOUND_TCP:
             {
-                UMSocket *rs = socketEncap;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
                 NSLog(@"  calling receiveEncapsulatedPacket");
 #endif
                 UMSocketError err = UMSocketError_no_error;
-                rx = [self receiveEncapsulatedPacket:rs error:&err timeout:0.02];
-                if((err != UMSocketError_has_data) && (err!=UMSocketError_try_again) && (err != UMSocketError_no_error))
+                rx = [self receiveEncapsulatedPacket:socketEncap error:&err timeout:0.05];
+                if((err != UMSocketError_has_data) && (err!=UMSocketError_try_again) && (err != UMSocketError_no_error))
                 {
                     revent_hup = 1;
                 }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
                 if(rx==NULL)
                 {
-                    NSLog(@"Received SCTP over TCP packet: sock=%d rx=null err=%d %@",rs.sock,err,[UMSocket getSocketErrorString:err]);
+                    NSLog(@"Received SCTP over TCP packet: sock=%d rx=null err=%d %@",socketEncap.sock,err,[UMSocket getSocketErrorString:err]);
                 }
                 else
                 {
-                    if (err == UMSocketError_no_error)
+                    if ((err == UMSocketError_no_error) || (err==UMSocketError_has_data) || (err==UMSocketError_has_data_and_hup))
                     {
                         NSString *s = [rx description];
                         NSLog(@"Received SCTP over TCP packet: %@",s);
