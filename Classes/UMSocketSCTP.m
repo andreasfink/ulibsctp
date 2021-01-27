@@ -998,7 +998,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         newcon.objectStatisticsName = @"UMSocket(accept)";
         [self reportStatus:@"accept () successful"];
         /* TODO: start SSL if required here */
-        if(*errptr)
+        if(errptr)
         {
             *errptr = UMSocketError_no_error;
         }
@@ -1010,7 +1010,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     UMSocketError e = [UMSocket umerrFromErrno:errno];
 
-    if(*errptr)
+    if(errptr)
     {
         *errptr = e;
     }

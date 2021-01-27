@@ -614,7 +614,7 @@
                 [rs setIPDualStack];
                 [rs setLinger];
                 [rs setReuseAddr];
-                UMSocketError err = UMSocketError_no_error;
+                UMSocketError err = UMSocketError_not_known;
                 rx = [self receiveEncapsulatedPacket:rs error:&err timeout:2.0];/* potential DDOS / busyloop */
                 BOOL success = NO;
 
@@ -777,6 +777,10 @@
     while((timeElapsed<timeout) && (rx==NULL) && ((err==UMSocketError_no_data) || (err==UMSocketError_try_again)))
     {
         rx = [self receiveEncapsulatedPacket:umsocket error:&err];
+        if(errptr)
+        {
+            *errptr = err;
+        }
         timeElapsed = [[NSDate date]timeIntervalSinceDate:start];
         if((rx==NULL) && ((err==UMSocketError_no_data) || (err==UMSocketError_try_again)))
         {
@@ -786,7 +790,7 @@
 #if defined (ULIBSCTP_CONFIG_DEBUG)
     NSLog(@"receiveEncapsulatedPacket returns error=%@ on socket %d with rx=%@",[UMSocket getSocketErrorString:err],umsocket.sock,rx.description);
 #endif
-    if(*errptr)
+    if(errptr)
     {
         *errptr = err;
     }
