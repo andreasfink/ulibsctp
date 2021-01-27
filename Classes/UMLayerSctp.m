@@ -648,7 +648,7 @@
                 }
                 else if(_directTcpEncapsulatedSocket)
                 {
-                    uint32_t        tmp_assocId = _assocId;
+                    uint32_t tmp_assocId = _assocId;
                     [self sendEncapsulated:task.data
                                      assoc:&tmp_assocId
                                     stream:task.streamId
