@@ -408,7 +408,7 @@
                 }
                 else
                 {
-                    if(_directSocket==NULL)
+                    if((_directSocket==NULL) && (_directTcpEncapsulatedSocket==NULL))
                     {
         #if defined(ULIBSCTP_CONFIG_DEBUG)
                         [self logDebug:@"_directSocket==NULL"];
@@ -1032,7 +1032,7 @@
                 _assocIdPresent = YES;
             }
         }
-        if(_directSocket == NULL)
+        if((_directSocket == NULL) && (!_encapsulatedOverTcp))
         {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %lu",(unsigned long)_assocId]];
