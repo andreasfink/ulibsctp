@@ -702,6 +702,17 @@
 #endif
         [layer processHangUp];
         [listener processHangUp];
+        if(layer!=NULL)
+        {
+           if(type==SCTP_SOCKET_TYPE_OUTBOUND_TCP)
+           {
+               [_registry unregisterOutgoingTcpLayer:layer];
+           }
+           else if(type==SCTP_SOCKET_TYPE_INBOUND_TCP)
+           {
+               [_registry unregisterIncomingTcpLayer:layer];
+           }
+        }
     }
     if(revent_invalid)
     {

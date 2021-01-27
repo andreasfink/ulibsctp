@@ -71,10 +71,12 @@
 
 - (void)registerOutgoingLayer:(UMLayerSctp *)layer;
 - (void)registerOutgoingTcpLayer:(UMLayerSctp *)layer;
+- (void)unregisterOutgoingTcpLayer:(UMLayerSctp *)layer;
 - (void)registerOutgoingLayer:(UMLayerSctp *)layer allowAnyRemotePortIncoming:(BOOL)anyPort;
 
 - (void)registerIncomingLayer:(UMLayerSctp *)layer;
 - (void)registerIncomingTcpLayer:(UMLayerSctp *)layer;
+- (void)unregisterIncomingTcpLayer:(UMLayerSctp *)layer;
 
 - (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer;
 
@@ -93,8 +95,6 @@
 
 - (NSArray *)allOutboundTcpLayers;
 - (NSArray *)allInboundTcpLayers;
-
-- (void)unregisterIncomingTcpLayer:(UMLayerSctp *)layer;
 
 - (void)startReceiver;
 - (void)stopReceiver;

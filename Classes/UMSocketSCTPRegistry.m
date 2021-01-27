@@ -443,6 +443,20 @@
     }
 }
 
+- (void)unregisterOutgoingTcpLayer:(UMLayerSctp *)layer
+{
+    if(layer)
+    {
+        [_lock lock];
+        [_outgoingTcpLayers removeObject:layer];
+        if(layer.encapsulatedOverTcpSessionKey)
+        {
+            [self unregisterSessionKey:layer.encapsulatedOverTcpSessionKey];
+        }
+        [_lock unlock];
+    }
+}
+
 - (void)registerOutgoingLayer:(UMLayerSctp *)layer allowAnyRemotePortIncoming:(BOOL)anyPort
 {
     if(layer)
