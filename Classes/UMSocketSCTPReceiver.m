@@ -715,7 +715,7 @@
                     else
                     {
                         NSString *s = [rx description];
-                        NSLog(@"Received SCTP over TCP packet with sock=%d error %d %@: %@",rs.sock,err,[UMSocket getSocketErrorString:err],s);
+                        NSLog(@"Received SCTP over TCP packet with sock=%d error %d %@: %@",socketEncap.sock,err,[UMSocket getSocketErrorString:err],s);
                     }
                 }
 
