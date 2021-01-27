@@ -453,16 +453,6 @@
     ssize_t r = -1;
     [self startListeningFor:layer];
 
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(layer.newDestination)
-    {
-        [self logDebug:@" layer.newDestination=YES"];
-    }
-    else
-    {
-        [self logDebug:@" layer.newDestination=NO"];
-    }
-#endif
     if(layer.status != UMSOCKET_STATUS_IS)
     {
         UMSocketError err = [_umsocket connectToAddresses:addrs

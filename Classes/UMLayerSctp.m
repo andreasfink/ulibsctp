@@ -387,6 +387,7 @@
                                           protocol:0
                                              error:&err
                                              flags:SCTP_OVER_TCP_SETUP | SCTP_OVER_TCP_NOTIFICATION];
+                            self.status = UMSOCKET_STATUS_IS;
                         }
                         tmp_assocId = _directTcpEncapsulatedSocket.sock;
                     }
