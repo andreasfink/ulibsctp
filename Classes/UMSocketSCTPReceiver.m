@@ -22,7 +22,7 @@
     return NULL;
 }
 
-- (UMSocketSCTPReceiver *)initWithRegistry:(UMSocketSCTPRegistry *)r;
+- (UMSocketSCTPReceiver *)initWithRegistry:(UMSocketSCTPRegistry *)r
 {
     self = [super initWithName:@"UMSocketSCTPReceiver" workSleeper:NULL];
     if(self)
