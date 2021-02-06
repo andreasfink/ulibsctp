@@ -321,6 +321,16 @@
                 _listener =  [_registry getOrAddListenerForPort:_configured_local_port localIps:_configured_local_addresses];
             }
             _listener.mtu = _mtu;
+            
+            if(_minReceiveBufferSize > _listener.minReceiveBufferSize)
+            {
+                _listener.minReceiveBufferSize = _minReceiveBufferSize;
+            }
+            if(_minSendBufferSize > _listener.minSendBufferSize)
+            {
+                _listener.minSendBufferSize = _minSendBufferSize;
+            }
+
             if(self.logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"asking listener %@ to start",_listener]];
@@ -377,6 +387,7 @@
                         [_directTcpEncapsulatedSocket setRemoteHost:host];
                         [_directTcpEncapsulatedSocket setRemotePort:_configured_remote_port];
                     
+                        
                         err = [_directTcpEncapsulatedSocket connect];
                         if(err == 0)
                         {
@@ -1886,6 +1897,14 @@
         else
         {
             _maxInitAttempts = 12; /* we try up to 12 titmes (3 minutes at 15sec intervalls) */
+        }
+        if (cfg[@"min-receive-buffer-size"])
+        {
+            _minReceiveBufferSize = [cfg[@"min-receive-buffer-size"] intValue];
+        }
+        if (cfg[@"min-send-buffer-size"])
+        {
+            _minSendBufferSize = [cfg[@"min-send-buffer-size"] intValue];
         }
     #ifdef ULIB_SCTP_DEBUG
         NSLog(@"configured_local_addresses=%@",configured_local_addresses);

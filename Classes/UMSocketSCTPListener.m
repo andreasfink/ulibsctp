@@ -83,6 +83,20 @@
     _umsocket.mtu = mtu;
 }
 
+- (void)setBufferSizes
+{
+    int currentSize = [_umsocket receiveBufferSize];
+    if(currentSize < _minReceiveBufferSize)
+    {
+        [_umsocket setReceiveBufferSize:_minReceiveBufferSize];
+    }
+    currentSize = [_umsocket sendBufferSize];
+    if(currentSize < _minSendBufferSize)
+    {
+        [_umsocket setSendBufferSize:_minSendBufferSize];
+    }
+}
+
 - (BOOL) tcapEncapsulating
 {
     return NO;
@@ -115,6 +129,7 @@
         _umsocket.requestedLocalAddresses = _localIpAddresses;
         _umsocket.requestedLocalPort = _port;
         [_umsocket updateMtu:_configuredMtu];
+        [self setBufferSizes];
 
         [_umsocket switchToNonBlocking];
         UMSocketError err = [_umsocket setNoDelay];
@@ -468,6 +483,7 @@
     if(layer.newDestination==YES)
     {
         [_umsocket updateMtu:_configuredMtu];
+        [self setBufferSizes];
         UMSocketError err = [_umsocket setHeartbeat:YES];
         if(err!=UMSocketError_no_error)
         {

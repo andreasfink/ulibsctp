@@ -70,6 +70,8 @@
     int                 _maxInitAttempts;
     BOOL                _encapsulatedOverTcp;
     NSString            *_encapsulatedOverTcpSessionKey;
+    int                 _minReceiveBufferSize;
+    int                 _minSendBufferSize;
 }
 
 

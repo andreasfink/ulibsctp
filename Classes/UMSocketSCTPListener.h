@@ -32,6 +32,8 @@
     BOOL                        _sendAborts;
     BOOL                        _tcpEncapsulated;
     UMLogLevel                  _logLevel;
+    int                         _minReceiveBufferSize;
+    int                         _minSendBufferSize;
 }
 
 @property(readwrite,assign) int port;
@@ -47,6 +49,8 @@
 @property(readwrite,assign) BOOL    sendAborts;
 @property(readwrite,assign) UMLogLevel logLevel;
 @property(readonly,assign)  BOOL tcpEncapsulated;
+@property(readwrite,assign) int minReceiveBufferSize;
+@property(readwrite,assign) int minSendBufferSize;
 
 - (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses;
 - (UMSocketSCTPListener *)initWithPort:(int)localPort localIpAddresses:(NSArray *)addresses encapsulated:(BOOL)tcpEncapsulated;
