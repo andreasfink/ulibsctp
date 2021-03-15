@@ -994,17 +994,15 @@
             [self.logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
         }
     #endif
-        self.status = UMSOCKET_STATUS_OOS;
         self.status = UMSOCKET_STATUS_OFF;
-
         if(_assocIdPresent)
         {
             [_registry unregisterAssoc:@(_assocId)];
             _assocId = -1;
             _assocIdPresent = NO;
-            [_directSocket close];
-            _directSocket = NULL;
         }
+        [_directSocket close];
+        _directSocket = NULL;
     }
 }
 
@@ -1443,6 +1441,7 @@
     {
         [self.logFeed majorErrorText:@" Size Mismatch in SCTP_SEND_FAILED"];
         [self powerdownInReceiverThread];
+        [self reportStatus];
         return UMSocketError_not_supported_operation;
     }
     [self.logFeed majorErrorText:@"SCTP_SEND_FAILED"];
@@ -1468,6 +1467,7 @@
 #endif
     [self.logFeed majorErrorText:[NSString stringWithFormat:@"SCTP sendfailed: len=%u err=%d\n", snp->sn_send_failed.ssf_length,snp->sn_send_failed.ssf_error]];
     [self powerdownInReceiverThread];
+    [self reportStatus];
     return -1;
 }
 
@@ -1492,6 +1492,7 @@
     {
         [self.logFeed majorErrorText:@" Size Mismatch in SCTP_SHUTDOWN_EVENT"];
         [self powerdownInReceiverThread];
+        [self reportStatus];
         return UMSocketError_not_supported_operation;
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1505,6 +1506,7 @@
 #endif
     [self.logFeed warningText:@"SCTP_SHUTDOWN_EVENT->POWERDOWN"];
     [self powerdownInReceiverThread];
+    [self reportStatus];
     return -1;
 }
 
@@ -1529,6 +1531,7 @@
     {
         [self.logFeed majorErrorText:@" Size Mismatch in SCTP_ADAPTATION_INDICATION"];
         [self powerdownInReceiverThread];
+        [self reportStatus];
         return UMSocketError_not_supported_operation;
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1564,6 +1567,7 @@
     {
         [self.logFeed majorErrorText:@" Size Mismatch in SCTP_PARTIAL_DELIVERY_EVENT"];
         [self powerdownInReceiverThread];
+        [self reportStatus];
         return UMSocketError_not_supported_operation;
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1603,6 +1607,7 @@
     {
         [self.logFeed majorErrorText:@" Size Mismatch in SCTP_AUTHENTICATION_EVENT"];
         [self powerdownInReceiverThread];
+        [self reportStatus];
         return UMSocketError_not_supported_operation;
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1652,6 +1657,7 @@
     {
         [self.logFeed majorErrorText:@" Size Mismatch in SCTP_STREAM_RESET_EVENT"];
         [self powerdownInReceiverThread];
+        [self reportStatus];
         return UMSocketError_not_supported_operation;
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1663,6 +1669,9 @@
         [self logDebug:[NSString stringWithFormat:@"  strreset_assoc_id: %d", (int)snp->sn_strreset_event.strreset_assoc_id]];
     }
 #endif
+    
+    self.status = UMSOCKET_STATUS_OFF;
+    [self reportStatus];
     return UMSocketError_no_error;
 }
 #endif
@@ -1687,6 +1696,7 @@
     {
         [self.logFeed majorErrorText:@" Size Mismatch in SCTP_SENDER_DRY_EVENT"];
         [self powerdownInReceiverThread];
+        [self reportStatus];
         return UMSocketError_not_supported_operation;
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1725,6 +1735,7 @@
         {
             [self logDebug:@"RXT: USER instance not found. Maybe not bound yet?"];
             [self powerdownInReceiverThread];
+            [self reportStatus];
             return UMSocketError_no_buffers;
         }
 
