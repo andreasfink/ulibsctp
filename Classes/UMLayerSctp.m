@@ -1057,7 +1057,6 @@
                 _directSocket = NULL;
             }
         }
-
         if(rx.err==UMSocketError_try_again)
         {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
