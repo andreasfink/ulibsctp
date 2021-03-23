@@ -267,7 +267,7 @@
 
     NSAssert(_timeoutInMs > 100,@"UMSocketSCTP Receiver: _timeoutInMs is smaller than 100ms");
 
-    total_count = j;
+    //total_count = j;
     int ret1 = poll(pollfds, j, _timeoutInMs);
     UMMicroSec poll_time = ulib_microsecondTime();
     if (ret1 < 0)
