@@ -129,6 +129,10 @@
         _umsocket.requestedLocalAddresses = _localIpAddresses;
         _umsocket.requestedLocalPort = _port;
         [_umsocket updateMtu:_configuredMtu];
+        if(_dscp)
+        {
+            [_umsocket setDscpString:_dscp];
+        }
         [self setBufferSizes];
 
         [_umsocket switchToNonBlocking];
@@ -483,6 +487,10 @@
     if(layer.newDestination==YES)
     {
         [_umsocket updateMtu:_configuredMtu];
+        if(_dscp)
+        {
+            [_umsocket setDscpString:_dscp];
+        }
         [self setBufferSizes];
         UMSocketError err = [_umsocket setHeartbeat:YES];
         if(err!=UMSocketError_no_error)

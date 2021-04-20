@@ -34,6 +34,7 @@
     UMLogLevel                  _logLevel;
     int                         _minReceiveBufferSize;
     int                         _minSendBufferSize;
+    NSString                    _dscp;
 }
 
 @property(readwrite,assign) int port;
@@ -51,6 +52,7 @@
 @property(readonly,assign)  BOOL tcpEncapsulated;
 @property(readwrite,assign) int minReceiveBufferSize;
 @property(readwrite,assign) int minSendBufferSize;
+@property(readwrite,strong) NSString *dscp;
 
 - (UMSocketSCTPListener *)initWithPort:(int)port localIpAddresses:(NSArray *)addresses;
 - (UMSocketSCTPListener *)initWithPort:(int)localPort localIpAddresses:(NSArray *)addresses encapsulated:(BOOL)tcpEncapsulated;

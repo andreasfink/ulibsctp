@@ -57,7 +57,7 @@
     int                 _active_remote_port;
     int                 _timeoutInMs; /* poll timeout in receiver thread . Default 400ms */
     int                 _mtu;
-
+    NSString            _dscp;
     BOOL                _isPassive;
     BOOL                _listenerStarted;
     BOOL                _assocIdPresent;

@@ -321,6 +321,7 @@
                 _listener =  [_registry getOrAddListenerForPort:_configured_local_port localIps:_configured_local_addresses];
             }
             _listener.mtu = _mtu;
+            _listener.dscp = _dscp;
             
             if(_minReceiveBufferSize > _listener.minReceiveBufferSize)
             {
@@ -1890,6 +1891,10 @@
         {
             _mtu = [cfg[@"mtu"] intValue];
         }
+        if (cfg[@"dscp"])
+        {
+            _dscp = [cfg[@"dscp"] stringValue];
+        }
 
         if (cfg[@"max-init-timeout"])
         {
@@ -1938,6 +1943,10 @@
         config[@"reconnect-timer"] = @(_reconnectTimerValue);
         config[@"heartbeat"] = @(_heartbeatSeconds);
         config[@"mtu"] = @(_mtu);
+        if(_dscp)
+        {
+            config[@"dscp"] = _dscp;
+        }
         config[@"max-init-timeout"] = @(_maxInitTimeout);
         config[@"max-init-attempts"] = @ (_maxInitAttempts);
         config[@"sctp-over-tcp"] = @(_encapsulatedOverTcp);
@@ -1995,6 +2004,10 @@
         d[@"poll-timeout-in-ms"] = @(_timeoutInMs);
         d[@"heartbeat"] = @(_heartbeatSeconds);
         d[@"mtu"] = @(_mtu);
+        if(_dscp)
+        {
+            d[@"dscp"] = _dscp;
+        }
         return d;
     }
 }
