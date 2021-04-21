@@ -34,7 +34,7 @@
     UMLogLevel                  _logLevel;
     int                         _minReceiveBufferSize;
     int                         _minSendBufferSize;
-    NSString                    _dscp;
+    NSString                    *_dscp;
 }
 
 @property(readwrite,assign) int port;
