@@ -49,7 +49,6 @@ typedef enum SCTP_SocketType_enum
     int             _msg_notification_mask;
     double          _heartbeatSeconds;
     NSTimeInterval  _connectionRepeatTimer;
-
     UMSocketSCTPListener *_listener;
     BOOL            _continuousConnectionAttempts;
     BOOL            _connectx_pending;
@@ -57,7 +56,6 @@ typedef enum SCTP_SocketType_enum
     int             _localAddressesSockaddrCount;
     int             _mtu;
     int             _maxSeg;
-    
     int             _maxInStreams;
     int             _numOStreams;
     int             _maxInitAttempts;

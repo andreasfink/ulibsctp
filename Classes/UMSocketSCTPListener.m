@@ -15,6 +15,15 @@
 
 @implementation UMSocketSCTPListener
 
+- (void)dealloc
+{
+    [_umsocket close];
+    [_umsocketEncapsulated close];
+    _umsocket = NULL;
+    _umsocketEncapsulated = NULL;
+}
+
+
 - (UMSocketSCTPListener *)initWithPort:(int)localPort localIpAddresses:(NSArray *)addresses
 {
     return [self initWithPort:localPort localIpAddresses:addresses encapsulated:NO];
@@ -248,7 +257,7 @@
     */
 
     [_lock lock];
-    if(_isListening)
+    if((_isListening) && (_umsocketEncapsulated != NULL))
     {
         _layers[layer.layerName] =layer;
         _listeningCount = _layers.count;
@@ -336,11 +345,6 @@
         _isListening = NO;
     }
     [_lock unlock];
-}
-
-- (void)dealloc
-{
-    [_umsocket close];
 }
 
 
