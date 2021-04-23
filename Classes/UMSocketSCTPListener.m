@@ -116,7 +116,7 @@
      If all layers stop listening, then the counter reaches zero and the socket is closed.
     */
     [_lock lock];
-    if((_isListening) && (_umsocket))
+    if((_isListening) && (_umsocket!=NULL))
     {
         _layers[layer.layerName] =layer;
         _listeningCount = _layers.count;
