@@ -116,7 +116,7 @@
      If all layers stop listening, then the counter reaches zero and the socket is closed.
     */
     [_lock lock];
-    if(_isListening)
+    if((_isListening) && (_umsocket))
     {
         _layers[layer.layerName] =layer;
         _listeningCount = _layers.count;
@@ -124,7 +124,6 @@
     else
     {
         NSAssert(_umsocket == NULL,@"calling startListening with _umsocket already existing");
-
         _umsocket = [[UMSocketSCTP alloc]initWithType:UMSOCKET_TYPE_SCTP_SEQPACKET name:_name];
         _umsocket.requestedLocalAddresses = _localIpAddresses;
         _umsocket.requestedLocalPort = _port;
@@ -334,6 +333,7 @@
         [_umsocket close];
         _umsocket=NULL;
         _listeningCount = 0;
+        _isListening = NO;
     }
     [_lock unlock];
 }
