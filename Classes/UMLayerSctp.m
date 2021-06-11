@@ -150,6 +150,21 @@
      protocolId:(uint32_t)pid
      ackRequest:(NSDictionary *)ack
 {
+    [self dataFor:caller
+             data:sendingData
+         streamId:sid
+       protocolId:pid
+       ackRequest:ack
+      synchronous:YES];
+}
+
+- (void)dataFor:(id<UMLayerSctpUserProtocol>)caller
+           data:(NSData *)sendingData
+       streamId:(uint16_t)sid
+     protocolId:(uint32_t)pid
+     ackRequest:(NSDictionary *)ack
+    synchronous:(BOOL)sync
+{
     @autoreleasepool
     {
         UMSctpTask_Data *task =
@@ -159,11 +174,14 @@
                                         streamId:sid
                                       protocolId:pid
                                       ackRequest:ack];
-    #if 0
-        [task main];
-    #else
-        [self queueFromUpper:task];
-    #endif
+        if(synch)
+        {
+            [task main];
+        }
+        else
+        {
+            [self queueFromUpper:task];
+        }
     }
 }
 

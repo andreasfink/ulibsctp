@@ -137,6 +137,14 @@
        streamId:(uint16_t)sid
      protocolId:(uint32_t)pid
      ackRequest:(NSDictionary *)ack;
+
+- (void)dataFor:(id<UMLayerSctpUserProtocol>)caller
+           data:(NSData *)sendingData
+       streamId:(uint16_t)sid
+     protocolId:(uint32_t)pid
+     ackRequest:(NSDictionary *)ack
+    synchronous:(BOOL)sync;
+
 - (void)foosFor:(id<UMLayerSctpUserProtocol>)caller;
 - (void)isFor:(id<UMLayerSctpUserProtocol>)caller;
 
