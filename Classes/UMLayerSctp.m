@@ -174,7 +174,7 @@
                                         streamId:sid
                                       protocolId:pid
                                       ackRequest:ack];
-        if(synch)
+        if(sync)
         {
             [task main];
         }
