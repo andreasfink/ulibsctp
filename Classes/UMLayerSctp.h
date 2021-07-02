@@ -82,6 +82,7 @@
 
 @property(readwrite,assign,atomic) UMSocketStatus     status;
 //@property(readwrite,strong) UMBackgrounder  *receiverThread;
+@property(readonly,strong,atomic)      UMMutex *linkLock;
 
 @property(readwrite,strong  )NSArray    *configured_local_addresses;
 @property(readwrite,assign) int         configured_local_port;
