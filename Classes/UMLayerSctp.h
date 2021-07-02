@@ -114,7 +114,6 @@
 @property(readwrite,assign,atomic)      BOOL                encapsulatedOverTcp;
 @property(readwrite,strong,atomic)      NSString            *encapsulatedOverTcpSessionKey;
 
-- (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq;
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name;
 
 /* LAYER API. The following methods queue a task */

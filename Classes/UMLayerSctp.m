@@ -51,7 +51,7 @@
 
 - (UMLayerSctp *)init
 {
-    self = [self initWithTaskQueueMulti:NULL name:@""];
+    self = [self initWithTaskQueueMulti:NULL name:@"sctp-dummy"];
     if(self)
     {
         _newDestination = YES;
@@ -59,15 +59,10 @@
     return self;
 }
 
-
-- (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq
-{
-    return [self initWithTaskQueueMulti:tq name:@"(sctp)"];
-}
-
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name
 {
-    self = [super initWithTaskQueueMulti:tq name:name];
+    NSString *s = [NSString stringWithFormat:@"sctp/%@",name];
+    self = [super initWithTaskQueueMulti:tq name:s];
     if(self)
     {
         _timeoutInMs = 2400;
