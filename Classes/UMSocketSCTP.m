@@ -765,9 +765,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     {
         struct    sockaddr_in sa4;
         socklen_t slen4 = sizeof(sa4);
-        [_controlLock lock];
+        UMMUTEX_LOCK(_controlLock);
         newsock = accept(_sock,(struct sockaddr *)&sa4,&slen4);
-        [_controlLock unlock];
+        UMMUTEX_UNLOCK(_controlLock);
 
         if(newsock >=0)
         {
@@ -796,9 +796,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         socklen_t slen6 = sizeof(sa6);
         memset(&sa6,0x00,slen6);
         sa6.sin6_port = htons(3868);
-        [_controlLock lock];
+        UMMUTEX_LOCK(_controlLock);
         newsock = accept(_sock,(struct sockaddr *)&sa6,&slen6);
-        [_controlLock unlock];
+        UMMUTEX_UNLOCK(_controlLock);
 
         if(newsock >= 0)
         {
@@ -880,9 +880,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         struct    sockaddr_in sa4;
         socklen_t slen4 = sizeof(sa4);
         memset(&sa4,0x00,slen4);
-        [_controlLock lock];
+        UMMUTEX_LOCK(_controlLock);
         newsock = sctp_peeloff(_sock,assoc);
-        [_controlLock unlock];
+        UMMUTEX_UNLOCK(_controlLock);
 
         if(newsock >=0)
         {
@@ -911,9 +911,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         socklen_t slen6 = sizeof(sa6);
         memset(&sa6,0x00,slen6);
 
-        [_controlLock lock];
+        UMMUTEX_LOCK(_controlLock);
         newsock = sctp_peeloff(_sock,assoc);
-        [_controlLock unlock];
+        UMMUTEX_UNLOCK(_controlLock);
 
         if(newsock >= 0)
         {
@@ -1391,9 +1391,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     NSLog(@"calling poll (timeout =%dms,socket=%d)",timeoutInMs,_sock);
 #endif
 
-    [_controlLock lock];
+    UMMUTEX_LOCK(_controlLock);
     ret1 = poll(pollfds, 1, timeoutInMs);
-    [_controlLock unlock];
+    UMMUTEX_UNLOCK(_controlLock);
 
 
     if (ret1 < 0)
@@ -1559,9 +1559,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
     self.isListening = 0;
     
-    [_controlLock lock];
+    UMMUTEX_LOCK(_controlLock);
     err = listen(_sock,backlog);
-    [_controlLock unlock];
+    UMMUTEX_UNLOCK(_controlLock);
 
     direction = direction | UMSOCKET_DIRECTION_INBOUND;
     if(err)
@@ -1572,9 +1572,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     self.isListening = 1;
 #if defined(SCTP_LISTEN_FIX)
     int flag=1;
-    [_controlLock lock];
+    UMMUTEX_LOCK(_controlLock);
     setsockopt(_sock,IPPROTO_SCTP,SCTP_LISTEN_FIX,&flag,sizeof(flag));
-    [_controlLock unlock];
+    UMMUTEX_UNLOCK(_controlLock);
 #endif
     [self reportStatus:@"isListening=1"];
     return UMSocketError_no_error;
