@@ -310,6 +310,10 @@
         {
             listener = valid_listeners[i];
             socket = listener.umsocket;
+            if(socket == NULL)
+            {
+                continue;
+            }
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
                                             listener:listener
@@ -328,6 +332,10 @@
         {
             listener = valid_tcp_listeners[i];
             socketEncap  = listener.umsocketEncapsulated;
+            if(socketEncap == NULL)
+            {
+                continue;
+            }
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
                                             listener:listener
@@ -346,6 +354,10 @@
         {
             outbound = valid_outbound_layers[i];
             socket = outbound.directSocket;
+            if(socket == NULL)
+            {
+                continue;
+            }
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
                                             listener:NULL
@@ -364,6 +376,10 @@
         {
             inbound = valid_inbound_layers[i];
             socket = inbound.directSocket;
+            if(socket == NULL)
+            {
+                continue;
+            }
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
                                             listener:NULL
@@ -382,6 +398,10 @@
         {
             outbound = valid_outbound_tcp_layers[i];
             socketEncap  = outbound.directTcpEncapsulatedSocket;
+            if(socketEncap == NULL)
+            {
+                continue;
+            }
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
                                             listener:NULL
@@ -400,6 +420,10 @@
         {
             inbound = valid_inbound_tcp_layers[i];
             socketEncap  = inbound.directTcpEncapsulatedSocket;
+            if(socketEncap == NULL)
+            {
+                continue;
+            }
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
                                             listener:NULL
@@ -428,7 +452,6 @@
             usleep(100000); /* sleep 0.1 sec */
             break;
     }
-
     if(pollfds)
     {
         free(pollfds);
@@ -446,6 +469,11 @@
                              type:(SCTP_SocketType_enum)type
 {
     
+    if(socket == NULL)
+    {
+        return UMSocketError_not_a_socket;
+    }
+
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     
     NSMutableArray *a = [[NSMutableArray alloc]init];
