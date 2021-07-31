@@ -297,11 +297,12 @@
             }
             if(self.status == UMSOCKET_STATUS_OOS)
             {
-                NSLog(@"UMSOCKET_STATUS_OOS");
-                @throw([NSException exceptionWithName:@"OOS" reason:@"status is OOS so SCTP is already establishing." userInfo:@{@"errno":@(EBUSY),@"backtrace": UMBacktrace(NULL,0)}]);
+                [self logMinorError:@"already establishing"];
+                @throw([NSException exceptionWithName:@"OOS" reason:@"status is OOS so SCTP is already establishing." userInfo:@{@"errno":@(EINPROGRESS),@"backtrace": UMBacktrace(NULL,0)}]);
             }
             if(self.status == UMSOCKET_STATUS_IS)
             {
+                [self logMinorError:@"already in service"];
                 NSLog(@"UMSOCKET_STATUS_IS");
                 @throw([NSException exceptionWithName:@"IS" reason:@"status is IS so already up." userInfo:@{@"errno":@(EAGAIN),@"backtrace": UMBacktrace(NULL,0)}]);
             }
@@ -551,6 +552,8 @@
         }
         @catch (NSException *exception)
         {
+            NSNumber *e = exception.userInfo[@"errno"];
+            int err = e.intValue;
  //  #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <= UMLOG_DEBUG)
             {
@@ -559,13 +562,15 @@
  //   #endif
             if(exception.userInfo)
             {
-                NSNumber *e = exception.userInfo[@"errno"];
                 if(e)
                 {
-                    [self logMajorError:e.intValue  location:@(__func__)];
+                    [self logMajorError:[NSString stringWithFormat:@"%@ %@",exception.name,exception.reason]];
                 }
             }
-            [self powerdown];
+            if(err != EINPROGRESS)
+            {
+                [self powerdown];
+            }
         }
         [_linkLock unlock];
         [self reportStatus];
@@ -1248,7 +1253,7 @@
         _assocId = snp->sn_assoc_change.sac_assoc_id;
         _assocIdPresent=YES;
         [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS (assocID=%ld)",(long)_assocId]];
-        self.status=UMSOCKET_STATUS_IS;
+        self.status = UMSOCKET_STATUS_IS;
         if(_directSocket==NULL)
         {
             UMSocketError err = UMSocketError_no_error;
