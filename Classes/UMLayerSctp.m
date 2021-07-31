@@ -634,8 +634,10 @@
             int attempts=0;
             
             /* we try to send as long as no ASSOC down has been received or at least once (as we might not have a direct socket yet */
-            while((attempts==0) ||  (self.status==UMSOCKET_STATUS_IS))
+            int maxatt = 50;
+            while((attempts < maxatt) ||  (self.status==UMSOCKET_STATUS_IS))
             {
+                attempts++;
                 [_linkLock lock];
                 linkLocked = YES;
                 if(_directSocket)
@@ -646,28 +648,14 @@
                         [self logDebug:[NSString stringWithFormat:@" Calling sctp_sendmsg on _directsocket (%@)",[_configured_remote_addresses componentsJoinedByString:@","]]];
                     }
         #endif
-
                     uint32_t        tmp_assocId = _assocId;
-                    attempts++;
-                    if(_encapsulatedOverTcp)
-                    {
-                        sent_packets = [self sendEncapsulated:task.data
-                                                        assoc:&tmp_assocId
-                                                       stream:task.streamId
-                                                     protocol:task.protocolId
-                                                        error:&err
-                                                        flags:0];
-                    }
-                    else
-                    {
-                        sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
-                                                                 port:_configured_remote_port
-                                                                assoc:&tmp_assocId
-                                                                 data:task.data
-                                                               stream:task.streamId
-                                                             protocol:task.protocolId
-                                                                error:&err];
-                    }
+                    sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
+                                                             port:_configured_remote_port
+                                                            assoc:&tmp_assocId
+                                                             data:task.data
+                                                           stream:task.streamId
+                                                         protocol:task.protocolId
+                                                            error:&err];
                     _assocId = tmp_assocId;
 
                 }
@@ -684,7 +672,6 @@
                 else
                 {
                     uint32_t tmp_assocId = _assocId;
-                    attempts++;
                     sent_packets = [_listener sendToAddresses:_configured_remote_addresses
                                                          port:_configured_remote_port
                                                         assoc:&tmp_assocId
@@ -699,25 +686,33 @@
                 linkLocked = NO;
                 
                 /*  we loop until we get errno not EAGAIN or sent_packets returning > 0 */
-                if((sent_packets>0) || (errno != EAGAIN))
+                if(sent_packets > 0)
                 {
                     break;
                 }
-
-                /* we have EAGAIN */
-                /* lets try up to 50 times and wait 200ms every 10th time */
-                /* if thats still not succeeding, we declare this connection dead */
-                if(attempts % 10==0)
+                if(errno != EAGAIN)
                 {
-                    [sleeper sleepSeconds:0.2];
+                    failed=YES;
+                    break;
                 }
-                if(attempts < 50)
+                if(errno == EAGAIN)
                 {
-                    continue;
+                    /* we have EAGAIN */
+                    /* lets try up to 50 times and wait 200ms every 10th time */
+                    /* if thats still not succeeding, we declare this connection dead */
+                    if(attempts % 10==0)
+                    {
+                        [sleeper sleepSeconds:0.2];
+                    }
+                    if(attempts < maxatt)
+                    {
+                        continue;
+                    }
+                    
+                    /* if we get here we have attempted 50 times and failed */
+                    /* we can assume this connection dead */
+                    failed=YES;
                 }
-                /* if we get here we have attempted 50 times and failed */
-                /* we can assume this connection dead */
-                failed=YES;
             }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <= UMLOG_DEBUG)
