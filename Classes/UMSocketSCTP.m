@@ -727,7 +727,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         if (err < 0)
         {
             returnValue = [UMSocket umerrFromErrno:errno];
-			if(errno==EINPROGRESS)
+			if((errno==EINPROGRESS) || (errno==EBUSY)) /* if we have a incoming connection we might get EBUSY */
 			{
 				_connectx_pending = YES;
                 self.status = UMSOCKET_STATUS_OOS;
@@ -1399,7 +1399,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     if (ret1 < 0)
     {
         eno = errno;
-        if((eno==EINPROGRESS) || (eno == EINTR) || (eno==EAGAIN))
+        if((eno==EINPROGRESS) || (eno == EINTR) || (eno==EAGAIN) || (eno==EBUSY))
         {
             returnValue = UMSocketError_no_data;
         }

@@ -273,7 +273,7 @@
     if (ret1 < 0)
     {
         int eno = errno;
-        if((eno==EINPROGRESS) || (eno == EINTR) || (eno==EAGAIN))
+        if((eno==EINPROGRESS) || (eno == EINTR) || (eno==EAGAIN)  || (eno==EBUSY))
         {
             returnValue = UMSocketError_no_data;
         }

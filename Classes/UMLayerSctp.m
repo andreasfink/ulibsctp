@@ -900,7 +900,7 @@
     #endif
                 self.status = UMSOCKET_STATUS_OFF;
                 [self reportStatus];
-                [self openFor:user];
+                [self openFor:user sendAbortFirst:NO];
                 break;
             case UMSOCKET_STATUS_OFF:
     #if defined(ULIBSCTP_CONFIG_DEBUG)
