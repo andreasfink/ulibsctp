@@ -8,6 +8,17 @@
 
 #define ULIBSCTP_INTERNAL 1
 
+#include "ulibsctp_config.h"
+
+#include <netinet/in.h>
+#ifdef HAVE_SCTP_SCTP_H
+#import <sctp/sctp.h>
+#endif
+
+#ifdef HAVE_NETINET_SCTP_H
+#include <netinet/sctp.h>
+#endif
+
 #import "UMLayerSctp.h"
 
 #import "UMSctpTask_AdminInit.h"
@@ -35,17 +46,6 @@
 #include <netdb.h>
 #import "UMSocketSCTP.h"
 #include <arpa/inet.h>
-
-#include "ulibsctp_config.h"
-
-#ifdef HAVE_SCTP_SCTP_H
-#import <sctp/sctp.h>
-#endif
-
-#ifdef HAVE_NETINET_SCTP_H
-#include "netinet/sctp.h"
-#endif
-
 
 #import "UMLayerSctpUser.h"
 #import "UMSctpOverTcp.h"
