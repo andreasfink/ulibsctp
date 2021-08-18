@@ -31,8 +31,19 @@
 #include <netinet/tcp.h>
 #include <netdb.h>
 
-#ifdef __APPLE__
+
+#include "ulibsctp_config.h"
+
+#ifdef HAVE_SCTP_SCTP_H
 #import <sctp/sctp.h>
+#endif
+
+#ifdef HAVE_NETINET_SCTP_H
+#include "netinet/sctp.h"
+#endif
+
+
+#ifdef __APPLE__
 #include <sys/utsname.h>
 
 #define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */

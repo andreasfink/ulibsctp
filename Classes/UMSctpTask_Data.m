@@ -8,9 +8,12 @@
 
 #import "UMSctpTask_Data.h"
 #import "UMLayerSctp.h"
-#ifdef __APPLE__
+#include "ulibsctp_config.h"
+#ifdef HAVE_SCTP_SCTP_H
 #import <sctp/sctp.h>
-#else
+#endif
+
+#ifdef HAVE_NETINET_SCTP_H
 #include "netinet/sctp.h"
 #endif
 

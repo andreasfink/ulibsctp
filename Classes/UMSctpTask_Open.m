@@ -12,11 +12,17 @@
 #include <sys/errno.h>
 #include <unistd.h>
 #include <sys/types.h>
-#ifdef __APPLE__
+
+#include "ulibsctp_config.h"
+
+#ifdef HAVE_SCTP_SCTP_H
 #import <sctp/sctp.h>
-#else
+#endif
+
+#ifdef HAVE_NETINET_SCTP_H
 #include "netinet/sctp.h"
 #endif
+
 #include <arpa/inet.h>
 
 @implementation UMSctpTask_Open
