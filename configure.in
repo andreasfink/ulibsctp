@@ -186,7 +186,6 @@ then
 	AC_DEFINE(HAVE_SCTP_SCTP_H)
 fi
 
-if [[ -d -F/Library/Application\ Support/FinkTelecomServices/frameworks/sctp.framework"
 dnl Implement --enable-debug --enable-profiling options.
 dnl -------------------------------------
 AC_ARG_ENABLE(profiling,

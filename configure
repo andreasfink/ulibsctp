@@ -3798,6 +3798,12 @@ fi
 done
 
 
+if [ -f "/Library/Application Support/FinkTelecomServices/frameworks/sctp.framework/Headers/sctp.h" ]
+then
+	$as_echo "#define HAVE_SCTP_SCTP_H 1" >>confdefs.h
+
+fi
+
 # Check whether --enable-profiling was given.
 if test "${enable_profiling+set}" = set; then :
   enableval=$enable_profiling;
