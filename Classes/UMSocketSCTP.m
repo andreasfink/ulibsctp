@@ -8,6 +8,8 @@
 
 #define ULIBSCTP_INTERNAL   1
 
+#include "ulibsctp_config.h"
+
 #import "UMSocketSCTP.h"
 
 #import "UMSocketSCTPListener.h"

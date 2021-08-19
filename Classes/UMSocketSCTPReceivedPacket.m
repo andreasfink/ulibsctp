@@ -36,18 +36,18 @@
 #endif
 
 
+
 #ifdef __APPLE__
 #include <sys/utsname.h>
 #define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
 #define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
-#if defined __APPLE__
+#ifndef MSG_NOTIFICATION
+#define MSG_NOTIFICATION MSG_NOTIFICATION_YOSEMITE /* notification message */
+#endif
 #define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
 #define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
 #endif
 
-#else
-#include <netinet/sctp.h>
-#endif
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
