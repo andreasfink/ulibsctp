@@ -42,6 +42,9 @@
 #include <sys/utsname.h>
 #define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
 #define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
+#ifndef MSG_NOTIFICATION
+#define MSG_NOTIFICATION MSG_NOTIFICATION_YOSEMITE /* notification message */
+#endif
 #define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
 #define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
 #ifndef MSG_NOTIFICATION
