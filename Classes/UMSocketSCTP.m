@@ -8,6 +8,8 @@
 
 #define ULIBSCTP_INTERNAL   1
 
+#include "ulibsctp_config.h"
+
 #import "UMSocketSCTP.h"
 
 #import "UMSocketSCTPListener.h"
@@ -35,7 +37,9 @@
 #include "ulibsctp_config.h"
 
 #ifdef HAVE_SCTP_SCTP_H
-#import <sctp/sctp.h>
+#include <sctp/sctp.h>
+#include <sctp/sctp_uio.h>
+#warning included
 #endif
 
 #ifdef HAVE_NETINET_SCTP_H
@@ -43,19 +47,19 @@
 #endif
 
 
-#ifdef __APPLE__
+#if defined(__APPLE__)
 #include <sys/utsname.h>
-
 #define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
 #define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
-#if defined __APPLE__
 #define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
 #define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
+
+#ifndef MSG_NOTIFICATION
+#define MSG_NOTIFICATION MSG_NOTIFICATION_YOSEMITE
 #endif
 
-#else
-#include <netinet/sctp.h>
 #endif
+
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -67,7 +71,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <sys/utsname.h>
-
+#include <string.h>
 
 static int _global_msg_notification_mask = 0;
 
@@ -119,8 +123,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                     TRACK_FILE_SOCKET(_sock,@"sctp");
                     if(_sock!=-1)
                     {
-                        int flags = 1;
-                        setsockopt(_sock, IPPROTO_SCTP, SCTP_NODELAY, (char *)&flags, sizeof(flags));
+                        [self setNoDelay];
                     }
                 }
             }
@@ -154,8 +157,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                     TRACK_FILE_SOCKET(_sock,@"sctp");
                     if(_sock!=-1)
                     {
-                        int flags = 1;
-                        setsockopt(_sock, IPPROTO_SCTP, SCTP_NODELAY, (char *)&flags, sizeof(flags));
+                        [self setNoDelay];
                     }
                 }
             }
@@ -189,8 +191,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                     TRACK_FILE_SOCKET(_sock,@"sctp");
                     if(_sock!=-1)
                     {
-                        int flags = 1;
-                        setsockopt(_sock, IPPROTO_SCTP, SCTP_NODELAY, (char *)&flags, sizeof(flags));
+                        [self setNoDelay];
                     }
                 }
             }
