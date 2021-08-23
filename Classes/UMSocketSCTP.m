@@ -39,7 +39,6 @@
 #ifdef HAVE_SCTP_SCTP_H
 #include <sctp/sctp.h>
 #include <sctp/sctp_uio.h>
-#warning included
 #endif
 
 #ifdef HAVE_NETINET_SCTP_H
