@@ -1437,12 +1437,20 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
         if(ret2 & POLLHUP)
         {
+            if((returnValue==UMSocketError_no_data) || (returnValue==UMSocketError_no_error))
+            {
+                returnValue = UMSocketError_connection_reset;
+            }
             *hasHup = 1;
         }
         
 #ifdef POLLRDHUP
         if(ret2 & POLLRDHUP)
         {
+            if((returnValue==UMSocketError_no_data) || (returnValue==UMSocketError_no_error))
+            {
+                returnValue = UMSocketError_connection_reset;
+            }
             *hasHup = 1;
         }
 #endif

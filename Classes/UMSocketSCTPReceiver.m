@@ -568,7 +568,13 @@
         else
         {
             revent_error = [socketEncap getSocketError];
+            
         }
+        if((revent_error != UMSocketError_no_error) && (revent_error != UMSocketError_no_data))
+        {
+            revent_hup = 1;
+        }
+
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  Error: %@",[UMSocket getSocketErrorString:revent_error]);
 #endif
@@ -581,7 +587,8 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  revent_hup = 1");
 #endif
-
+        [layer processError:UMSocketError_connection_reset];
+        [listener processError:UMSocketError_connection_reset];
     }
 #ifdef POLLRDHUP
     if(revent & POLLRDHUP)
@@ -590,6 +597,8 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  revent_hup = 1");
 #endif
+        [layer processError:UMSocketError_connection_reset];
+        [listener processError:UMSocketError_connection_reset];
     }
 #endif
     if(revent & POLLNVAL)
@@ -598,7 +607,8 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  revent_invalid = 1");
 #endif
-
+        [layer processError:UMSocketError_invalid_file_descriptor];
+        [listener processError:UMSocketError_invalid_file_descriptor];
     }
 #ifdef POLLRDBAND
         if(revent & POLLRDBAND)
@@ -607,7 +617,6 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  revent_has_data = 1");
 #endif
-
         }
 #endif
     if(revent & (POLLIN | POLLPRI))

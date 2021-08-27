@@ -2080,8 +2080,12 @@
 {
     @autoreleasepool
     {
-        /* FIXME */
         NSLog(@"processError %d %@ received in UMLayerSctp %@",err, [UMSocket getSocketErrorString:err], _layerName);
+        if((err != UMSocketError_no_data) || (UMSocketError_no_error))
+        {
+            [self powerdown];
+            [self reportStatus];
+        }
     }
 }
 
