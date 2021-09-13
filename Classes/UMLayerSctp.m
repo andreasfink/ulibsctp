@@ -579,7 +579,7 @@
         [_linkLock unlock];
         [self reportStatus];
     }
-}
+ }
 
 - (void)_closeTask:(UMSctpTask_Close *)task
 {
