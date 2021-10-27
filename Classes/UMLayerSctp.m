@@ -571,7 +571,7 @@
                     [self logMajorError:[NSString stringWithFormat:@"%@ %@",exception.name,exception.reason]];
                 }
             }
-            if(err != EINPROGRESS)
+            if((err != EINPROGRESS) && (err != EAGAIN))
             {
                 [self powerdown];
             }
