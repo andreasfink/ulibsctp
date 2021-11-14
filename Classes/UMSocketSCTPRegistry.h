@@ -27,7 +27,7 @@
     NSMutableDictionary     *_outgoingLayersByIpsAndPorts;
     NSMutableDictionary     *_outgoingLayersByAssoc;
     
-    UMMutex *_lock;
+    UMMutex                 *_lock;
     UMSocketSCTPReceiver    *_receiver;
     BOOL                    _receiverStarted;
     BOOL                    _sendAborts;
