@@ -1908,6 +1908,10 @@
         {
             _mtu = [cfg[@"mtu"] intValue];
         }
+        else
+        {
+            _mtu = 1416; /* a safe default, especially for ericsson's */
+        }
         if (cfg[@"dscp"])
         {
             _dscp = [cfg[@"dscp"] stringValue];
