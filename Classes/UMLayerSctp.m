@@ -1910,7 +1910,7 @@
         }
         else
         {
-            _mtu = 1416; /* a safe default, especially for ericsson's */
+            _mtu = 1416; /* usually safer default  than 1500 due to ipsec */
         }
         if (cfg[@"dscp"])
         {
