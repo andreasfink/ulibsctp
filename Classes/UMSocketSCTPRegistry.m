@@ -338,7 +338,7 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(layer==NULL)
     {
-        NSlog(@"  known keys: %@",[_outgoingLayersByIpsAndPorts allKeys]);
+        NSLog(@"  known keys: %@",[_outgoingLayersByIpsAndPorts allKeys]);
     }
 #endif
     return layer;
