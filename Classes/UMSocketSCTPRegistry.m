@@ -312,7 +312,7 @@
                       remotePort:(int)port2
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    //NSLog(@"layerForLocalIp:%@ localPort:%d remoteIp:%@ remotePort:%d",ip1,port1,ip2,port2);
+    NSLog(@"layerForLocalIp:%@ localPort:%d remoteIp:%@ remotePort:%d",ip1,port1,ip2,port2);
 #endif
     UMMUTEX_LOCK(_lock);
     NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d(sctp)",
@@ -320,7 +320,10 @@
                      port1,
                      ip2,
                      port2];
-    //NSLog(@" key=%@",key);
+    
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    NSLog(@" key=%@",key);
+#endif
     UMLayerSctp *layer = _outgoingLayersByIpsAndPorts[key] ;
     if(layer==NULL)
     {
@@ -332,6 +335,12 @@
         layer = _outgoingLayersByIpsAndPorts[key] ;
     }
     UMMUTEX_UNLOCK(_lock);
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    if(layer==NULL)
+    {
+        NSlog(@"  known keys: %@",[_outgoingLayersByIpsAndPorts allKeys]);
+    }
+#endif
     return layer;
 }
 

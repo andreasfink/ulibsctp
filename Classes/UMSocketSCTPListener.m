@@ -388,7 +388,9 @@
                 }
                 else
                 {
+#if defined(ULIBSCTP_CONFIG_DEBUG)
                     NSLog(@"Layer not Found");
+#endif
                 }
             }
         }
