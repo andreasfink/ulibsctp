@@ -386,6 +386,10 @@
                     [layer processReceivedData:rx];
                     processed=YES;
                 }
+                else
+                {
+                    NSLog(@"Layer not Found");
+                }
             }
         }
         if((processed==NO) && (_sendAborts))
