@@ -311,9 +311,10 @@
                         remoteIp:(NSString *)ip2
                       remotePort:(int)port2
 {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-    NSLog(@"layerForLocalIp:%@ localPort:%d remoteIp:%@ remotePort:%d",ip1,port1,ip2,port2);
-#endif
+    if(_logLevel <=UMLOG_DEBUG)
+    {
+        NSLog(@"layerForLocalIp:%@ localPort:%d remoteIp:%@ remotePort:%d",ip1,port1,ip2,port2);
+    }
     UMMUTEX_LOCK(_lock);
     NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d(sctp)",
                      ip1,
@@ -322,7 +323,10 @@
                      port2];
     
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    NSLog(@" key=%@",key);
+    if(_logLevel <=UMLOG_DEBUG)
+    {
+        NSLog(@" key=%@",key);
+    }
 #endif
     UMLayerSctp *layer = _outgoingLayersByIpsAndPorts[key] ;
     if(layer==NULL)
@@ -336,9 +340,12 @@
     }
     UMMUTEX_UNLOCK(_lock);
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(layer==NULL)
+    if(_logLevel <=UMLOG_DEBUG)
     {
-        NSLog(@"  known keys: %@",[_outgoingLayersByIpsAndPorts allKeys]);
+        if(layer==NULL)
+        {
+            NSLog(@"  known keys: %@",[_outgoingLayersByIpsAndPorts allKeys]);
+        }
     }
 #endif
     return layer;
@@ -474,7 +481,10 @@
     if(assocId)
     {
         /* an active outbound connection */
-        NSLog(@"registerAssoc %@ forLayer:%@",assocId,layer.layerName);
+        if(_logLevel <=UMLOG_DEBUG)
+        {
+            NSLog(@"registerAssoc %@ forLayer:%@",assocId,layer.layerName);
+        }
         _assocs[assocId] = layer;
     }
     UMMUTEX_UNLOCK(_lock);
@@ -488,7 +498,10 @@
     {
         UMLayerSctp *layer = _assocs[assocId];
         /* an active outbound connection */
-        NSLog(@"unregisterAssoc %@ forLayer:%@",assocId,layer.layerName);
+        if(_logLevel <=UMLOG_DEBUG)
+        {
+            NSLog(@"unregisterAssoc %@ forLayer:%@",assocId,layer.layerName);
+        }
         [_assocs removeObjectForKey:assocId];
     }
     UMMUTEX_UNLOCK(_lock);
@@ -669,7 +682,10 @@
 
 - (void)handleException:(NSException *)e
 {
-    NSLog(@"Exception: %@",e);
+    if(_logLevel <=UMLOG_MINOR)
+    {
+        NSLog(@"Exception: %@",e);
+    }
 }
 
 @end

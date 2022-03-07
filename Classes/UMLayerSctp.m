@@ -296,7 +296,10 @@
         {
             if(self.status == UMSOCKET_STATUS_FOOS)
             {
-                NSLog(@"UMSOCKET_STATUS_FOOS");
+                if(_logLevel <=UMLOG_DEBUG)
+                {
+                    NSLog(@"UMSOCKET_STATUS_FOOS");
+                }
                 [self logMajorError:@"OpenTask: failed due to M-FOOS"];
             }
             else if(self.status == UMSOCKET_STATUS_OOS)
@@ -604,7 +607,10 @@
         }
         @catch(NSException *e)
         {
-            NSLog(@"%@",e);
+            if(_logLevel <=UMLOG_DEBUG)
+            {
+                NSLog(@"%@",e);
+            }
         }
         [_linkLock unlock];
         [self reportStatus];
@@ -760,10 +766,16 @@
             }
             else
             {
-                NSLog(@"Error %d %s",errno,strerror(errno));
+                if(_logLevel <=UMLOG_MINOR)
+                {
+                    NSLog(@"Error %d %s",errno,strerror(errno));
+                }
                 if(errno==EISCONN)
                 {
-                    NSLog(@"already connected");
+                    if(_logLevel <=UMLOG_MINOR)
+                    {
+                        NSLog(@"already connected");
+                    }
                 }
                 switch(errno)
                 {
@@ -1078,14 +1090,20 @@
         if(rx.err==UMSocketError_try_again)
         {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"receiveData: UMSocketError_try_again returned by receiveSCTP");
+            if(_logLevel <=UMLOG_DEBUG)
+            {
+                NSLog(@"receiveData: UMSocketError_try_again returned by receiveSCTP");
+            }
     #endif
         }
 
         else if(rx.err==UMSocketError_connection_reset)
         {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"receiveData: UMSocketError_connection_reset returned by receiveSCTP");
+            if(_logLevel <=UMLOG_DEBUG)
+            {
+                NSLog(@"receiveData: UMSocketError_connection_reset returned by receiveSCTP");
+            }
     #endif
             [self logDebug:@"ECONNRESET"];
             [self powerdownInReceiverThread];
@@ -1095,7 +1113,10 @@
         else if(rx.err==UMSocketError_connection_aborted)
         {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"receiveData: UMSocketError_connection_aborted returned by receiveSCTP");
+            if(_logLevel <=UMLOG_DEBUG)
+            {
+                NSLog(@"receiveData: UMSocketError_connection_aborted returned by receiveSCTP");
+            }
     #endif
             [self logDebug:@"ECONNABORTED"];
             [self powerdownInReceiverThread];
@@ -1104,7 +1125,10 @@
         else if(rx.err==UMSocketError_connection_refused)
         {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"receiveData: UMSocketError_connection_refused returned by receiveSCTP");
+            if(_logLevel <=UMLOG_DEBUG)
+            {
+                NSLog(@"receiveData: UMSocketError_connection_refused returned by receiveSCTP");
+            }
     #endif
             [self logDebug:@"ECONNREFUSED"];
             sleep(1);
@@ -1943,8 +1967,11 @@
             _minSendBufferSize = [cfg[@"min-send-buffer-size"] intValue];
         }
     #ifdef ULIB_SCTP_DEBUG
-        NSLog(@"configured_local_addresses=%@",configured_local_addresses);
-        NSLog(@"configured_remote_addresses=%@",configured_remote_addresses);
+        if(_logLevel <=UMLOG_DEBUG)
+        {
+            NSLog(@"configured_local_addresses=%@",configured_local_addresses);
+            NSLog(@"configured_remote_addresses=%@",configured_remote_addresses);
+        }
     #endif
     }
 }
@@ -2084,7 +2111,10 @@
 {
     @autoreleasepool
     {
-        NSLog(@"processError %d %@ received in UMLayerSctp %@",err, [UMSocket getSocketErrorString:err], _layerName);
+        if(_logLevel <=UMLOG_MINOR)
+        {
+            NSLog(@"processError %d %@ received in UMLayerSctp %@",err, [UMSocket getSocketErrorString:err], _layerName);
+        }
         if((err != UMSocketError_no_data) || (UMSocketError_no_error))
         {
             [self powerdown];
@@ -2098,7 +2128,10 @@
 {
     @autoreleasepool
     {
-        NSLog(@"processHangUp received in UMLayerSctp %@",_layerName);
+        if(_logLevel <=UMLOG_DEBUG)
+        {
+            NSLog(@"processHangUp received in UMLayerSctp %@",_layerName);
+        }
         [self powerdown];
         [self reportStatus];
     }
@@ -2108,7 +2141,10 @@
 {
     @autoreleasepool
     {
-        NSLog(@"processInvalidSocket received in UMLayerSctp %@",_layerName);
+        if(_logLevel <=UMLOG_DEBUG)
+        {
+            NSLog(@"processInvalidSocket received in UMLayerSctp %@",_layerName);
+        }
         _isInvalid = YES;
         [self powerdown];
         [self reportStatus];
