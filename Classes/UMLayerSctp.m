@@ -137,8 +137,7 @@
 
 - (void)closeFor:(id<UMLayerSctpUserProtocol>)caller
 {
-    UMSctpTask_Close *task =
-    [[UMSctpTask_Close alloc]initWithReceiver:self sender:caller];
+    UMSctpTask_Close *task = [[UMSctpTask_Close alloc]initWithReceiver:self sender:caller];
     [self queueFromUpper:task];
    
 }
