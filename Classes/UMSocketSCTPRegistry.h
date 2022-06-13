@@ -86,7 +86,8 @@
 - (UMLayerSctp *)layerForLocalIp:(NSString *)ip1
                        localPort:(int)port1
                         remoteIp:(NSString *)ip2
-                      remotePort:(int)port2;
+                      remotePort:(int)port2
+                    encapsulated:(BOOL)encap;
 
 - (NSArray *)allListeners;
 - (NSArray *)allTcpListeners;

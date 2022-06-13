@@ -380,11 +380,13 @@
                 UMLayerSctp *layer = [_registry layerForLocalIp:ip
                                                       localPort:_port
                                                        remoteIp:rx.remoteAddress
-                                                     remotePort:rx.remotePort];
+                                                     remotePort:rx.remotePort
+                                                   encapsulated:NO];
                 if(layer)
                 {
                     [layer processReceivedData:rx];
                     processed=YES;
+                    break;
                 }
                 else
                 {

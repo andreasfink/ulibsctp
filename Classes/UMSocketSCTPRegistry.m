@@ -310,18 +310,18 @@
                        localPort:(int)port1
                         remoteIp:(NSString *)ip2
                       remotePort:(int)port2
+                    encapsulated:(BOOL)encap
 {
     if(_logLevel <=UMLOG_DEBUG)
     {
-        NSLog(@"layerForLocalIp:%@ localPort:%d remoteIp:%@ remotePort:%d",ip1,port1,ip2,port2);
+        NSLog(@"layerForLocalIp:%@ localPort:%d remoteIp:%@ remotePort:%d encapsulated:%@",ip1,port1,ip2,port2,encap ? @"YES": @"NO");
     }
-    UMMUTEX_LOCK(_lock);
-    NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d(sctp)",
-                     ip1,
-                     port1,
-                     ip2,
-                     port2];
-    
+    UMMUTEX_LOCK(_lock);    
+    NSString *key = [self registryKeyForLocalAddr:ip1
+                                        localPort:port1
+                                       remoteAddr:ip2
+                                       remotePort:port2
+                                     encapsulated:encap];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(_logLevel <=UMLOG_DEBUG)
     {
@@ -329,16 +329,8 @@
     }
 #endif
     UMLayerSctp *layer = _outgoingLayersByIpsAndPorts[key] ;
-    if(layer==NULL)
-    {
-        NSString *key = [NSString stringWithFormat:@"%@/%d->%@/%d",
-                         ip1,
-                         port1,
-                         ip2,
-                         0];
-        layer = _outgoingLayersByIpsAndPorts[key] ;
-    }
     UMMUTEX_UNLOCK(_lock);
+
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(_logLevel <=UMLOG_DEBUG)
     {
