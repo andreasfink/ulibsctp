@@ -194,7 +194,7 @@
     return UMSocketError_no_error;
 }
 
-- (UMSocketSCTP *) peelOffAssoc:(uint32_t)assoc error:(UMSocketError *)errptr
+- (UMSocketSCTP *) peelOffAssoc:(NSNumber *)assoc error:(UMSocketError *)errptr
 {
     /* tcp can't peeloff */
     return NULL;

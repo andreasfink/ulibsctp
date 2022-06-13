@@ -246,6 +246,80 @@
     UMMUTEX_UNLOCK(_lock);
 }
 
+- (UMSynchronizedSortedDictionary *)descriptionDict;
+{
+    UMSynchronizedSortedDictionary *dict = [[UMSynchronizedSortedDictionary alloc]init];
+
+    NSMutableArray *a1 = [[NSMutableArray alloc]init];
+    
+    NSArray *arr = _entries.allKeys;
+    for(NSString *key in arr)
+    {
+        [a1 addObject:key];
+    }
+
+    dict[@"entries"] = @{ @"count"   : @(arr.count),
+                          @"entries" : a1,
+                        };
+
+
+    arr = _assocs.allKeys;
+    
+    a1 = [[NSMutableArray alloc]init];
+    for(NSString *key in arr)
+    {
+        [a1 addObject:key];
+    }
+    dict[@"assocs"] = @{ @"count"   : @(arr.count),
+                          @"assocs" : a1,
+                        };
+
+    arr = _outgoingLayers;
+    a1 = [[NSMutableArray alloc]init];
+    for(UMLayerSctp *layer in _outgoingLayers)
+    {
+        [a1 addObject:layer.layerName];
+    }
+    dict[@"outgoing-layers"] = @{ @"count"   : @(a1.count),
+                                  @"names" : a1,
+                                };
+
+    
+    a1 = [[NSMutableArray alloc]init];
+    for(UMSocketSCTPListener *listener in _incomingListeners)
+    {
+        [a1 addObject:listener.name];
+    }
+    dict[@"incoming-listeners"] = @{ @"count"   : @(a1.count),
+                                  @"names" : a1,
+                                };
+
+    a1 = [[NSMutableArray alloc]init];
+    arr = _outgoingLayersByIpsAndPorts.allKeys;
+    for(NSString *key in arr)
+    {
+        [a1 addObject:key];
+    }
+    
+    
+    dict[@"outgoing-layers-by-ips-and-ports"] = @{ @"count"   : @(a1.count),
+                                                   @"entries" : a1,
+                                                };
+
+
+    a1 = [[NSMutableArray alloc]init];
+    arr = _outgoingLayersByAssoc.allKeys;
+    for(NSNumber *key in arr)
+    {
+        [a1 addObject:key];
+    }
+    dict[@"outgoing-layers-by-assoc"] = @{ @"count"   : @(a1.count),
+                                                   @"entries" : a1,
+                                                };
+
+    return dict;
+}
+
 - (NSString *)description
 {
     NSMutableString *s = [[NSMutableString alloc]init];
@@ -317,11 +391,11 @@
         NSLog(@"layerForLocalIp:%@ localPort:%d remoteIp:%@ remotePort:%d encapsulated:%@",ip1,port1,ip2,port2,encap ? @"YES": @"NO");
     }
     UMMUTEX_LOCK(_lock);
-    NSString *key = [self registryKeyForLocalAddr:ip1
-                                        localPort:port1
-                                       remoteAddr:ip2
-                                       remotePort:port2
-                                     encapsulated:encap];
+    NSString *key = [UMSocketSCTPRegistry registryKeyForLocalAddr:ip1
+                                                        localPort:port1
+                                                       remoteAddr:ip2
+                                                       remotePort:port2
+                                                     encapsulated:encap];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(_logLevel <=UMLOG_DEBUG)
     {
@@ -435,19 +509,19 @@
             {
                 for(NSString *remoteAddr in remoteAddrs)
                 {
-                    NSString *key = [self registryKeyForLocalAddr:localAddr
-                                                        localPort:layer.configured_local_port
-                                                       remoteAddr:remoteAddr
-                                                       remotePort:layer.configured_remote_port
-                                                     encapsulated:layer.encapsulatedOverTcp];
+                    NSString *key = [UMSocketSCTPRegistry registryKeyForLocalAddr:localAddr
+                                                                        localPort:layer.configured_local_port
+                                                                       remoteAddr:remoteAddr
+                                                                       remotePort:layer.configured_remote_port
+                                                                     encapsulated:layer.encapsulatedOverTcp];
                     _outgoingLayersByIpsAndPorts[key] = layer;
                     if(anyPort)
                     {
-                        NSString *key = [self registryKeyForLocalAddr:localAddr
-                                                            localPort:layer.configured_local_port
-                                                           remoteAddr:remoteAddr
-                                                           remotePort:0
-                                                         encapsulated:layer.encapsulatedOverTcp];
+                        NSString *key = [UMSocketSCTPRegistry registryKeyForLocalAddr:localAddr
+                                                                            localPort:layer.configured_local_port
+                                                                           remoteAddr:remoteAddr
+                                                                           remotePort:0
+                                                                         encapsulated:layer.encapsulatedOverTcp];
                         _outgoingLayersByIpsAndPorts[key] = layer;
                     }
                 }
@@ -536,12 +610,12 @@
             {
                 for(NSString *remoteAddr in remoteAddrs)
                 {
-                    NSString *key = [self registryKeyForLocalAddr:localAddr
-                                                        localPort:layer.configured_local_port
-                                                       remoteAddr:remoteAddr
-                                                       remotePort:layer.configured_remote_port
-                                                     encapsulated:layer.encapsulatedOverTcp];
-                    [_outgoingLayersByIpsAndPorts removeObjectForKey:key];
+                    NSString *key = [UMSocketSCTPRegistry registryKeyForLocalAddr:localAddr
+                                                                        localPort:layer.configured_local_port
+                                                                       remoteAddr:remoteAddr
+                                                                       remotePort:layer.configured_remote_port
+                                                                     encapsulated:layer.encapsulatedOverTcp];
+                    [self unregisterSessionKey:key];
                 }
             }
             [_outgoingLayers removeObject:layer];
@@ -662,7 +736,7 @@
 }
 
 
-- (NSString *)registryKeyForLocalAddr:(NSString *)lo
++ (NSString *)registryKeyForLocalAddr:(NSString *)lo
                             localPort:(int)lp
                            remoteAddr:(NSString *)ra
                            remotePort:(int)rp

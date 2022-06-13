@@ -875,11 +875,29 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     return nil;
 }
 
-- (UMSocketSCTP *) peelOffAssoc:(uint32_t)assoc
+- (UMSocketSCTP *) peelOffAssoc:(NSNumber *)assoc
                           error:(UMSocketError *)errptr
 {
+    if(assoc==NULL)
+    {
+        NSLog(@"peelOffAssoc: called with assoc=NULL");
+        if(errptr)
+        {
+            *errptr = UMSocketError_not_existing;
+        }
+        return NULL;
+    }
+    if(assoc.unsignedIntValue == 0)
+    {
+        NSLog(@"Warning: assoc.unsignedIntValue == 0");
+        if(errptr)
+        {
+            *errptr = UMSocketError_not_a_socket;
+        }
+        return NULL;
+    }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    NSLog(@"calling peelOffAssoc:(assoc=%lu)",(unsigned long)assoc);
+    NSLog(@"calling peelOffAssoc:(assoc=%@)",assoc);
 #endif
     int           newsock = -1;
     UMSocketSCTP  *newcon =NULL;
@@ -891,7 +909,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         socklen_t slen4 = sizeof(sa4);
         memset(&sa4,0x00,slen4);
         UMMUTEX_LOCK(_controlLock);
-        newsock = sctp_peeloff(_sock,assoc);
+        newsock = sctp_peeloff(_sock,assoc.unsignedIntValue);
         UMMUTEX_UNLOCK(_controlLock);
 
         if(newsock >=0)
@@ -922,7 +940,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         memset(&sa6,0x00,slen6);
 
         UMMUTEX_LOCK(_controlLock);
-        newsock = sctp_peeloff(_sock,assoc);
+        newsock = sctp_peeloff(_sock,assoc.unsignedIntValue);
         UMMUTEX_UNLOCK(_controlLock);
 
         if(newsock >= 0)
@@ -954,7 +972,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 		newcon.socketFamily = _socketFamily;
 		newcon.socketType = _socketType;
 		newcon.socketProto = _socketProto;
-        newcon.xassoc = @(assoc);
+        newcon.xassoc = assoc;
 		[newcon initNetworkSocket];
 
 		newcon.configuredMaxSegmentSize = _configuredMaxSegmentSize;

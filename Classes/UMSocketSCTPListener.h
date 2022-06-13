@@ -77,7 +77,7 @@
                                 port:(int)port
                                assoc:(uint32_t *)assoc
                                layer:(UMLayerSctp *)layer;
-- (UMSocketSCTP *) peelOffAssoc:(uint32_t)assoc
+- (UMSocketSCTP *) peelOffAssoc:(NSNumber *)assoc
                           error:(UMSocketError *)errptr;
 
 - (ssize_t) sendToAddresses:(NSArray *)addrs

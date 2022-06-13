@@ -458,7 +458,7 @@
             #if defined(ULIBSCTP_CONFIG_DEBUG)
                                     [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %@",_assocId]];
             #endif
-                                    _directSocket = [_listener peelOffAssoc:(uint32_t)_assocId.unsignedIntValue error:&err];
+                                    _directSocket = [_listener peelOffAssoc:_assocId error:&err];
             #if defined(ULIBSCTP_CONFIG_DEBUG)
                                     [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
             #endif
@@ -969,7 +969,6 @@
 {
     @autoreleasepool
     {
-
     #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
@@ -996,6 +995,7 @@
             if(_directSocket)
             {
                 [_directSocket close];
+                [_registry unregisterLayer:self];
             }
             if(_directTcpEncapsulatedSocket)
             {
@@ -1073,7 +1073,7 @@
             [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %@",_assocId]];
 #endif
             UMSocketError err = UMSocketError_no_error;
-            _directSocket = [_listener peelOffAssoc:(uint32_t)_assocId.unsignedLongValue error:&err];
+            _directSocket = [_listener peelOffAssoc:_assocId error:&err];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
 #endif
@@ -1280,7 +1280,7 @@
         if(_directSocket==NULL)
         {
             UMSocketError err = UMSocketError_no_error;
-            _directSocket = [_listener peelOffAssoc:(uint32_t)_assocId.unsignedIntValue error:&err];
+            _directSocket = [_listener peelOffAssoc:_assocId error:&err];
             if(err != UMSocketError_no_error)
             {
                 _directSocket = NULL;

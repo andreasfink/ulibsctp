@@ -90,7 +90,7 @@ typedef enum SCTP_SocketType_enum
 - (UMSocketError) enableFutureAssoc;
 
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret;
-- (UMSocketSCTP *) peelOffAssoc:(uint32_t)assoc
+- (UMSocketSCTP *) peelOffAssoc:(NSNumber *)assoc
 						  error:(UMSocketError *)errptr;
 
 - (UMSocketError) connect;
