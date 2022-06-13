@@ -316,7 +316,7 @@
     {
         NSLog(@"layerForLocalIp:%@ localPort:%d remoteIp:%@ remotePort:%d encapsulated:%@",ip1,port1,ip2,port2,encap ? @"YES": @"NO");
     }
-    UMMUTEX_LOCK(_lock);    
+    UMMUTEX_LOCK(_lock);
     NSString *key = [self registryKeyForLocalAddr:ip1
                                         localPort:port1
                                        remoteAddr:ip2
@@ -524,9 +524,9 @@
         UMMUTEX_LOCK(_lock);
         @try
         {
-            if(layer.assocIdPresent)
+            if(layer.assocId !=NULL)
             {
-                [_assocs removeObjectForKey:@(layer.assocId)];
+                [_assocs removeObjectForKey:layer.assocId];
             }
             /* we unregister every local IP / remote IP pair combination */
             

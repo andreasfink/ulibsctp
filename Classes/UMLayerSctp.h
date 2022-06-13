@@ -60,11 +60,10 @@
     NSString            *_dscp;
     BOOL                _isPassive;
     BOOL                _listenerStarted;
-    BOOL                _assocIdPresent;
     BOOL                _isInvalid;
     BOOL                _newDestination;
     BOOL                _allowAnyRemotePortIncoming;
-    uint32_t            _assocId;
+    NSNumber            *_assocId;
     UMSocketStatus      _status;
     int                 _maxInitTimeout;
     int                 _maxInitAttempts;
@@ -76,7 +75,6 @@
 
 
 //@property(readwrite,strong) UMSocketSCTP    *sctpSocket;
-//@property(readwrite,strong) NSNumber          *assocId;
 @property(readwrite,strong) NSDate          *startButtonPressed;
 @property(readwrite,strong) NSDate          *stopButtonPressed;
 
@@ -106,8 +104,7 @@
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputBytes;
 @property(readwrite,strong) UMSocketSCTPRegistry *registry;
 @property(readwrite,strong) UMSocketSCTPListener *listener;
-@property(readwrite,assign) uint32_t    assocId;
-@property(readwrite,assign) BOOL        assocIdPresent;
+@property(readwrite,strong) NSNumber    *assocId;
 @property(readwrite,assign) int         mtu;
 @property(readwrite,assign) BOOL        newDestination;
 @property(readwrite,strong,atomic)      UMSocketSCTP        *directSocket;

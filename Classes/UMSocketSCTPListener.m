@@ -384,6 +384,10 @@
                                                    encapsulated:NO];
                 if(layer)
                 {
+                    if((rx.assocId) && (layer.assocId != NULL))
+                    {
+                        layer.assocId = rx.assocId;
+                    }
                     [layer processReceivedData:rx];
                     processed=YES;
                     break;

@@ -878,9 +878,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 - (UMSocketSCTP *) peelOffAssoc:(uint32_t)assoc
                           error:(UMSocketError *)errptr
 {
-
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    NSLog(@"calling peelOffAssoc:(assoc=%d)",assoc);
+    NSLog(@"calling peelOffAssoc:(assoc=%lu)",(unsigned long)assoc);
 #endif
     int           newsock = -1;
     UMSocketSCTP  *newcon =NULL;

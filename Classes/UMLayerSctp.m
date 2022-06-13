@@ -278,7 +278,7 @@
 {
     @autoreleasepool
     {
-        uint32_t        tmp_assocId = -1;
+        uint32_t        tmp_assocId = 0;
         BOOL sendAbort = task.sendAbortFirst;
         
         id<UMLayerUserProtocol> caller = task.sender;
@@ -370,8 +370,7 @@
                 }
                 _newDestination = YES;
                 sleep(1);
-                _assocId = -1;
-                _assocIdPresent = NO;
+                _assocId = NULL;
                 
                 if(!_isPassive)
                 {
@@ -392,7 +391,7 @@
                         [self logDebug:@"_directTcpEncapsulatedSocket==NULL"];
     #endif
 
-                        tmp_assocId = -1;
+                        tmp_assocId = 0;
                         if(_configured_remote_addresses.count < 0)
                         {
                             err = UMSocketError_invalid_port_or_address;
@@ -425,9 +424,9 @@
                         }
                         if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
                         {
-                            if(tmp_assocId != -1)
+                            if(tmp_assocId != 0)
                             {
-                                _assocId = tmp_assocId;
+                                _assocId = @(tmp_assocId);
                                 if((err != UMSocketError_no_error)
                                 && (err !=UMSocketError_in_progress))
                                 {
@@ -445,21 +444,21 @@
                             [self logDebug:@"_directSocket==NULL"];
             #endif
 
-                            tmp_assocId = -1;
+                            tmp_assocId = 0;
                             err = [_listener connectToAddresses:_configured_remote_addresses
                                                            port:_configured_remote_port
                                                           assoc:&tmp_assocId
                                                           layer:self];
                             if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
                             {
-                                if(tmp_assocId != -1)
+                                if(tmp_assocId !=0)
                                 {
-                                    _assocId = tmp_assocId;
+                                    _assocId = @(tmp_assocId);
 
             #if defined(ULIBSCTP_CONFIG_DEBUG)
-                                    [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %lu",(unsigned long)tmp_assocId]];
+                                    [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %@",_assocId]];
             #endif
-                                    _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+                                    _directSocket = [_listener peelOffAssoc:(uint32_t)_assocId.unsignedIntValue error:&err];
             #if defined(ULIBSCTP_CONFIG_DEBUG)
                                     [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
             #endif
@@ -485,9 +484,9 @@
                                     @try
                                     {
                                         uint32_t a=0;
-                                        if(_assocId > 0)
+                                        if(_assocId)
                                         {
-                                            a = _assocId;
+                                            a = (uint32_t)_assocId.unsignedLongValue;
                                         }
                                         [_listener.umsocket abortToAddress:addr
                                                                       port:_configured_remote_port
@@ -503,15 +502,10 @@
                             err = [_directSocket connectToAddresses:_configured_remote_addresses
                                                                 port:_configured_remote_port
                                                                assoc:&tmp_assocId];
-                            if(tmp_assocId != -1)
+                            if(tmp_assocId !=0)
                             {
-                                _assocId = tmp_assocId;
+                                _assocId = @(tmp_assocId);
                             }
-                        }
-
-                        if(_assocId!= -1)
-                        {
-                            _assocIdPresent = YES;
                         }
                         if(self.logLevel <= UMLOG_DEBUG)
                         {
@@ -546,12 +540,12 @@
                 {
                     [_registry registerIncomingLayer:self];
                 }
-                if(_assocIdPresent)
+                if(_assocId!=NULL)
                 {
         #if defined(ULIBSCTP_CONFIG_DEBUG)
                     [self logDebug:[NSString stringWithFormat:@" registering new assoc"]];
         #endif
-                    [_registry registerAssoc:@(_assocId) forLayer:self];
+                    [_registry registerAssoc:_assocId forLayer:self];
                 }
                 [_registry startReceiver];
             }
@@ -662,7 +656,7 @@
                         [self logDebug:[NSString stringWithFormat:@" Calling sctp_sendmsg on _directsocket (%@)",[_configured_remote_addresses componentsJoinedByString:@","]]];
                     }
         #endif
-                    uint32_t        tmp_assocId = _assocId;
+                    uint32_t        tmp_assocId = (uint32_t)_assocId.unsignedIntValue;
                     sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
                                                              port:_configured_remote_port
                                                             assoc:&tmp_assocId
@@ -670,12 +664,14 @@
                                                            stream:task.streamId
                                                          protocol:task.protocolId
                                                             error:&err];
-                    _assocId = tmp_assocId;
-
+                    if(tmp_assocId > 0)
+                    {
+                        _assocId = @(tmp_assocId);
+                    }
                 }
                 else if(_directTcpEncapsulatedSocket)
                 {
-                    uint32_t tmp_assocId = _assocId;
+                    uint32_t tmp_assocId = (uint32_t)_assocId.unsignedIntValue;
                     [self sendEncapsulated:task.data
                                      assoc:&tmp_assocId
                                     stream:task.streamId
@@ -685,7 +681,7 @@
                 }
                 else
                 {
-                    uint32_t tmp_assocId = _assocId;
+                    uint32_t tmp_assocId = (uint32_t)_assocId.unsignedLongValue;
                     sent_packets = [_listener sendToAddresses:_configured_remote_addresses
                                                          port:_configured_remote_port
                                                         assoc:&tmp_assocId
@@ -694,7 +690,10 @@
                                                      protocol:task.protocolId
                                                         error:&err
                                                         layer:self];
-                    _assocId = tmp_assocId;
+                    if(tmp_assocId > 0)
+                    {
+                        _assocId = @(tmp_assocId);
+                    }
                 }
                 [_linkLock unlock];
                 linkLocked = NO;
@@ -980,11 +979,10 @@
         //[_receiverThread shutdownBackgroundTask];
         self.status = UMSOCKET_STATUS_OOS;
         self.status = UMSOCKET_STATUS_OFF;
-        if(_assocIdPresent)
+        if(_assocId!=NULL)
         {
-            [_registry unregisterAssoc:@(_assocId)];
-            _assocId = -1;
-            _assocIdPresent = NO;
+            [_registry unregisterAssoc:_assocId];
+            _assocId = NULL;
             /*
             for(NSString *addr in _configured_remote_addresses)
             {
@@ -1024,11 +1022,10 @@
         }
     #endif
         self.status = UMSOCKET_STATUS_OFF;
-        if(_assocIdPresent)
+        if(_assocId!=NULL)
         {
-            [_registry unregisterAssoc:@(_assocId)];
-            _assocId = -1;
-            _assocIdPresent = NO;
+            [_registry unregisterAssoc:_assocId];
+            _assocId = NULL;
         }
         [_directSocket close];
         _directSocket = NULL;
@@ -1064,19 +1061,19 @@
 #endif
         if(rx.assocId !=NULL)
         {
-            if((_assocId == -1) || (_assocIdPresent == NO) || (_directSocket == NULL))
+            if((_assocId == NULL) || (_directSocket == NULL))
             {
-                _assocId = (uint32_t)[rx.assocId unsignedLongValue];
-                _assocIdPresent = YES;
+                _assocId = rx.assocId;
             }
         }
         if((_directSocket == NULL) && (!_encapsulatedOverTcp))
         {
+            
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %lu",(unsigned long)_assocId]];
+            [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %@",_assocId]];
 #endif
             UMSocketError err = UMSocketError_no_error;
-            _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+            _directSocket = [_listener peelOffAssoc:(uint32_t)_assocId.unsignedLongValue error:&err];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
 #endif
@@ -1277,14 +1274,13 @@
     if((snp->sn_assoc_change.sac_state==SCTP_COMM_UP) && (snp->sn_assoc_change.sac_error== 0))
     {
         _listener.firstMessage=YES;
-        _assocId = snp->sn_assoc_change.sac_assoc_id;
-        _assocIdPresent=YES;
+        _assocId = @(snp->sn_assoc_change.sac_assoc_id);
         [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS (assocID=%ld)",(long)_assocId]];
         self.status = UMSOCKET_STATUS_IS;
         if(_directSocket==NULL)
         {
             UMSocketError err = UMSocketError_no_error;
-            _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+            _directSocket = [_listener peelOffAssoc:(uint32_t)_assocId.unsignedIntValue error:&err];
             if(err != UMSocketError_no_error)
             {
                 _directSocket = NULL;
@@ -1296,8 +1292,7 @@
     }
     else if(snp->sn_assoc_change.sac_state==SCTP_COMM_LOST)
     {
-        _assocId = snp->sn_assoc_change.sac_assoc_id;
-        _assocIdPresent=YES;
+        _assocId = @(snp->sn_assoc_change.sac_assoc_id);
         [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF (assocID=%ld)",(long)_assocId]];
         [self powerdownInReceiverThread];
         [self reportStatus];
@@ -2091,16 +2086,15 @@
         [_reconnectTimer stop];
         if(_status != UMSOCKET_STATUS_IS)
         {
-            uint32_t xassocId = -1;
+            uint32_t xassocId = 0;
             [_listener connectToAddresses:_configured_remote_addresses
                                      port:_configured_remote_port
                                     assoc:&xassocId
                                     layer:self];
-            if(xassocId != -1)
+            if(xassocId != 0)
             {
-                _assocIdPresent = YES;
-                _assocId = xassocId;
-                [_registry registerAssoc:@(_assocId) forLayer:self];
+                _assocId = @(xassocId);
+                [_registry registerAssoc:_assocId forLayer:self];
             }
         }
     }
