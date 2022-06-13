@@ -105,12 +105,12 @@
     NSUInteger outbound_tcp_count_valid = 0;
     NSUInteger inbound_tcp_count_valid = 0;
 
-    NSMutableArray *valid_listeners = [[NSMutableArray alloc]init];
-    NSMutableArray *valid_tcp_listeners = [[NSMutableArray alloc]init];
-    NSMutableArray *valid_outbound_layers = [[NSMutableArray alloc]init];
-    NSMutableArray *valid_inbound_layers = [[NSMutableArray alloc]init];
-    NSMutableArray *valid_outbound_tcp_layers = [[NSMutableArray alloc]init];
-    NSMutableArray *valid_inbound_tcp_layers = [[NSMutableArray alloc]init];
+    NSMutableArray *valid_listeners             = [[NSMutableArray alloc]init];
+    NSMutableArray *valid_tcp_listeners         = [[NSMutableArray alloc]init];
+    NSMutableArray *valid_outbound_layers       = [[NSMutableArray alloc]init];
+    NSMutableArray *valid_inbound_layers        = [[NSMutableArray alloc]init];
+    NSMutableArray *valid_outbound_tcp_layers   = [[NSMutableArray alloc]init];
+    NSMutableArray *valid_inbound_tcp_layers    = [[NSMutableArray alloc]init];
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
 
@@ -267,7 +267,7 @@
 
     NSAssert(_timeoutInMs > 100,@"UMSocketSCTP Receiver: _timeoutInMs is smaller than 100ms");
 
-    //total_count = j;
+    //valid_total_count = j;
     int ret1 = poll(pollfds, j, _timeoutInMs);
     UMMicroSec poll_time = ulib_microsecondTime();
     if (ret1 < 0)
@@ -578,8 +578,8 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  Error: %@",[UMSocket getSocketErrorString:revent_error]);
 #endif
-        [layer processError:revent_error];
         [listener processError:revent_error];
+        [layer processError:revent_error];
     }
     if(revent & POLLHUP)
     {
@@ -587,8 +587,8 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  revent_hup = 1");
 #endif
-        [layer processError:UMSocketError_connection_reset];
         [listener processError:UMSocketError_connection_reset];
+        [layer processError:UMSocketError_connection_reset];
     }
 #ifdef POLLRDHUP
     if(revent & POLLRDHUP)
@@ -597,8 +597,8 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  revent_hup = 1");
 #endif
-        [layer processError:UMSocketError_connection_reset];
         [listener processError:UMSocketError_connection_reset];
+        [layer processError:UMSocketError_connection_reset];
     }
 #endif
     if(revent & POLLNVAL)
@@ -607,8 +607,8 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  revent_invalid = 1");
 #endif
-        [layer processError:UMSocketError_invalid_file_descriptor];
         [listener processError:UMSocketError_invalid_file_descriptor];
+        [layer processError:UMSocketError_invalid_file_descriptor];
     }
 #ifdef POLLRDBAND
         if(revent & POLLRDBAND)
@@ -629,7 +629,7 @@
     if(revent_has_data)
     {
         UMSocketSCTPReceivedPacket *rx = NULL;
-        
+
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  receiving packet");
 #endif

@@ -1061,14 +1061,13 @@
 #endif
         if(rx.assocId !=NULL)
         {
-            if((_assocId == NULL) || (_directSocket == NULL))
+            if((_assocId == NULL) && (_directSocket == NULL))
             {
                 _assocId = rx.assocId;
             }
         }
-        if((_directSocket == NULL) && (!_encapsulatedOverTcp))
+        if((_directSocket == NULL) && (!_encapsulatedOverTcp) && (_assocId!=NULL))
         {
-            
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %@",_assocId]];
 #endif
@@ -1081,6 +1080,7 @@
             {
                 [_directSocket close];
                 _directSocket = NULL;
+                _assocId = NULL;
             }
         }
         if(rx.err==UMSocketError_try_again)
