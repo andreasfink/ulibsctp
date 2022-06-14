@@ -337,7 +337,8 @@
     [s appendFormat:@".assoc: %d entries]\n",(int)arr.count];
     for(NSString *key in arr)
     {
-        [s appendFormat:@"  [%@]\n",key];
+        UMLayerSctp *xlayer = _assocs[key];
+        [s appendFormat:@"  [%@] -> %@\n",key,xlayer.layerName];
     }
 
     [s appendFormat:@".outgoingLayers: %d entries]\n",(int)_outgoingLayers.count];
@@ -356,7 +357,8 @@
     arr = _outgoingLayersByIpsAndPorts.allKeys;
     for(NSString *key in arr)
     {
-        [s appendFormat:@"  [%@]\n",key];
+        UMLayerSctp *xlayer = _outgoingLayersByIpsAndPorts[key];
+        [s appendFormat:@"  [%@] -> %@\n",key,xlayer.layerName];
     }
 
 
@@ -364,7 +366,8 @@
     arr = _outgoingLayersByAssoc.allKeys;
     for(NSNumber *key in arr)
     {
-        [s appendFormat:@"  [%@]\n",key];
+        UMLayerSctp *xlayer = _outgoingLayersByAssoc[key];
+        [s appendFormat:@"  [%@] -> %@\n",key,xlayer.layerName];
     }
     [s appendFormat:@"-----------------------------------------------------------\n"];
     return s;
