@@ -685,9 +685,11 @@
 #endif
                         session.directTcpEncapsulatedSocket = rs;
                         [_registry registerIncomingTcpLayer:session];
+#if defined(POWER_DEBUG)
+                        NSLog(@"%@ handleLinkUpTcpEcnap",_layerName);
+#endif
                         [session handleLinkUpTcpEcnap];
                         success = YES;
-                        
                         UMSocketError err2 = UMSocketError_no_error;
                         uint32_t tmp_assocId;
                         [session sendEncapsulated:rx.data
