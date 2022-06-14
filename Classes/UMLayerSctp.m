@@ -7,7 +7,7 @@
 //
 
 #define ULIBSCTP_INTERNAL 1
-#define POWER_DEBUG         1
+//#define POWER_DEBUG         1
 #include "ulibsctp_config.h"
 
 #include <netinet/in.h>
