@@ -979,7 +979,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 		int activeSctpMaxSegmentSize = 0;
 
         struct sctp_assoc_value a;
-        a.assoc_id = assoc;
+        a.assoc_id = [assoc unsignedIntValue];
         a.assoc_value = 0;
 
         socklen_t maxseg_len = sizeof(a);
