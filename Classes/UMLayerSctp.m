@@ -2311,4 +2311,14 @@
     return -1;
 }
 
+- (BOOL)isPathMtuDiscoveryEnabled
+{
+    return _directSocket.isPathMtuDiscoveryEnabled;
+}
+
+- (int)currentMtu
+{
+    return _directSocket.currentMtu;
+}
+
 @end

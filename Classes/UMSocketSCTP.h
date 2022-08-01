@@ -141,4 +141,8 @@ typedef enum SCTP_SocketType_enum
 - (UMSocketError)setHeartbeat:(BOOL)enable;
 - (NSArray *)getRemoteIpAddressesForAssoc:(uint32_t)assoc;
 - (int)bindx:(struct sockaddr *)localAddress;
+
+- (int) currentMtu;
+- (BOOL) isPathMtuDiscoveryEnabled;
+
 @end

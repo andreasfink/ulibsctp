@@ -381,6 +381,37 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     return _mtu;
 }
 
+
+- (int)currentMtu
+{
+    int readMtu = 0;
+    struct sctp_paddrparams params;
+    socklen_t len = sizeof(params);
+    memset((void *)&params,0x00, sizeof(struct sctp_paddrparams));
+
+    if(getsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, &len) == 0)
+    {
+        readMtu = params.spp_pathmtu;
+    }
+    return readMtu;
+}
+
+- (BOOL)isPathMtuDiscoveryEnabled
+{
+    struct sctp_paddrparams params;
+    socklen_t len = sizeof(params);
+    memset((void *)&params,0x00, sizeof(struct sctp_paddrparams));
+
+    if(getsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, &len) == 0)
+    {
+        if(params.spp_flags & SPP_PMTUD_ENABLE)
+        {
+            return YES;
+        }
+    }
+    return NO;
+}
+
 - (void)setMtu:(int)newMtu
 {
     [_historyLog addLogEntry:[NSString stringWithFormat:@"setMtu:%d",newMtu]];
@@ -419,6 +450,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         }
         else
         {
+            params.spp_pathmtu = 0;
             params.spp_flags &= ~SPP_PMTUD_DISABLE;
             params.spp_flags |= SPP_PMTUD_ENABLE;
         }

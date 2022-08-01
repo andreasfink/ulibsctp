@@ -193,4 +193,6 @@
                        flags:(int)flags;
 
 
+- (BOOL)isPathMtuDiscoveryEnabled;
+- (int)currentMtu;
 @end
