@@ -396,22 +396,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     return readMtu;
 }
 
-- (BOOL)isPathMtuDiscoveryEnabled
-{
-    struct sctp_paddrparams params;
-    socklen_t len = sizeof(params);
-    memset((void *)&params,0x00, sizeof(struct sctp_paddrparams));
-
-    if(getsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, &len) == 0)
-    {
-        if(params.spp_flags & SPP_PMTUD_ENABLE)
-        {
-            return YES;
-        }
-    }
-    return NO;
-}
-
 - (void)setMtu:(int)newMtu
 {
     [_historyLog addLogEntry:[NSString stringWithFormat:@"setMtu:%d",newMtu]];
@@ -424,37 +408,12 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     {
         if(newMtu > 0)
         {
-            if(_socketFamily == AF_INET)
-            {
-                struct sockaddr_in *sa = (struct sockaddr_in *)&params.spp_address;
-                memset(sa,0x00,sizeof(struct sockaddr_in));
-                sa->sin_family = AF_INET;
-#ifdef    HAS_SOCKADDR_LEN
-                sa->sin_len = sizeof(struct sockaddr_in);
-#endif
-                sa->sin_addr.s_addr = htonl(INADDR_ANY);
-            }
-            else if(_socketFamily == AF_INET6)
-            {
-                struct sockaddr_in6 *sa6 = (struct sockaddr_in6 *)&params.spp_address;
-                memset(sa6,0x00,sizeof(struct sockaddr_in6));
-                sa6->sin6_family = AF_INET6;
-#ifdef    HAS_SOCKADDR_LEN
-                sa6->sin6_len = sizeof(struct sockaddr_in6);
-#endif
-                sa6->sin6_addr = in6addr_any;
-            }
             params.spp_pathmtu = newMtu;
-            params.spp_flags &= ~SPP_PMTUD_ENABLE;
-            params.spp_flags |= SPP_PMTUD_DISABLE;
         }
         else
         {
             params.spp_pathmtu = 0;
-            params.spp_flags &= ~SPP_PMTUD_DISABLE;
-            params.spp_flags |= SPP_PMTUD_ENABLE;
         }
-
         if(setsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, len) == 0)
         {
             if(getsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, &len) == 0)
@@ -472,6 +431,49 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
 }
 
+- (void)setPathMtuDiscovery:(BOOL)enable
+{
+    [_historyLog addLogEntry:[NSString stringWithFormat:@"setPathMtuDiscovery:%@",enable ? @"YES" : @"NO"]];
+    struct sctp_paddrparams params;
+    socklen_t len = sizeof(params);
+    memset((void *)&params,0x00, sizeof(struct sctp_paddrparams));
+    if(getsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, &len) == 0)
+    {
+        if(enable)
+        {
+            params.spp_flags |= SPP_PMTUD_ENABLE;
+            params.spp_flags &= ~SPP_PMTUD_DISABLE;
+        }
+        else
+        {
+            params.spp_flags |= SPP_PMTUD_DISABLE;
+            params.spp_flags &= ~SPP_PMTUD_ENABLE;
+        }
+        if(setsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, len) == 0)
+        {
+            _pathMtuDiscovery = enable;
+        }
+    }
+}
+
+- (BOOL) isPathMtuDiscoveryEnabled
+{
+    struct sctp_paddrparams params;
+    socklen_t len = sizeof(params);
+    memset((void *)&params,0x00, sizeof(struct sctp_paddrparams));
+    if(getsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, &len) == 0)
+    {
+        if(params.spp_flags & SPP_PMTUD_ENABLE)
+        {
+            return YES;
+        }
+        if(params.spp_flags & SPP_PMTUD_DISABLE)
+        {
+            return NO;
+        }
+    }
+    return _pathMtuDiscovery;
+}
 
 - (UMSocketError)setHeartbeat:(BOOL)enable
 {

@@ -61,6 +61,7 @@ typedef enum SCTP_SocketType_enum
     int             _maxInitAttempts;
     int             _initTimeout;
 	NSNumber		*_xassoc;
+    BOOL            _pathMtuDiscovery;
 }
 
 @property(readwrite,strong) NSArray        *requestedLocalAddresses;
@@ -144,5 +145,6 @@ typedef enum SCTP_SocketType_enum
 
 - (int) currentMtu;
 - (BOOL) isPathMtuDiscoveryEnabled;
+- (void)setPathMtuDiscovery:(BOOL)enable;
 
 @end
