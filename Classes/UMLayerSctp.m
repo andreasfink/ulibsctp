@@ -1129,7 +1129,15 @@
             }
     #endif
         }
-
+        else if(rx.err==UMSocketError_invalid_file_descriptor)
+        {
+            if(_logLevel <=UMLOG_DEBUG)
+            {
+                NSLog(@"receiveData: UMSocketError_invalid_file_descriptor returned by receiveSCTP");
+            }
+            [self powerdownInReceiverThread];
+            [self reportStatus];
+        }
         else if(rx.err==UMSocketError_connection_reset)
         {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
