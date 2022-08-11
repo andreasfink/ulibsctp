@@ -584,6 +584,8 @@
     }
  }
 
+
+
 - (void)_closeTask:(UMSctpTask_Close *)task
 {
     @autoreleasepool
@@ -620,6 +622,93 @@
     }
 }
 
+
+- (void)reportError:(int)err taskData:(UMSctpTask_Data *)task
+{
+    id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
+
+    NSString *errString=NULL;
+    NSString *reason = NULL;
+    switch(err)
+    {
+        case 0:
+            break;
+        case EBADF:
+            errString=@"EBADF";
+            reason=@"An invalid descriptor was specified";
+            break;
+        case ENOTSOCK:
+            errString=@"ENOTSOCK";
+            reason=@"The argument s is not a socket";
+            break;
+        case EFAULT:
+            errString=@"EFAULT";
+            reason=@"An invalid user space address was specified";
+            break;
+        case EMSGSIZE:
+            errString=@"EMSGSIZE";
+            reason=@"The socket requires that message be sent atomically, and the size of the message to be sent made this impossible.";
+            break;
+        case EAGAIN:
+            errString=@"EAGAIN";
+            reason=@"Resource temporarily unavailable";
+            break;
+        case ENOBUFS:
+            errString=@"ENOBUFS";
+            reason=@"The system was unable to allocate an internal buffer. The operation may succeed when buffers become available.";
+            break;
+        case EACCES:
+            errString=@"EACCES";
+            reason=@"The SO_BROADCAST option is not set on the socket, and a broadcast address was given as the destination.";
+            break;
+        case EHOSTUNREACH:
+            errString=@"EHOSTUNREACH";
+            reason=@"The destination address specified an unreachable host.";
+            break;
+        case ENOTCONN:
+            errString=@"ENOTCONN";
+            reason=@"socket is not connected.";
+            break;
+        case EPIPE:
+            errString=@"EPIPE";
+            reason=@"pipe is broken.";
+            break;
+        case ECONNRESET:
+            errString=@"ECONNRESET";
+            reason=@"connection is reset by peer.";
+            break;
+        case EADDRNOTAVAIL:
+            errString=@"EADDRNOTAVAIL";
+            reason= @"address is no available";
+            break;
+        default:
+            errString=[NSString stringWithFormat:@"ERROR %d",errno];
+            reason=[NSString stringWithFormat:@"unknown error %d %s",errno,strerror(errno)];
+            break;
+    }
+    [self logMajorError:[NSString stringWithFormat:@"%@: %@",errString,reason]];
+    if(task.ackRequest)
+    {
+        NSMutableDictionary *report = [task.ackRequest mutableCopy];
+        NSDictionary *ui = @{
+                         @"protocolId" : @(task.protocolId),
+                         @"streamId"   : @(task.streamId),
+                         @"data"       : task.data
+                         };
+        [report setObject:ui forKey:@"sctp_data"];
+        NSDictionary *errDict = @{
+                              @"exception"  : errString,
+                              @"reason"     : reason,
+                              };
+        [report setObject:errDict forKey:@"sctp_error"];
+        [user sentAckFailureFrom:self
+                    userInfo:report
+                       error:errString
+                      reason:reason
+                   errorInfo:errDict];
+    }
+}
+
 - (void)_dataTask:(UMSctpTask_Data *)task
 {
     BOOL linkLocked=NO;
@@ -637,263 +726,155 @@
             [self logDebug:[NSString stringWithFormat:@" ackRequest: %@",(task.ackRequest ? task.ackRequest.description  : @"(not present)")]];
         }
     #endif
-        BOOL failed = NO;
-
-        @try
+        
+        if(task.data == NULL)
         {
-            if(task.data == NULL)
-            {
-                @throw([NSException exceptionWithName:@"NULL" reason:@"trying to send NULL data" userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-            }
-            UMSocketError err = UMSocketError_no_error;
+            /* nothing to be done */
+            return;
+        }
+        
+        BOOL failed = NO;
+        UMSocketError err = UMSocketError_no_error;
 
-            ssize_t sent_packets = 0;
-            
-            int attempts=0;
-            
-            /* we try to send as long as no ASSOC down has been received or at least once (as we might not have a direct socket yet */
-            int maxatt = 50;
-            while((attempts < maxatt) ||  (self.status==UMSOCKET_STATUS_IS))
+        ssize_t sent_packets = 0;
+        int attempts=0;
+        /* we try to send as long as no ASSOC down has been received or at least once (as we might not have a direct socket yet */
+        int maxatt = 50;
+        while((attempts < maxatt) &&  (self.status==UMSOCKET_STATUS_IS))
+        {
+            attempts++;
+            [_linkLock lock];
+            linkLocked = YES;
+            if(_directSocket)
             {
-                attempts++;
-                [_linkLock lock];
-                linkLocked = YES;
-                if(_directSocket)
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+                if(self.logLevel <= UMLOG_DEBUG)
                 {
-        #if defined(ULIBSCTP_CONFIG_DEBUG)
-                    if(self.logLevel <= UMLOG_DEBUG)
-                    {
-                        [self logDebug:[NSString stringWithFormat:@" Calling sctp_sendmsg on _directsocket (%@)",[_configured_remote_addresses componentsJoinedByString:@","]]];
-                    }
-        #endif
-                    uint32_t        tmp_assocId = (uint32_t)_assocId.unsignedIntValue;
-                    sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
-                                                             port:_configured_remote_port
-                                                            assoc:&tmp_assocId
-                                                             data:task.data
-                                                           stream:task.streamId
-                                                         protocol:task.protocolId
-                                                            error:&err];
-                    if(tmp_assocId > 0)
-                    {
-                        _assocId = @(tmp_assocId);
-                    }
+                    [self logDebug:[NSString stringWithFormat:@" Calling sctp_sendmsg on _directsocket (%@)",[_configured_remote_addresses componentsJoinedByString:@","]]];
                 }
-                else if(_directTcpEncapsulatedSocket)
-                {
-                    uint32_t tmp_assocId = (uint32_t)_assocId.unsignedIntValue;
-                    [self sendEncapsulated:task.data
-                                     assoc:&tmp_assocId
-                                    stream:task.streamId
-                                  protocol:task.protocolId
-                                     error:&err
-                                     flags:0];
-                }
-                else
-                {
-                    uint32_t tmp_assocId = (uint32_t)_assocId.unsignedLongValue;
-                    sent_packets = [_listener sendToAddresses:_configured_remote_addresses
+    #endif
+                uint32_t        tmp_assocId = (uint32_t)_assocId.unsignedIntValue;
+                sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
                                                          port:_configured_remote_port
                                                         assoc:&tmp_assocId
                                                          data:task.data
                                                        stream:task.streamId
                                                      protocol:task.protocolId
-                                                        error:&err
-                                                        layer:self];
-                    if(tmp_assocId > 0)
-                    {
-                        _assocId = @(tmp_assocId);
-                    }
-                }
-                [_linkLock unlock];
-                linkLocked = NO;
-                
-                /*  we loop until we get errno not EAGAIN or sent_packets returning > 0 */
-                if(sent_packets > 0)
+                                                        error:&err];
+                if(tmp_assocId > 0)
                 {
-                    break;
-                }
-                if(errno != EAGAIN)
-                {
-                    failed=YES;
-                    break;
-                }
-                if(errno == EAGAIN)
-                {
-                    /* we have EAGAIN */
-                    /* lets try up to 50 times and wait 200ms every 10th time */
-                    /* if thats still not succeeding, we declare this connection dead */
-                    if(attempts % 10==0)
-                    {
-                        [sleeper sleepSeconds:0.2];
-                    }
-                    if(attempts < maxatt)
-                    {
-                        continue;
-                    }
-                    
-                    /* if we get here we have attempted 50 times and failed */
-                    /* we can assume this connection dead */
-                    failed=YES;
+                    _assocId = @(tmp_assocId);
                 }
             }
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-            if(self.logLevel <= UMLOG_DEBUG)
+            else if(_directTcpEncapsulatedSocket)
             {
-                [self logDebug:[NSString stringWithFormat:@" sent_packets: %ld",sent_packets]];
-            }
-#endif
-            if(sent_packets>0)
-            {
-                [_outboundThroughputPackets increaseBy:1];
-                [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
-                NSArray *usrs = [_users arrayCopy];
-                for(UMLayerSctpUser *u in usrs)
-                {
-                    if([u.profile wantsMonitor])
-                    {
-                        [u.user sctpMonitorIndication:self
-                                               userId:u.userId
-                                             streamId:task.streamId
-                                           protocolId:task.protocolId
-                                                 data:task.data
-                                             incoming:NO];
-                    }
-                }
-                NSDictionary *ui = @{
-                                     @"protocolId" : @(task.protocolId),
-                                     @"streamId"   : @(task.streamId),
-                                     @"data"       : task.data
-                                     };
-                NSMutableDictionary *report = [task.ackRequest mutableCopy];
-                [report setObject:ui forKey:@"sctp_data"];
-                //report[@"backtrace"] = UMBacktrace(NULL,0);
-                [user sentAckConfirmFrom:self
-                                userInfo:report];
-                
+                uint32_t tmp_assocId = (uint32_t)_assocId.unsignedIntValue;
+                [self sendEncapsulated:task.data
+                                 assoc:&tmp_assocId
+                                stream:task.streamId
+                              protocol:task.protocolId
+                                 error:&err
+                                 flags:0];
             }
             else
             {
+                uint32_t tmp_assocId = (uint32_t)_assocId.unsignedLongValue;
+                sent_packets = [_listener sendToAddresses:_configured_remote_addresses
+                                                     port:_configured_remote_port
+                                                    assoc:&tmp_assocId
+                                                     data:task.data
+                                                   stream:task.streamId
+                                                 protocol:task.protocolId
+                                                    error:&err
+                                                    layer:self];
+                if(tmp_assocId > 0)
+                {
+                    _assocId = @(tmp_assocId);
+                }
+            }
+            [_linkLock unlock];
+            linkLocked = NO;
+            
+            /*  we loop until we get errno not EAGAIN or sent_packets returning > 0 */
+            if(sent_packets > 0)
+            {
+                break;
+            }
+            if(errno != EAGAIN)
+            {
+                failed=YES;
+                break;
+            }
+            if(errno == EAGAIN)
+            {
+                /* we have EAGAIN */
+                /* lets try up to 50 times and wait 200ms every 10th time */
+                /* if thats still not succeeding, we declare this connection dead */
+                if(attempts % 10==0)
+                {
+                    [sleeper sleepSeconds:0.2];
+                }
+                if(attempts < maxatt)
+                {
+                    continue;
+                }
+                
+                /* if we get here we have attempted 50 times and failed */
+                /* we can assume this connection dead */
+                failed=YES;
+            }
+        }
+        
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
+        {
+            [self logDebug:[NSString stringWithFormat:@" sent_packets: %ld",sent_packets]];
+        }
+#endif
+        if(sent_packets>0)
+        {
+            [_outboundThroughputPackets increaseBy:1];
+            [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
+            NSArray *usrs = [_users arrayCopy];
+            for(UMLayerSctpUser *u in usrs)
+            {
+                if([u.profile wantsMonitor])
+                {
+                    [u.user sctpMonitorIndication:self
+                                           userId:u.userId
+                                         streamId:task.streamId
+                                       protocolId:task.protocolId
+                                             data:task.data
+                                         incoming:NO];
+                }
+            }
+            NSDictionary *ui = @{
+                                 @"protocolId" : @(task.protocolId),
+                                 @"streamId"   : @(task.streamId),
+                                 @"data"       : task.data
+                                 };
+            NSMutableDictionary *report = [task.ackRequest mutableCopy];
+            [report setObject:ui forKey:@"sctp_data"];
+            //report[@"backtrace"] = UMBacktrace(NULL,0);
+            [user sentAckConfirmFrom:self userInfo:report];
+        }
+        else /* we had an error */
+        {
+            if(_logLevel <=UMLOG_MINOR)
+            {
+                NSLog(@"Error %d %s",errno,strerror(errno));
+            }
+            if(errno==EISCONN)
+            {
                 if(_logLevel <=UMLOG_MINOR)
                 {
-                    NSLog(@"Error %d %s",errno,strerror(errno));
-                }
-                if(errno==EISCONN)
-                {
-                    if(_logLevel <=UMLOG_MINOR)
-                    {
-                        NSLog(@"already connected");
-                    }
-                }
-                switch(errno)
-                {
-                    case 0:
-                        break;
-                        @throw([NSException exceptionWithName:@"ERROR-ZERO"
-                                                       reason:@"send returns no error. weird"
-                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                        break;
-                    case EBADF:
-                        @throw([NSException exceptionWithName:@"EBADF"
-                                                       reason:@"An invalid descriptor was specified"
-                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                        break;
-                    case ENOTSOCK:
-                        @throw([NSException exceptionWithName:@"ENOTSOCK"
-                                                       reason:@"The argument s is not a socket"
-                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                        break;
-                    case EFAULT:
-                        @throw([NSException exceptionWithName:@"EFAULT"
-                                                       reason:@"An invalid user space address was specified"
-                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                        break;
-                    case EMSGSIZE:
-                        @throw([NSException exceptionWithName:@"EMSGSIZE"
-                                                       reason:@"The socket requires that message be sent atomically, and the size of the message to be sent made this impossible."
-                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                        break;
-                    case EAGAIN:
-                        @throw([NSException exceptionWithName:@"EAGAIN"
-                                                       reason:@"Resource temporarily unavailable"
-                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                        break;
-                    case ENOBUFS:
-                        @throw([NSException exceptionWithName:@"ENOBUFS"
-                                                       reason:@"The system was unable to allocate an internal buffer. The operation may succeed when buffers become available."
-                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                        break;
-                    case EACCES:
-                        @throw([NSException exceptionWithName:@"EACCES"
-                                                       reason:@"The SO_BROADCAST option is not set on the socket, and a broadcast address was given as the destination."
-                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                        break;
-                    case EHOSTUNREACH:
-                        @throw([NSException exceptionWithName:@"EHOSTUNREACH"
-                                                       reason:@"The destination address specified an unreachable host."
-                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                        break;
-                    case ENOTCONN:
-                        @throw([NSException exceptionWithName:@"ENOTCONN"
-                                                       reason:@"socket is not connected."
-                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                        break;
-                    case EPIPE:
-                        @throw([NSException exceptionWithName:@"EPIPE"
-                                                       reason:@"pipe is broken."
-                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                        break;
-                    case ECONNRESET:
-                        @throw([NSException exceptionWithName:@"ECONNRESET"
-                                                       reason:@"connection is reset by peer."
-                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                        break;
-                    case EADDRNOTAVAIL:
-                        @throw([NSException exceptionWithName:@"EADDRNOTAVAIL"
-                                                       reason:@"address is no available"
-                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                    default:
-                        @throw([NSException exceptionWithName:[NSString stringWithFormat:@"ERROR %d",errno]
-                                                       reason:[NSString stringWithFormat:@"unknown error %d %s",errno,strerror(errno)]
-                                                     userInfo:@{@"backtrace": UMBacktrace(NULL,0)}]);
-                        break;
+                    NSLog(@"already connected");
                 }
             }
-        }
-        @catch (NSException *exception)
-        {
-            if(linkLocked)
-            {
-                [_linkLock unlock];
-            }
-            [self logMajorError:[NSString stringWithFormat:@"%@: %@",exception.name,exception.reason]];
-            if(task.ackRequest)
-            {
-                NSMutableDictionary *report = [task.ackRequest mutableCopy];
-                NSDictionary *ui = @{
-                                     @"protocolId" : @(task.protocolId),
-                                     @"streamId"   : @(task.streamId),
-                                     @"data"       : task.data
-                                     };
-                [report setObject:ui forKey:@"sctp_data"];
-                NSDictionary *errDict = @{
-                                          @"exception"  : exception.name,
-                                          @"reason"     : exception.reason,
-                                          };
-                [report setObject:errDict forKey:@"sctp_error"];
-                [user sentAckFailureFrom:self
-                                userInfo:report
-                                   error:exception.name
-                                  reason:exception.reason
-                               errorInfo:errDict];
-            }
+            [self reportError:errno taskData:task];
             [self powerdown];
-#if defined(POWER_DEBUG)
-        NSLog(@"%@ closeTask(powerdown due to exception %@)",_layerName,exception);
-#endif
             [self reportStatus];
         }
-       // do we need this here?? [self reportStatus];
     }
 }
 
