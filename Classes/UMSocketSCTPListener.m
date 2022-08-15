@@ -29,7 +29,9 @@
     return [self initWithPort:localPort localIpAddresses:addresses encapsulated:NO];
 }
 
-- (UMSocketSCTPListener *)initWithPort:(int)localPort localIpAddresses:(NSArray *)addresses encapsulated:(BOOL)tcpEncapsulated
+- (UMSocketSCTPListener *)initWithPort:(int)localPort
+                      localIpAddresses:(NSArray *)addresses
+                          encapsulated:(BOOL)tcpEncapsulated
 {
     self = [super init];
     if(self)

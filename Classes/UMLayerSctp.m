@@ -1084,13 +1084,13 @@
                 _assocId = rx.assocId;
             }
         }
-        if((_directSocket == NULL) && (!_encapsulatedOverTcp) && (_assocId!=NULL))
+        if((_directSocket == NULL) && (!_encapsulatedOverTcp) && (rx.assocId!=NULL))
         {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %@",_assocId]];
+            [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %@",rx.assocId]];
 #endif
             UMSocketError err = UMSocketError_no_error;
-            _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+            _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
 #endif

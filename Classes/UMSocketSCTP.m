@@ -1405,10 +1405,11 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         {
             rx.isNotification = YES;
         }
-        rx.streamId =streamId;
+        rx.streamId = streamId;
         rx.protocolId = protocolId;
         rx.context = context;
         rx.assocId = @((uint32_t)assoc);
+        rx.socket = @(_sock);
     }
     return rx;
 }
