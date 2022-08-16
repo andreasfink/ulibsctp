@@ -22,8 +22,6 @@
 #include <arpa/inet.h>
 #include <string.h>
 
-
-
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/uio.h>
@@ -32,7 +30,6 @@
 #include <fcntl.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
-
 
 #include "ulibsctp_config.h"
 
@@ -234,10 +231,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     _msg_notification_mask = _global_msg_notification_mask;
     status = UMSOCKET_STATUS_FOOS;
 }
-
-
-
-
 
 - (void)prepareLocalAddresses
 {

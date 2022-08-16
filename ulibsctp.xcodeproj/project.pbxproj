@@ -29,8 +29,6 @@
 		A689747D1A2D4C5D00854472 /* UMSctpTask_AdminDetach.h in Headers */ = {isa = PBXBuildFile; fileRef = A689747B1A2D4C5D00854472 /* UMSctpTask_AdminDetach.h */; };
 		A689747E1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m in Sources */ = {isa = PBXBuildFile; fileRef = A689747C1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m */; };
 		A689747F1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m in Sources */ = {isa = PBXBuildFile; fileRef = A689747C1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m */; };
-		A695270725879F7B0089994F /* UMSocketSCTPTCPListener.h in Headers */ = {isa = PBXBuildFile; fileRef = A695270525879F7B0089994F /* UMSocketSCTPTCPListener.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		A695270825879F7B0089994F /* UMSocketSCTPTCPListener.m in Sources */ = {isa = PBXBuildFile; fileRef = A695270625879F7B0089994F /* UMSocketSCTPTCPListener.m */; };
 		A69BCFF5240675D20083657F /* sctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A69BCFF4240675D20083657F /* sctp.framework */; };
 		A6B8BE5020A9B102004D4004 /* UMSocketSCTP.h in Headers */ = {isa = PBXBuildFile; fileRef = A6B8BE4E20A9B102004D4004 /* UMSocketSCTP.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A6B8BE5120A9B102004D4004 /* UMSocketSCTP.m in Sources */ = {isa = PBXBuildFile; fileRef = A6B8BE4F20A9B102004D4004 /* UMSocketSCTP.m */; };
@@ -110,8 +108,6 @@
 		A68974781A2D440F00854472 /* UMLayerSctpUser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMLayerSctpUser.m; sourceTree = "<group>"; };
 		A689747B1A2D4C5D00854472 /* UMSctpTask_AdminDetach.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMSctpTask_AdminDetach.h; sourceTree = "<group>"; };
 		A689747C1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMSctpTask_AdminDetach.m; sourceTree = "<group>"; };
-		A695270525879F7B0089994F /* UMSocketSCTPTCPListener.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UMSocketSCTPTCPListener.h; sourceTree = "<group>"; };
-		A695270625879F7B0089994F /* UMSocketSCTPTCPListener.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UMSocketSCTPTCPListener.m; sourceTree = "<group>"; };
 		A69BCFF4240675D20083657F /* sctp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = sctp.framework; path = "/Library/Application Support/FinkTelecomServices/frameworks/sctp.framework"; sourceTree = "<absolute>"; };
 		A6B8BE4E20A9B102004D4004 /* UMSocketSCTP.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UMSocketSCTP.h; sourceTree = "<group>"; };
 		A6B8BE4F20A9B102004D4004 /* UMSocketSCTP.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UMSocketSCTP.m; sourceTree = "<group>"; };
@@ -228,8 +224,6 @@
 				A60DE3BF20AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.m */,
 				A60DE3B620ADD0440047E3A6 /* UMSocketSCTPListener.h */,
 				A60DE3B720ADD0440047E3A6 /* UMSocketSCTPListener.m */,
-				A695270525879F7B0089994F /* UMSocketSCTPTCPListener.h */,
-				A695270625879F7B0089994F /* UMSocketSCTPTCPListener.m */,
 				A60DE3BA20ADD18E0047E3A6 /* UMSocketSCTPRegistry.h */,
 				A60DE3BB20ADD18E0047E3A6 /* UMSocketSCTPRegistry.m */,
 				A60DE3C220AECB050047E3A6 /* UMSocketSCTPReceiver.h */,
@@ -335,7 +329,6 @@
 				A60DE3BC20ADD18E0047E3A6 /* UMSocketSCTPRegistry.h in Headers */,
 				A60DE3C020AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.h in Headers */,
 				A689747D1A2D4C5D00854472 /* UMSctpTask_AdminDetach.h in Headers */,
-				A695270725879F7B0089994F /* UMSocketSCTPTCPListener.h in Headers */,
 				A68974791A2D440F00854472 /* UMLayerSctpUser.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -475,7 +468,6 @@
 				A6C78DB91A294628006C66A2 /* UMSctpTask_Data.m in Sources */,
 				A6B8BE5120A9B102004D4004 /* UMSocketSCTP.m in Sources */,
 				A6C78D701A2942AB006C66A2 /* UMLayerSctp.m in Sources */,
-				A695270825879F7B0089994F /* UMSocketSCTPTCPListener.m in Sources */,
 				A689747E1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m in Sources */,
 				A6C78DC81A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m in Sources */,
 				A6C78DAA1A2945D9006C66A2 /* UMSctpTask_AdminAttach.m in Sources */,
