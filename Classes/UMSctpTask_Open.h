@@ -13,8 +13,8 @@
 
 @interface UMSctpTask_Open : UMLayerTask
 {
-    BOOL _sendAbortFirst;
-    NSString *_reason;
+    BOOL        _sendAbortFirst;
+    NSString    *_reason;
 }
 @property(readwrite,assign) BOOL sendAbortFirst;
 @property(readwrite,strong) NSString *reason;

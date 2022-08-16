@@ -150,7 +150,7 @@
     UMSctpTask_Open *task = [[UMSctpTask_Open alloc]initWithReceiver:self sender:caller];
     task.sendAbortFirst = abortFirst;
     task.reason = reason;
-    [self addEvent:[NSString stringWithFormat:@"openFor(%@) sendAbortFirst=YES reason=%@",caller.layerName, reason? reason: @"unspecified"]];
+    [self addEvent:[NSString stringWithFormat:@"openFor(%@) sendAbortFirst=YES reason=%@",caller.layerName, (reason ? reason : @"unspecified")]];
     [self queueFromUpper:task];
 }
 
