@@ -1332,8 +1332,7 @@
                 state =@"SCTP_CANT_STR_ASSOC";
                 break;
         }
-
-
+        [self addEvent:state];
         [self logDebug:[NSString stringWithFormat:@"  sac_type: %d",             (int)snp->sn_assoc_change.sac_type]];
         [self logDebug:[NSString stringWithFormat:@"  sac_flags: %d",            (int)snp->sn_assoc_change.sac_flags]];
         [self logDebug:[NSString stringWithFormat:@"  sac_length: %d",           (int)snp->sn_assoc_change.sac_length]];
@@ -2477,6 +2476,9 @@
     if(oldStatus != _status)
     {
         [self reportStatus];
+        [self addEvent:[NSString stringWithFormat:@"status change from %@ to %@",
+                        [UMLayerSctp socketStatusString:oldStatus],
+                        [UMLayerSctp socketStatusString:_status] ] ];
     }
 }
 
@@ -2485,4 +2487,22 @@
     return _status;
 }
 
++(NSString *)socketStatusString:(UMSocketStatus)s
+{
+    switch(s)
+    {
+        case UMSOCKET_STATUS_FOOS:
+            return @"M-FOOS";
+        case UMSOCKET_STATUS_OFF:
+            return  @"OFF";
+        case UMSOCKET_STATUS_OOS:
+            return @"OOS";
+            break;
+        case UMSOCKET_STATUS_IS:
+            return @"IS";
+        default:
+            return @"(bogous)";
+            break;
+    }
+}
 @end
