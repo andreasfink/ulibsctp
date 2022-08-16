@@ -603,7 +603,7 @@
             }
             if((err != EINPROGRESS) && (err != EAGAIN))
             {
-                [self powerdown];
+                [self powerdown:[NSString stringWithFormat:@"errno=%d exception:%@ %@",err,exception.name,exception.reason] ];
             }
         }
         [_linkLock unlock];
@@ -632,7 +632,7 @@
                 [self logDebug:[NSString stringWithFormat:@"closing for %@",user.layerName]];
             }
 #endif
-            [self powerdown];
+            [self powerdown:@"_closeTask"];
             if(_listenerStarted==YES)
             {
                 [_listener stopListeningFor:self];
@@ -906,7 +906,7 @@
                 }
             }
             [self reportError:errno taskData:task];
-            [self powerdown];
+            [self powerdown:@"error in _dataTask"];
             [self reportStatus];
         }
     }
@@ -919,7 +919,7 @@
         [self addEvent:@"_foosTask" ];
 
         [_linkLock lock];
-        [self powerdown];
+        [self powerdown:@"_foosTask"];
         self.status = UMSOCKET_STATUS_FOOS;
     #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <=UMLOG_DEBUG)
@@ -1021,11 +1021,23 @@
 #pragma mark -
 #pragma mark Helpers
 
-- (void) powerdown
+- (void)powerdown
+{
+    [self powerdown:NULL];
+}
+
+- (void) powerdown:(NSString *)reason
 {
     @autoreleasepool
     {
-        [self addEvent:@"powerdown" ];
+        if(reason)
+        {
+            [self addEvent:[NSString stringWithFormat:@"powerdown (reason=%@)",reason]];
+        }
+        else
+        {
+            [self addEvent:@"powerdown"];
+        }
    #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
@@ -1072,8 +1084,14 @@
 
 - (void) powerdownInReceiverThread
 {
+    [self powerdownInReceiverThread:NULL];
+}
+
+- (void) powerdownInReceiverThread:(NSString *)reason
+{
     @autoreleasepool
     {
+        [self addEvent:[NSString stringWithFormat:@"powerdownInReceiverThread %@",reason ? reason : @""]];
     #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
@@ -1161,7 +1179,7 @@
             {
                 NSLog(@"receiveData: UMSocketError_invalid_file_descriptor returned by receiveSCTP");
             }
-            [self powerdownInReceiverThread];
+            [self powerdownInReceiverThread:@"invalid_file_descriptor"];
             [self reportStatus];
         }
         else if(rx.err==UMSocketError_connection_reset)
@@ -1176,7 +1194,7 @@
 #if defined(POWER_DEBUG)
             NSLog(@"%@ powerdown due to ECONNRESET",_layerName);
 #endif
-            [self powerdownInReceiverThread];
+            [self powerdownInReceiverThread:@"ECONNRESET"];
             [self reportStatus];
         }
 
@@ -1208,7 +1226,7 @@
 #if defined(POWER_DEBUG)
             NSLog(@"%@ powerdown due to ECONNREFUSED",_layerName);
 #endif
-            [self powerdownInReceiverThread];
+            [self powerdownInReceiverThread:@"ECONNREFUSED"];
             [self reportStatus];
         }
         else if(rx.err != UMSocketError_no_error)
@@ -1217,7 +1235,7 @@
 #if defined(POWER_DEBUG)
             NSLog(@"%@ powerdown due to Error %d %@ returned by receiveSCTP",_layerName,rx.err,[UMSocket getSocketErrorString:rx.err]);
 #endif
-            [self powerdownInReceiverThread];
+            [self powerdownInReceiverThread:[NSString stringWithFormat:@"rx.err=%@",[UMSocket getSocketErrorString:rx.err]]];
             [self reportStatus];
         }
         else
@@ -1389,7 +1407,7 @@
 #if defined(POWER_DEBUG)
         NSLog(@"%@ SCTP_COMM_LOST",_layerName);
 #endif
-        [self powerdownInReceiverThread];
+        [self powerdownInReceiverThread:@"SCTP_COMM_LOST"];
         [self reportStatus];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
@@ -1406,7 +1424,7 @@
 #if defined(POWER_DEBUG)
         NSLog(@"%@ SCTP_CANT_STR_ASSOC",_layerName);
 #endif
-        [self powerdownInReceiverThread];
+        [self powerdownInReceiverThread:@"SCTP_CANT_STR_ASSOC"];
         [self reportStatus];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
@@ -1423,7 +1441,7 @@
 #if defined(POWER_DEBUG)
         NSLog(@"%@ SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)",_layerName,snp->sn_assoc_change.sac_error );
 #endif
-        [self powerdownInReceiverThread];
+        [self powerdownInReceiverThread:[NSString stringWithFormat:@"SCTP_COMM_ERROR(%d)",snp->sn_assoc_change.sac_error]];
         [self reportStatus];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
@@ -1457,7 +1475,7 @@
     NSLog(@"%@ handleLinkDownTcpEcnap",_layerName);
 #endif
 
-    [self powerdownInReceiverThread];
+    [self powerdownInReceiverThread:@"handleLinkDownTcpEcnap"];
     [self reportStatus];
     [_reconnectTimer start];
 }
@@ -1590,7 +1608,7 @@
 #if defined(POWER_DEBUG)
         NSLog(@"%@ SCTP_SEND_FAILED(size mismatch)",_layerName);
 #endif
-        [self powerdownInReceiverThread];
+        [self powerdownInReceiverThread:@"Size Mismatch in SCTP_SEND_FAILED"];
         [self reportStatus];
         return UMSocketError_not_supported_operation;
     }
@@ -1619,7 +1637,7 @@
 #if defined(POWER_DEBUG)
     NSLog(@"%@ SCTP_SEND_FAILED len=%u err=%d\n",_layerName,snp->sn_send_failed.ssf_length,snp->sn_send_failed.ssf_error);
 #endif
-    [self powerdownInReceiverThread];
+    [self powerdownInReceiverThread:@"SCTP_SEND_FAILED"];
     [self reportStatus];
     return -1;
 }
@@ -1647,7 +1665,7 @@
 #if defined(POWER_DEBUG)
         NSLog(@"%@  Size Mismatch in SCTP_SHUTDOWN_EVENT",_layerName);
 #endif
-        [self powerdownInReceiverThread];
+        [self powerdownInReceiverThread:@"Size Mismatch in SCTP_SHUTDOWN_EVENT"];
         [self reportStatus];
         return UMSocketError_not_supported_operation;
     }
@@ -1665,7 +1683,7 @@
 #if defined(POWER_DEBUG)
     NSLog(@"%@  SCTP_SHUTDOWN_EVENT->POWERDOWN",_layerName);
 #endif
-    [self powerdownInReceiverThread];
+    [self powerdownInReceiverThread:@"SCTP_SHUTDOWN_EVENT"];
     [self reportStatus];
     return -1;
 }
@@ -1693,7 +1711,7 @@
 #if defined(POWER_DEBUG)
         NSLog(@"%@  Size Mismatch in SCTP_ADAPTATION_INDICATION",_layerName);
 #endif
-        [self powerdownInReceiverThread];
+        [self powerdownInReceiverThread:@"Size mismatch in SCTP_ADAPTATION_INDICATION"];
         [self reportStatus];
         return UMSocketError_not_supported_operation;
     }
@@ -1733,7 +1751,7 @@
         NSLog(@"%@  SCTP_PARTIAL_DELIVERY_EVENT",_layerName);
 #endif
 
-        [self powerdownInReceiverThread];
+        [self powerdownInReceiverThread:@"Size mismatch in SCTP_PARTIAL_DELIVERY_EVENT"];
         [self reportStatus];
         return UMSocketError_not_supported_operation;
     }
@@ -1777,7 +1795,7 @@
         NSLog(@"%@  Size Mismatch in SCTP_AUTHENTICATION_EVENT",_layerName);
 #endif
 
-        [self powerdownInReceiverThread];
+        [self powerdownInReceiverThread:@"Size mismatch in SCTP_AUTHENTICATION_EVENT"];
         [self reportStatus];
         return UMSocketError_not_supported_operation;
     }
@@ -1831,7 +1849,7 @@
         NSLog(@"%@  Size Mismatch in SCTP_STREAM_RESET_EVENT",_layerName);
 #endif
 
-        [self powerdownInReceiverThread];
+        [self powerdownInReceiverThread:@"Size mismatch in SCTP_STREAM_RESET_EVENT"];
         [self reportStatus];
         return UMSocketError_not_supported_operation;
     }
@@ -1876,7 +1894,7 @@
 #if defined(POWER_DEBUG)
     NSLog(@"%@ Size Mismatch in SCTP_SENDER_DRY_EVENT",_layerName);
 #endif
-        [self powerdownInReceiverThread];
+        [self powerdownInReceiverThread:@"Size mismatch in SCTP_SENDER_DRY_EVENT"];
         [self reportStatus];
         return UMSocketError_not_supported_operation;
     }
@@ -1918,7 +1936,7 @@
 #if defined(POWER_DEBUG)
             NSLog(@"%@ RXT: USER instance not found. Maybe not bound yet?",_layerName);
 #endif
-            [self powerdownInReceiverThread];
+            [self powerdownInReceiverThread:@"USER instance not found. Maybe not bound yet"];
             [self reportStatus];
             return UMSocketError_no_buffers;
         }
@@ -2273,11 +2291,12 @@
 #if defined(POWER_DEBUG)
             NSLog(@"%@ processError: %d %@",_layerName,err, [UMSocket getSocketErrorString:err]);
 #endif
-            [self powerdown];
+            [self powerdown:[NSString stringWithFormat:@"_processError %@",[UMSocket getSocketErrorString:err]]];
             [self reportStatus];
         }
     }
-}
+} ;
+
 
 
 - (void)processHangUp
@@ -2291,7 +2310,7 @@
 #if defined(POWER_DEBUG)
             NSLog(@"%@ processHangUp",_layerName);
 #endif
-        [self powerdown];
+        [self powerdown:@"processHangUp"];
         [self reportStatus];
     }
 }
@@ -2308,7 +2327,7 @@
 #if defined(POWER_DEBUG)
         NSLog(@"%@ processInvalidSocket",_layerName);
 #endif
-        [self powerdown];
+        [self powerdown:@"processInvalidSocket"];
         [self reportStatus];
     }
 }

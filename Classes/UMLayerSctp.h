@@ -172,7 +172,8 @@
 #pragma mark -
 #pragma mark Helpers
 
-- (void)powerdown;
+- (void) powerdown;
+- (void) powerdown:(NSString *)reason;
 - (void) powerdownInReceiverThread;
 - (void)reportStatus;
 #pragma mark -
