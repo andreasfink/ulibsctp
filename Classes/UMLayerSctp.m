@@ -142,16 +142,29 @@
 
 - (void)openFor:(id<UMLayerSctpUserProtocol>)caller sendAbortFirst:(BOOL)abortFirst
 {
+    [self openFor:caller sendAbortFirst:abortFirst reason:NULL];
+}
+
+- (void)openFor:(id<UMLayerSctpUserProtocol>)caller sendAbortFirst:(BOOL)abortFirst reason:(NSString *)reason
+{
     UMSctpTask_Open *task = [[UMSctpTask_Open alloc]initWithReceiver:self sender:caller];
     task.sendAbortFirst = abortFirst;
-    [self addEvent:[NSString stringWithFormat:@"openFor(%@) sendAbortFirst=YES",caller.layerName]];
+    task.reason = reason;
+    [self addEvent:[NSString stringWithFormat:@"openFor(%@) sendAbortFirst=YES reason=%@",caller.layerName, reason? reason: @"unspecified"]];
     [self queueFromUpper:task];
 }
 
 - (void)closeFor:(id<UMLayerSctpUserProtocol>)caller
 {
-    [self addEvent:[NSString stringWithFormat:@"closeFor(%@)",caller.layerName]];
+    [self closeFor:caller reason:NULL];
+}
+
+- (void)closeFor:(id<UMLayerSctpUserProtocol>)caller reason:(NSString *)reason
+{
+    [self addEvent:[NSString stringWithFormat:@"closeFor(%@) reason=%@",caller.layerName,reason? reason: @"unspecified"]];
     UMSctpTask_Close *task = [[UMSctpTask_Close alloc]initWithReceiver:self sender:caller];
+    task.reason = reason;
+
     [self queueFromUpper:task];
    
 }

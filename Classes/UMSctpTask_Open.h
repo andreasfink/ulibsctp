@@ -14,8 +14,10 @@
 @interface UMSctpTask_Open : UMLayerTask
 {
     BOOL _sendAbortFirst;
+    NSString *_reason;
 }
 @property(readwrite,assign) BOOL sendAbortFirst;
+@property(readwrite,strong) NSString *reason;
 
 - (UMSctpTask_Open *)initWithReceiver:(UMLayerSctp *)rx sender:(id<UMLayerSctpUserProtocol>)tx;
 - (void)main;

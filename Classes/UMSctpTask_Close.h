@@ -11,6 +11,10 @@
 @class UMLayerSctp;
 
 @interface UMSctpTask_Close : UMLayerTask
+{
+    NSString *_reason;
+}
+@property(readwrite,strong,atomic) NSString *reason;
 
 - (UMSctpTask_Close *)initWithReceiver:(UMLayerSctp *)rx sender:(id<UMLayerSctpUserProtocol>)tx;
 - (void)main;
