@@ -59,6 +59,12 @@
     if(self)
     {
         _newDestination = YES;
+        _lastEventLock = [[UMMutex alloc]initWithName:@"last-event-lock"];
+        for(int i=0;i<MAX_SCTP_EVENTS;i++)
+        {
+            _lastEvent[i]=@"";
+        }
+        [self addEvent:@"init"];
     }
     return self;
 }
@@ -72,7 +78,7 @@
         _timeoutInMs = 2400;
         _heartbeatSeconds = 30.0;
         _users = [[UMSynchronizedArray alloc]init];
-        self.status = UMSOCKET_STATUS_OFF;
+        _status = UMSOCKET_STATUS_OFF;
         _newDestination = YES;
         _inboundThroughputPackets   = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
         _inboundThroughputBytes     = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
@@ -82,7 +88,12 @@
         _reconnectTimer = [[UMTimer alloc]initWithTarget:self selector:@selector(reconnectTimerFires) object:NULL seconds:_reconnectTimerValue name:@"reconnect-timer" repeats:NO runInForeground:YES];
         NSString *lockName = [NSString stringWithFormat:@"sctp-layer-link-lock(%@)",name];
         _linkLock = [[UMMutex alloc]initWithName:lockName];
-
+        _lastEventLock = [[UMMutex alloc]initWithName:@"last-event-lock"];
+        for(int i=0;i<MAX_SCTP_EVENTS;i++)
+        {
+            _lastEvent[i]=@"";
+        }
+        [self addEvent:@"initWithTaskQueueMulti"];
     }
     return self;
 }
@@ -125,6 +136,7 @@
 
 - (void)openFor:(id<UMLayerSctpUserProtocol>)caller
 {
+    [self addEvent:[NSString stringWithFormat:@"openFor(%@)",caller.layerName]];
     [self openFor:caller sendAbortFirst:NO];
 }
 
@@ -132,11 +144,13 @@
 {
     UMSctpTask_Open *task = [[UMSctpTask_Open alloc]initWithReceiver:self sender:caller];
     task.sendAbortFirst = abortFirst;
+    [self addEvent:[NSString stringWithFormat:@"openFor(%@) sendAbortFirst=YES",caller.layerName]];
     [self queueFromUpper:task];
 }
 
 - (void)closeFor:(id<UMLayerSctpUserProtocol>)caller
 {
+    [self addEvent:[NSString stringWithFormat:@"closeFor(%@)",caller.layerName]];
     UMSctpTask_Close *task = [[UMSctpTask_Close alloc]initWithReceiver:self sender:caller];
     [self queueFromUpper:task];
    
@@ -185,6 +199,7 @@
 
 - (void)foosFor:(id<UMLayerSctpUserProtocol>)caller
 {
+    [self addEvent:[NSString stringWithFormat:@"foosFor(%@)",caller.layerName]];
     @autoreleasepool
     {
         UMSctpTask_Manual_ForceOutOfService *task =
@@ -195,6 +210,7 @@
 
 - (void)isFor:(id<UMLayerSctpUserProtocol>)caller
 {
+    [self addEvent:[NSString stringWithFormat:@"isFor(%@)",caller.layerName]];
     @autoreleasepool
     {
         UMSctpTask_Manual_InService *task =
@@ -278,6 +294,8 @@
 {
     @autoreleasepool
     {
+        [self addEvent:@"_openTask"];
+
         uint32_t        tmp_assocId = 0;
         BOOL sendAbort = task.sendAbortFirst;
         
@@ -305,7 +323,7 @@
             {
                 [self logMinorError:@"already establishing"];
             }
-            else if(self.status == UMSOCKET_STATUS_IS)
+            else if(self.status== UMSOCKET_STATUS_IS)
             {
                 [self logMinorError:@"already in service"];
             }
@@ -590,6 +608,7 @@
 {
     @autoreleasepool
     {
+        [self addEvent:@"_closeTask"];
         [_linkLock lock];
         @try
         {
@@ -625,6 +644,8 @@
 
 - (void)reportError:(int)err taskData:(UMSctpTask_Data *)task
 {
+    [self addEvent:[NSString stringWithFormat:@"reportError(%d)",err] ];
+
     id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
 
     NSString *errString=NULL;
@@ -882,6 +903,8 @@
 {
     @autoreleasepool
     {
+        [self addEvent:@"_foosTask" ];
+
         [_linkLock lock];
         [self powerdown];
         self.status = UMSOCKET_STATUS_FOOS;
@@ -903,6 +926,8 @@
 {
     @autoreleasepool
     {
+        [self addEvent:@"_isTask" ];
+
         id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
 
         switch(self.status)
@@ -987,15 +1012,16 @@
 {
     @autoreleasepool
     {
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
+        [self addEvent:@"powerdown" ];
+   #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
             [self.logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
         }
     #endif
         //[_receiverThread shutdownBackgroundTask];
-        self.status = UMSOCKET_STATUS_OOS;
-        self.status = UMSOCKET_STATUS_OFF;
+        self.status= UMSOCKET_STATUS_OOS;
+        self.status= UMSOCKET_STATUS_OFF;
         if(_assocId!=NULL)
         {
             [_registry unregisterAssoc:_assocId];
@@ -1041,7 +1067,7 @@
             [self.logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
         }
     #endif
-        self.status = UMSOCKET_STATUS_OFF;
+        self.status= UMSOCKET_STATUS_OFF;
         if(_assocId!=NULL)
         {
             [_registry unregisterAssoc:_assocId];
@@ -1185,7 +1211,7 @@
         {
             if(rx.flags & SCTP_OVER_TCP_SETUP_CONFIRM)
             {
-                self.status = UMSOCKET_STATUS_IS;
+                self.status= UMSOCKET_STATUS_IS;
 #if defined(POWER_DEBUG)
                 NSLog(@"%@ SCTP_OVER_TCP_SETUP_CONFIRM",_layerName);
 #endif
@@ -1323,7 +1349,7 @@
         _listener.firstMessage=YES;
         _assocId = @(snp->sn_assoc_change.sac_assoc_id);
         [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS (assocID=%ld)",(long)_assocId]];
-        self.status = UMSOCKET_STATUS_IS;
+        self.status= UMSOCKET_STATUS_IS;
         if(_directSocket==NULL)
         {
             UMSocketError err = UMSocketError_no_error;
@@ -1399,7 +1425,7 @@
 -(void) handleLinkUpTcpEcnap
 {
     [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_TCP_ASSOC_CHANGE: SCTP_COMM_UP->IS"]];
-    self.status=UMSOCKET_STATUS_IS;
+    self.status = UMSOCKET_STATUS_IS;
     [_reconnectTimer stop];
 #if defined(POWER_DEBUG)
     NSLog(@"%@ handleLinkUpTcpEcnap",_layerName);
@@ -1412,7 +1438,7 @@
 {
     _listener.firstMessage=YES;
     [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_TCP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF"]];
-    self.status=UMSOCKET_STATUS_OFF;
+    self.status = UMSOCKET_STATUS_OFF;
 #if defined(POWER_DEBUG)
     NSLog(@"%@ handleLinkDownTcpEcnap",_layerName);
 #endif
@@ -1805,7 +1831,7 @@
     }
 #endif
     
-    self.status = UMSOCKET_STATUS_OFF;
+    self.status= UMSOCKET_STATUS_OFF;
 #if defined(POWER_DEBUG)
     NSLog(@"%@ handleStreamResetEvent",_layerName);
 #endif
@@ -1884,7 +1910,7 @@
         }
 
         /* if for whatever reason we have not realized we are in service yet, let us realize it now */
-        if(self.status != UMSOCKET_STATUS_IS)
+        if(self.status!= UMSOCKET_STATUS_IS)
         {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <= UMLOG_DEBUG)
@@ -1895,7 +1921,7 @@
 #if defined(POWER_DEBUG)
             NSLog(@"%@ receiving data: force change status to IS",_layerName);
 #endif
-            self.status = UMSOCKET_STATUS_IS;
+            self.status= UMSOCKET_STATUS_IS;
             [self reportStatus];
         }
 
@@ -2113,7 +2139,7 @@
     @autoreleasepool
     {
         NSMutableDictionary *d = [[NSMutableDictionary alloc]init];
-        switch(_status)
+        switch(self.status)
         {
             case UMSOCKET_STATUS_FOOS:
                 d[@"status"] = @"M-FOOS";
@@ -2128,7 +2154,7 @@
                 d[@"status"] = @"IS";
                 break;
             default:
-                d[@"status"] = [NSString stringWithFormat:@"unknown(%d)",_status];
+                d[@"status"] = [NSString stringWithFormat:@"unknown(%d)",self.status];
                 break;
         }
         d[@"name"] = self.layerName;
@@ -2173,7 +2199,7 @@
 
 - (NSString *)statusString
 {
-    return [UMSocket statusDescription:_status];
+    return [UMSocket statusDescription:self.status];
 }
 
 -(void)dealloc
@@ -2203,7 +2229,7 @@
         }
         else
         {
-            if(_status != UMSOCKET_STATUS_IS)
+            if(self.status != UMSOCKET_STATUS_IS)
             {
                 uint32_t xassocId = 0;
                 [_listener connectToAddresses:_configured_remote_addresses
@@ -2385,7 +2411,7 @@
     dict[@"max-init-timeout"] = @(_maxInitTimeout);
     dict[@"max-init-attempts"] = @(_maxInitAttempts);
 
-    switch(_status)
+    switch(self.status)
     {
         case UMSOCKET_STATUS_FOOS:
             dict[@"sctp-socket-status"] = @"UMSOCKET_STATUS_FOOS";
@@ -2419,7 +2445,44 @@
         [a addObject:dict];
     }
     dict[@"users"] = a;
+    for(int i=0;i<MAX_SCTP_EVENTS;i++)
+    {
+        NSString *event = _lastEvent[i];
+        if(event)
+        {
+            [a addObject:event];
+        }
+    }
+    dict[@"last-events"] = a;
+
     return dict;
+}
+
+- (void)addEvent:(NSString *)s
+{
+    [_lastEventLock lock];
+    for(int i=MAX_SCTP_EVENTS-1;i>0;i--)
+    {
+        _lastEvent[i] = _lastEvent[i-1];
+    }
+    _lastEvent[0] =s;
+    [_lastEventLock unlock];
+}
+
+
+-(void)setStatus:(UMSocketStatus)s
+{
+    UMSocketStatus oldStatus = _status;
+    _status = s;
+    if(oldStatus != _status)
+    {
+        [self reportStatus];
+    }
+}
+
+-(UMSocketStatus)status
+{
+    return _status;
 }
 
 @end

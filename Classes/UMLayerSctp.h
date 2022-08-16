@@ -25,6 +25,8 @@
 @class UMSocketSCTPRegistry;
 @class UMSocketSCTPListener;
 
+#define     MAX_SCTP_EVENTS     20
+
 @interface UMLayerSctp : UMLayer
 {
     UMSynchronizedArray *_users;
@@ -71,6 +73,9 @@
     NSString            *_encapsulatedOverTcpSessionKey;
     int                 _minReceiveBufferSize;
     int                 _minSendBufferSize;
+    
+    NSString            *_lastEvent[MAX_SCTP_EVENTS];
+    UMMutex             *_lastEventLock;
 }
 
 
@@ -78,7 +83,9 @@
 @property(readwrite,strong) NSDate          *startButtonPressed;
 @property(readwrite,strong) NSDate          *stopButtonPressed;
 
-@property(readwrite,assign,atomic) UMSocketStatus     status;
+-(void)setStatus:(UMSocketStatus)s;
+-(UMSocketStatus)status;
+
 //@property(readwrite,strong) UMBackgrounder  *receiverThread;
 @property(readonly,strong,atomic)      UMMutex *linkLock;
 
