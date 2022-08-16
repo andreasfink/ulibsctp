@@ -465,12 +465,12 @@
             #if defined(ULIBSCTP_CONFIG_DEBUG)
                                     [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
             #endif
-
-                                    if((err != UMSocketError_no_error)
-                                    && (err !=UMSocketError_in_progress))
+                                    if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
                                     {
                                         [_directSocket close];
                                         _directSocket = NULL;
+                                        [_registry unregisterAssoc:_assocId];
+                                        _assocId=NULL;
                                     }
                                 }
                             }
@@ -1013,6 +1013,8 @@
             if(_directSocket)
             {
                 [_directSocket close];
+                [_registry unregisterAssoc:_assocId];
+                _assocId=NULL;
                 [_registry unregisterLayer:self];
             }
             if(_directTcpEncapsulatedSocket)
@@ -1046,6 +1048,8 @@
             _assocId = NULL;
         }
         [_directSocket close];
+        [_registry unregisterAssoc:_assocId];
+        _assocId=NULL;
         _directSocket = NULL;
     }
 }
@@ -1097,6 +1101,8 @@
             if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
             {
                 [_directSocket close];
+                [_registry unregisterAssoc:_assocId];
+                _assocId=NULL;
                 _directSocket = NULL;
                 _assocId = NULL;
             }
@@ -1325,6 +1331,8 @@
             if(err != UMSocketError_no_error)
             {
                 _directSocket = NULL;
+                [_registry unregisterAssoc:_assocId];
+                _assocId=NULL;
             }
             [_registry registerIncomingLayer:self];
         }
@@ -1349,6 +1357,7 @@
             [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",_reconnectTimer.seconds]];
         }
 #endif
+        [_reconnectTimer stop];
         [_reconnectTimer start];
     }
     else if(snp->sn_assoc_change.sac_state==SCTP_CANT_STR_ASSOC)
@@ -1365,6 +1374,7 @@
             [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",_reconnectTimer.seconds]];
         }
 #endif
+        [_reconnectTimer stop];
         [_reconnectTimer start];
     }
     else if(snp->sn_assoc_change.sac_error!=0)
@@ -1381,6 +1391,8 @@
             [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",_reconnectTimer.seconds]];
         }
 #endif
+        [_reconnectTimer stop];
+        [_reconnectTimer start];
     }
 }
 
@@ -2184,17 +2196,25 @@
         }
     #endif
         [_reconnectTimer stop];
-        if(_status != UMSOCKET_STATUS_IS)
+        if(_isPassive)
         {
-            uint32_t xassocId = 0;
-            [_listener connectToAddresses:_configured_remote_addresses
-                                     port:_configured_remote_port
-                                    assoc:&xassocId
-                                    layer:self];
-            if(xassocId != 0)
+            [_listener startListeningFor:self];
+            _listenerStarted = _listener.isListening;
+        }
+        else
+        {
+            if(_status != UMSOCKET_STATUS_IS)
             {
-                _assocId = @(xassocId);
-                [_registry registerAssoc:_assocId forLayer:self];
+                uint32_t xassocId = 0;
+                [_listener connectToAddresses:_configured_remote_addresses
+                                         port:_configured_remote_port
+                                        assoc:&xassocId
+                                        layer:self];
+                if(xassocId != 0)
+                {
+                    _assocId = @(xassocId);
+                    [_registry registerAssoc:_assocId forLayer:self];
+                }
             }
         }
     }
