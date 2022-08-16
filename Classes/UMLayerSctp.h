@@ -195,4 +195,7 @@
 
 - (BOOL)isPathMtuDiscoveryEnabled;
 - (int)currentMtu;
+
+- (UMSynchronizedSortedDictionary *)sctpStatusDict;
+
 @end

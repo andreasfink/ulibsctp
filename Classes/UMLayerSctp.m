@@ -2310,4 +2310,96 @@
     return _directSocket.currentMtu;
 }
 
+
+- (UMSynchronizedSortedDictionary *)sctpStatusDict
+{
+    UMSynchronizedSortedDictionary *dict = [[UMSynchronizedSortedDictionary alloc]init];
+    
+    dict[@"name"] = self.layerName;
+    dict[@"listener"] = _listener.name;
+    if(_directSocket)
+    {
+        dict[@"direct-socket"] = [_directSocket description];
+    }
+    else
+    {
+        dict[@"direct-socket"] = @"(null)";
+    }
+    dict[@"configured-local-port"] = @(_configured_local_port);
+    dict[@"configured-remote-port"] = @(_configured_remote_port);
+    dict[@"active-local-port"] = @(_active_local_port);
+    dict[@"active-remote-port"] = @(_active_remote_port);
+
+    if(_configured_local_addresses)
+    {
+        dict[@"configured-local-addresses"] = _configured_local_addresses;
+    }
+    if(_configured_remote_addresses)
+    {
+        dict[@"configured-remote-addresses"] = _configured_remote_addresses;
+    }
+    if(_active_local_addresses)
+    {
+        dict[@"active-local-addresses"] = _active_local_addresses;
+    }
+    if(_active_remote_addresses)
+    {
+        dict[@"active-remote-addresses"] = _active_remote_addresses;
+    }
+    if(_reconnectTimer)
+    {
+        dict[@"reconnect-timer"] = [_reconnectTimer timerDescription];
+    }
+    dict[@"reconnect-timer-value"] = @(_reconnectTimerValue);
+    dict[@"heartbeat-seconds"] = @(_heartbeatSeconds);
+
+    dict[@"poll-timeout"] = @(_timeoutInMs/1000.0);
+    dict[@"passive"] = @(_isPassive);
+    if(_dscp)
+    {
+        dict[@"dscp"] = _dscp;
+    }
+    dict[@"listener-started"] = @(_listenerStarted);
+    dict[@"is-invalid"] = @(_isInvalid);
+    dict[@"new-Destination"] = @(_newDestination);
+    dict[@"max-init-timeout"] = @(_maxInitTimeout);
+    dict[@"max-init-attempts"] = @(_maxInitAttempts);
+
+    switch(_status)
+    {
+        case UMSOCKET_STATUS_FOOS:
+            dict[@"sctp-socket-status"] = @"UMSOCKET_STATUS_FOOS";
+            break;
+        case UMSOCKET_STATUS_OFF:
+            dict[@"sctp-socket-status"] = @"UMSOCKET_STATUS_OFF";
+            break;
+        case UMSOCKET_STATUS_OOS:
+            dict[@"sctp-socket-status"] = @"UMSOCKET_STATUS_OOS";
+            break;
+        case UMSOCKET_STATUS_IS:
+            dict[@"sctp-socket-status"] = @"UMSOCKET_STATUS_IS";
+            break;
+        case UMSOCKET_STATUS_LISTENING:
+            dict[@"sctp-socket-status"] = @"UMSOCKET_STATUS_LISTENING";
+            break;
+    }
+    dict[@"encapsualted-over-tcp"] = @(_encapsulatedOverTcp);
+    if(_encapsulatedOverTcpSessionKey)
+    {
+        dict[@"encapsualted-over-tcp-session-key"] = _encapsulatedOverTcpSessionKey;
+    }
+    dict[@"min-receive-buffer-size"] = @(_minReceiveBufferSize);
+    dict[@"min-send-buffer-size"] = @(_minSendBufferSize);
+    
+    NSMutableArray *a = [[NSMutableArray alloc]init];
+    for(UMLayerSctpUser *u in _users)
+    {
+        UMSynchronizedSortedDictionary *dict = [[UMSynchronizedSortedDictionary alloc]init];
+        dict[@"name"] = u.user.layerName;
+        [a addObject:dict];
+    }
+    dict[@"users"] = a;
+    return dict;
+}
+
 @end
