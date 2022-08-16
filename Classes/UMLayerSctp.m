@@ -1310,29 +1310,31 @@
     {
         [self.logFeed majorErrorText:@" Size Mismatch in SCTP_ASSOC_CHANGE"];
     }
+    
+    NSString *state = @"(UNKNOWN)";
+    switch(snp->sn_assoc_change.sac_state)
+    {
+        case SCTP_COMM_UP:
+            state =@"SCTP_COMM_UP";
+            break;
+        case SCTP_COMM_LOST:
+            state =@"SCTP_COMM_LOST";
+            break;
+        case SCTP_RESTART:
+            state =@"SCTP_RESTART";
+            break;
+        case SCTP_SHUTDOWN_COMP:
+            state =@"SCTP_SHUTDOWN_COMP";
+            break;
+        case SCTP_CANT_STR_ASSOC:
+            state =@"SCTP_CANT_STR_ASSOC";
+            break;
+    }
+    [self addEvent:state];
+    
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(self.logLevel <= UMLOG_DEBUG)
     {
-        NSString *state = @"(UNKNOWN)";
-        switch(snp->sn_assoc_change.sac_state)
-        {
-            case SCTP_COMM_UP:
-                state =@"SCTP_COMM_UP";
-                break;
-            case SCTP_COMM_LOST:
-                state =@"SCTP_COMM_LOST";
-                break;
-            case SCTP_RESTART:
-                state =@"SCTP_RESTART";
-                break;
-            case SCTP_SHUTDOWN_COMP:
-                state =@"SCTP_SHUTDOWN_COMP";
-                break;
-            case SCTP_CANT_STR_ASSOC:
-                state =@"SCTP_CANT_STR_ASSOC";
-                break;
-        }
-        [self addEvent:state];
         [self logDebug:[NSString stringWithFormat:@"  sac_type: %d",             (int)snp->sn_assoc_change.sac_type]];
         [self logDebug:[NSString stringWithFormat:@"  sac_flags: %d",            (int)snp->sn_assoc_change.sac_flags]];
         [self logDebug:[NSString stringWithFormat:@"  sac_length: %d",           (int)snp->sn_assoc_change.sac_length]];
@@ -2444,10 +2446,12 @@
         [a addObject:dict];
     }
     dict[@"users"] = a;
+    
+    a = [[NSMutableArray alloc]init];
     for(int i=0;i<MAX_SCTP_EVENTS;i++)
     {
         NSString *event = _lastEvent[i];
-        if(event)
+        if(event.length > 0)
         {
             [a addObject:event];
         }
