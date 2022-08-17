@@ -71,9 +71,7 @@
     NSString            *_encapsulatedOverTcpSessionKey;
     int                 _minReceiveBufferSize;
     int                 _minSendBufferSize;
-    UMHistoryLog        *_events;
 }
-
 
 //@property(readwrite,strong) UMSocketSCTP    *sctpSocket;
 @property(readwrite,strong) NSDate          *startButtonPressed;
@@ -105,7 +103,7 @@
 @property(readwrite,strong,atomic)      UMThroughputCounter *inboundThroughputBytes;
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputPackets;
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputBytes;
-@property(readwrite,strong) UMSocketSCTPRegistry *registry;
+@property(readwrite,strong,atomic)      UMSocketSCTPRegistry *registry;
 @property(readwrite,strong) UMSocketSCTPListener *listener;
 @property(readwrite,strong) NSNumber    *assocId;
 @property(readwrite,assign) int         mtu;
@@ -203,6 +201,5 @@
 - (int)currentMtu;
 
 - (UMSynchronizedSortedDictionary *)sctpStatusDict;
-- (void)addEvent:(NSString *)string;
 
 @end

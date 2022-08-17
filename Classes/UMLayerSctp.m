@@ -59,8 +59,7 @@
     if(self)
     {
         _newDestination = YES;
-        _events = [[UMHistoryLog alloc]initWithMaxLines:100];
-        [_events addLogEntry:@"init"];
+        [self addToLayerHistoryLog:@"init"];
     }
     return self;
 }
@@ -84,8 +83,7 @@
         _reconnectTimer = [[UMTimer alloc]initWithTarget:self selector:@selector(reconnectTimerFires) object:NULL seconds:_reconnectTimerValue name:@"reconnect-timer" repeats:NO runInForeground:YES];
         NSString *lockName = [NSString stringWithFormat:@"sctp-layer-link-lock(%@)",name];
         _linkLock = [[UMMutex alloc]initWithName:lockName];
-        _events = [[UMHistoryLog alloc]initWithMaxLines:100];
-        [_events addLogEntry:@"initWithTaskQueueMulti"];
+        [self addToLayerHistoryLog:@"initWithTaskQueueMulti"];
     }
     return self;
 }
@@ -128,7 +126,7 @@
 
 - (void)openFor:(id<UMLayerSctpUserProtocol>)caller
 {
-    [_events addLogEntry:[NSString stringWithFormat:@"openFor(%@)",caller.layerName]];
+    [self addToLayerHistoryLog:[NSString stringWithFormat:@"openFor(%@)",caller.layerName]];
     [self openFor:caller sendAbortFirst:NO];
 }
 
@@ -142,7 +140,7 @@
     UMSctpTask_Open *task = [[UMSctpTask_Open alloc]initWithReceiver:self sender:caller];
     task.sendAbortFirst = abortFirst;
     task.reason = reason;
-    [_events addLogEntry:[NSString stringWithFormat:@"openFor(%@) sendAbortFirst=YES reason=%@",caller.layerName, (reason ? reason : @"unspecified")]];
+    [self addToLayerHistoryLog:[NSString stringWithFormat:@"openFor(%@) sendAbortFirst=YES reason=%@",caller.layerName, (reason ? reason : @"unspecified")]];
     [self queueFromUpper:task];
 }
 
@@ -153,7 +151,7 @@
 
 - (void)closeFor:(id<UMLayerSctpUserProtocol>)caller reason:(NSString *)reason
 {
-    [_events addLogEntry:[NSString stringWithFormat:@"closeFor(%@) reason=%@",caller.layerName,reason? reason: @"unspecified"]];
+    [self addToLayerHistoryLog:[NSString stringWithFormat:@"closeFor(%@) reason=%@",caller.layerName,reason? reason: @"unspecified"]];
     UMSctpTask_Close *task = [[UMSctpTask_Close alloc]initWithReceiver:self sender:caller];
     task.reason = reason;
 
@@ -204,7 +202,7 @@
 
 - (void)foosFor:(id<UMLayerSctpUserProtocol>)caller
 {
-    [_events addLogEntry:[NSString stringWithFormat:@"foosFor(%@)",caller.layerName]];
+    [self addToLayerHistoryLog:[NSString stringWithFormat:@"foosFor(%@)",caller.layerName]];
     @autoreleasepool
     {
         UMSctpTask_Manual_ForceOutOfService *task =
@@ -215,7 +213,7 @@
 
 - (void)isFor:(id<UMLayerSctpUserProtocol>)caller
 {
-    [_events addLogEntry:[NSString stringWithFormat:@"isFor(%@)",caller.layerName]];
+    [self addToLayerHistoryLog:[NSString stringWithFormat:@"isFor(%@)",caller.layerName]];
     @autoreleasepool
     {
         UMSctpTask_Manual_InService *task =
@@ -299,7 +297,7 @@
 {
     @autoreleasepool
     {
-        [_events addLogEntry:@"_openTask"];
+        [self addToLayerHistoryLog:@"_openTask"];
 
         uint32_t        tmp_assocId = 0;
         BOOL sendAbort = task.sendAbortFirst;
@@ -613,7 +611,7 @@
 {
     @autoreleasepool
     {
-        [_events addLogEntry:@"_closeTask"];
+        [self addToLayerHistoryLog:@"_closeTask"];
         [_linkLock lock];
         @try
         {
@@ -649,7 +647,7 @@
 
 - (void)reportError:(int)err taskData:(UMSctpTask_Data *)task
 {
-    [_events addLogEntry:[NSString stringWithFormat:@"reportError(%d)",err] ];
+    [self addToLayerHistoryLog:[NSString stringWithFormat:@"reportError(%d)",err] ];
 
     id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
 
@@ -908,7 +906,7 @@
 {
     @autoreleasepool
     {
-        [_events addLogEntry:@"_foosTask" ];
+        [self addToLayerHistoryLog:@"_foosTask" ];
 
         [_linkLock lock];
         [self powerdown:@"_foosTask"];
@@ -931,7 +929,7 @@
 {
     @autoreleasepool
     {
-        [_events addLogEntry:@"_isTask" ];
+        [self addToLayerHistoryLog:@"_isTask" ];
 
         id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
 
@@ -1024,11 +1022,11 @@
     {
         if(reason)
         {
-            [_events addLogEntry:[NSString stringWithFormat:@"powerdown (reason=%@)",reason]];
+            [self addToLayerHistoryLog:[NSString stringWithFormat:@"powerdown (reason=%@)",reason]];
         }
         else
         {
-            [_events addLogEntry:@"powerdown"];
+            [self addToLayerHistoryLog:@"powerdown"];
         }
    #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
@@ -1083,7 +1081,7 @@
 {
     @autoreleasepool
     {
-        [_events addLogEntry:[NSString stringWithFormat:@"powerdownInReceiverThread %@",reason ? reason : @""]];
+        [self addToLayerHistoryLog:[NSString stringWithFormat:@"powerdownInReceiverThread %@",reason ? reason : @""]];
     #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
@@ -1353,7 +1351,7 @@
             state =@"SCTP_CANT_STR_ASSOC";
             break;
     }
-    [_events addLogEntry:state];
+    [self addToLayerHistoryLog:state];
     
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(self.logLevel <= UMLOG_DEBUG)
@@ -2470,13 +2468,8 @@
         [a addObject:dict];
     }
     dict[@"users"] = a;
-    dict[@"last-events"] = [_events getLogArrayWithDatesAndOrder:YES];
+    dict[@"last-events"] = [_layerHistory getLogArrayWithDatesAndOrder:YES];
     return dict;
-}
-
-- (void)addEvent:(NSString *)string
-{
-    [_events addLogEntry:string];
 }
 
 -(void)setStatus:(UMSocketStatus)s
@@ -2486,7 +2479,7 @@
     if(oldStatus != _status)
     {
         [self reportStatus];
-        [_events addLogEntry:[NSString stringWithFormat:@"status change from %@ to %@",
+        [self addToLayerHistoryLog:[NSString stringWithFormat:@"status change from %@ to %@",
                         [UMLayerSctp socketStatusString:oldStatus],
                         [UMLayerSctp socketStatusString:_status] ] ];
     }
