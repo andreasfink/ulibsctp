@@ -349,6 +349,7 @@
                 {
                     if(_isPassive)
                     {
+                        [_layerHistory addLogEntry:@"getOrAddTcpListenerForPort"];
                         _listener = [_registry getOrAddTcpListenerForPort:_configured_local_port];
                     }
                     else
@@ -358,6 +359,7 @@
                 }
                 else
                 {
+                    [_layerHistory addLogEntry:@"getOrAddListenerForPort"];
                     _listener =  [_registry getOrAddListenerForPort:_configured_local_port localIps:_configured_local_addresses];
                 }
                 _listener.mtu = _mtu;
@@ -604,8 +606,6 @@
         [self reportStatus];
     }
  }
-
-
 
 - (void)_closeTask:(UMSctpTask_Close *)task
 {
