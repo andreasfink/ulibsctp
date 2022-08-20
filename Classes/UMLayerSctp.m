@@ -2278,7 +2278,7 @@
         {
             NSLog(@"processError %d %@ received in UMLayerSctp %@",err, [UMSocket getSocketErrorString:err], _layerName);
         }
-        if((err != UMSocketError_no_data) || (UMSocketError_no_error))
+        if((err != UMSocketError_no_data) || (err!=UMSocketError_no_error))
         {
 #if defined(POWER_DEBUG)
             NSLog(@"%@ processError: %d %@",_layerName,err, [UMSocket getSocketErrorString:err]);
