@@ -311,7 +311,6 @@
         }
 
         [_linkLock lock];
-
         @try
         {
             if(self.status == UMSOCKET_STATUS_FOOS)
@@ -485,6 +484,7 @@
                                     [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %@",_assocId]];
             #endif
                                     _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+                                    [_layerHistory:[NSString stringWithFormat:@"peeling off assoc %lu into socket %lu",(unsigned long)_assocId,(unsigned long)_directSocket];
             #if defined(ULIBSCTP_CONFIG_DEBUG)
                                     [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
             #endif
@@ -1141,7 +1141,10 @@
             [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %@",rx.assocId]];
 #endif
             UMSocketError err = UMSocketError_no_error;
+            [_layerHistory:[NSString stringWithFormat:@"_directSocket = %lu%lu into socket %lu",(unsigned long)rx.assocId,(unsigned long)_directSocket];
+
             _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
+            [_layerHistory:[NSString stringWithFormat:@"pprocessReceivedData: peeling off assoc %lu into socket %lu",(unsigned long)rx.assocId,(unsigned long)_directSocket];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
 #endif
