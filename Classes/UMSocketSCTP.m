@@ -705,25 +705,25 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (UMSocketError) connect
 {
-    uint32_t assoc;
+    NSnumber *assoc = NULL;
 
     UMSocketError e = [self connectToAddresses:_requestedRemoteAddresses
                         port:_requestedRemotePort
-                       assoc:&assoc];
+                    assocPtr:&assoc];
     return e;
 }
 
-- (UMSocketError) connectAssoc:(uint32_t *)assoc;
+- (UMSocketError) connectAssocPtr:(NSNumber **)assoc;
 {
     UMSocketError e = [self connectToAddresses:_requestedRemoteAddresses
                                           port:_requestedRemotePort
-                                         assoc:assoc];
+                                      assocPtr:assoc];
     return e;
 }
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)remotePort
-                               assoc:(uint32_t *)assocptr
+                            assocPtr:(NSNumber **)assocptr
 {
 	UMAssert(assocptr!=NULL,@"assocptr can not be NULL");
 
@@ -747,19 +747,22 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"calling sctp_connectx (%@)", [addrs componentsJoinedByString:@" "]);
 #endif
-        memset(assocptr,0,sizeof(sctp_assoc_t));
-        assoc = -1;
-        int err =  sctp_connectx(_sock,(struct sockaddr *)remote_sockaddr.bytes,count,&assoc);
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"sctp_connectx: returns %d. errno = %d %s assoc=%lu",err,errno,strerror(errno),(unsigned long)*assocptr);
-#endif
-        if(assocptr && assoc != -1)
+        
+        sctp_assoc_t tmp_assoc = -2;;
+        memset(tmp_assoc,0,sizeof(sctp_assoc_t));
+        if(assocptr)
         {
-            *assocptr = (uint32_t)assoc;
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"assoc is now set to %lu", (unsigned long)assoc);
-#endif
+            *assocptr = NULL;
         }
+        
+        int err =  sctp_connectx(_sock,(struct sockaddr *)remote_sockaddr.bytes,count,&tmp_assoc);
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+        if((*assocptr) && (tmp_assoc != -2) && (err==0))
+        {
+            *assocptr = @(tmp_assoc);
+        }
+        NSLog(@"sctp_connectx: returns %d. errno = %d %s assoc=%lu",err,errno,strerror(errno),(unsigned long)tmp_assoc);
+#endif
         _connectedRemotePort = remotePort;
 
         if (err < 0)
@@ -1078,7 +1081,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (ssize_t) sendToAddresses:(NSArray *)addrs
                        port:(int)remotePort
-                      assoc:(uint32_t *)assocptr
+                      assoc:(NSNumber **)assocptr
                        data:(NSData *)data
                      stream:(uint16_t)streamId
                    protocol:(u_int32_t)protocolId
@@ -1101,7 +1104,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     {
         err = [self connectToAddresses:addrs
                                   port:remotePort
-                                 assoc:assocptr];
+                              assocPtr:assocptr];
         if(err==UMSocketError_is_already_connected)
         {
             err = UMSocketError_no_error;

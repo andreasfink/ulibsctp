@@ -578,8 +578,8 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  Error: %@",[UMSocket getSocketErrorString:revent_error]);
 #endif
-        [listener processError:revent_error];
-        [layer processError:revent_error];
+        [listener processError:revent_error inArea:@"revent & POLLERR (listener)"];
+        [layer processError:revent_error inArea:@"revent & POLLERR (layer)"];
     }
     if(revent & POLLHUP)
     {
@@ -587,8 +587,8 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  revent_hup = 1");
 #endif
-        [listener processError:UMSocketError_connection_reset];
-        [layer processError:UMSocketError_connection_reset];
+        [listener processError:UMSocketError_connection_reset inArea:@"revent & POLLHUP (listener)"];
+        [layer processError:UMSocketError_connection_reset, inArea:@"revent & POLLHUP (layer)"];
     }
 #ifdef POLLRDHUP
     if(revent & POLLRDHUP)
@@ -597,8 +597,8 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  revent_hup = 1");
 #endif
-        [listener processError:UMSocketError_connection_reset];
-        [layer processError:UMSocketError_connection_reset];
+        [listener processError:UMSocketError_connection_reset inArea:@"revent & POLLRDHUP (listener)"];
+        [layer processError:UMSocketError_connection_reset inArea:@"revent & POLLRDHUP (layer)"];
     }
 #endif
     if(revent & POLLNVAL)
@@ -607,8 +607,8 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  revent_invalid = 1");
 #endif
-        [listener processError:UMSocketError_invalid_file_descriptor];
-        [layer processError:UMSocketError_invalid_file_descriptor];
+        [listener processError:UMSocketError_invalid_file_descriptor inArea:@"revent & POLLRDHUP (POLLNVAL)"];
+        [layer processError:UMSocketError_invalid_file_descriptor inArea:@"revent & POLLRDHUP (POLLNVAL)"];
     }
 #ifdef POLLRDBAND
         if(revent & POLLRDBAND)

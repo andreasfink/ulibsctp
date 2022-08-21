@@ -447,7 +447,7 @@
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)port
-                               assoc:(uint32_t *)assocptr
+                            assocPtr:(NSNumber **)assocptr
                                layer:(UMLayerSctp *)layer
 {
 
@@ -461,7 +461,7 @@
     }
     UMSocketError err = [_umsocket connectToAddresses:addrs
                                                  port:port
-                                                assoc:assocptr];
+                                             assocPtr:assocptr];
     if(assocptr)
     {
         if(_logLevel == UMLOG_DEBUG)
@@ -496,7 +496,7 @@
     {
         UMSocketError err = [_umsocket connectToAddresses:addrs
                                                      port:remotePort
-                                                    assoc:assocptr];
+                                                 assocPtr:assocptr];
         if(err!=UMSocketError_no_error)
         {
             NSString *estr = [UMSocket getSocketErrorString:err];

@@ -182,7 +182,7 @@
            streamId:(uint32_t)streamId
          protocolId:(uint16_t)protocolId;
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx;
-- (void)processError:(UMSocketError)err;
+- (void)processError:(UMSocketError)err inArea:(NSString *)area;
 - (void)processHangUp;
 - (void)processInvalidSocket;
 

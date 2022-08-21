@@ -299,7 +299,7 @@
     {
         [self addToLayerHistoryLog:@"_openTask"];
 
-        uint32_t        tmp_assocId = 0;
+        NSNumber *tmp_assocId = NULL;
         BOOL sendAbort = task.sendAbortFirst;
         
         id<UMLayerUserProtocol> caller = task.sender;
@@ -469,22 +469,21 @@
                             [self logDebug:@"_directSocket==NULL"];
             #endif
 
-                            tmp_assocId = 0;
+                            NSnumber *tmp_assocId = NULL;
                             err = [_listener connectToAddresses:_configured_remote_addresses
                                                            port:_configured_remote_port
-                                                          assoc:&tmp_assocId
+                                                       assocPtr:&tmp_assocId
                                                           layer:self];
                             if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
                             {
-                                if(tmp_assocId !=0)
+                                if(tmp_assocId !=NULL)
                                 {
-                                    _assocId = @(tmp_assocId);
-
+                                    _assocId = tmp_assocId;
             #if defined(ULIBSCTP_CONFIG_DEBUG)
                                     [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %@",_assocId]];
             #endif
                                     _directSocket = [_listener peelOffAssoc:_assocId error:&err];
-                                    [_layerHistory addLogEntry:[NSString stringWithFormat:@"peeling off assoc %lu into socket %lu",(unsigned long)_assocId,(unsigned long)_directSocket]];
+                                    [_layerHistory addLogEntry:[NSString stringWithFormat:@"peeling off assoc %lu into socket %lu",(unsigned long)_assocId.unsignedLongValue,(unsigned long)_directSocket]];
             #if defined(ULIBSCTP_CONFIG_DEBUG)
                                     [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
             #endif
@@ -527,10 +526,10 @@
                             }
                             err = [_directSocket connectToAddresses:_configured_remote_addresses
                                                                 port:_configured_remote_port
-                                                               assoc:&tmp_assocId];
-                            if(tmp_assocId !=0)
+                                                            assocPtr:&tmp_assocId];
+                            if(tmp_assocId !=NULL)
                             {
-                                _assocId = @(tmp_assocId);
+                                _assocId = tmp_assocId;
                             }
                         }
                         if(self.logLevel <= UMLOG_DEBUG)
@@ -777,10 +776,9 @@
                     [self logDebug:[NSString stringWithFormat:@" Calling sctp_sendmsg on _directsocket (%@)",[_configured_remote_addresses componentsJoinedByString:@","]]];
                 }
     #endif
-                uint32_t        tmp_assocId = (uint32_t)_assocId.unsignedIntValue;
                 sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
                                                          port:_configured_remote_port
-                                                        assoc:&tmp_assocId
+                                                        assoc:_assocId
                                                          data:task.data
                                                        stream:task.streamId
                                                      protocol:task.protocolId
@@ -1135,7 +1133,9 @@
                 _assocId = rx.assocId;
             }
         }
-        if((_directSocket == NULL) && (!_encapsulatedOverTcp) && (rx.assocId!=NULL))
+        if((_directSocket == NULL)
+           && (!_encapsulatedOverTcp)
+           && (rx.assocId!=NULL))
         {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %@",rx.assocId]];
@@ -1143,7 +1143,7 @@
             UMSocketError err = UMSocketError_no_error;
 
             _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
-	    [_layerHistory addLogEntry:[NSString stringWithFormat:@"pprocessReceivedData: peeling off assoc %lu into socket %lu",(unsigned long)rx.assocId,(unsigned long)_directSocket]];
+	    [_layerHistory addLogEntry:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %lu",(unsigned long)rx.assocId.unsignedLongValue,(unsigned long)_directSocket]];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
 #endif
@@ -2255,14 +2255,14 @@
         {
             if(self.status != UMSOCKET_STATUS_IS)
             {
-                uint32_t xassocId = 0;
+                NSNumber *xassocId = NULL;
                 [_listener connectToAddresses:_configured_remote_addresses
                                          port:_configured_remote_port
-                                        assoc:&xassocId
+                                     assocPtr:&xassocId
                                         layer:self];
-                if(xassocId != 0)
+                if(xassocId != NULL)
                 {
-                    _assocId = @(xassocId);
+                    _assocId = xassocId
                     [_registry registerAssoc:_assocId forLayer:self];
                 }
             }
@@ -2270,7 +2270,7 @@
     }
 }
 
-- (void)processError:(UMSocketError)err
+- (void)processError:(UMSocketError)err inArea:(NSString *)string
 {
     @autoreleasepool
     {
@@ -2283,7 +2283,7 @@
 #if defined(POWER_DEBUG)
             NSLog(@"%@ processError: %d %@",_layerName,err, [UMSocket getSocketErrorString:err]);
 #endif
-            [self powerdown:[NSString stringWithFormat:@"_processError %@",[UMSocket getSocketErrorString:err]]];
+            [self powerdown:[NSString stringWithFormat:@"_processError %@",[UMSocket getSocketErrorString:err]" in area %@",area]];
             [self reportStatus];
         }
     }

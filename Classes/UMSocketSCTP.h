@@ -98,7 +98,7 @@ typedef enum SCTP_SocketType_enum
 - (UMSocketError) connectAssoc:(uint32_t *)assoc;
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)remotePort
-                               assoc:(uint32_t *)assoc;
+                            assocPtr:(NSNumber **)assoc;
 
 
 + (NSData *)sockaddrFromAddresses:(NSArray *)theAddrs
@@ -108,7 +108,7 @@ typedef enum SCTP_SocketType_enum
 
 - (ssize_t) sendToAddresses:(NSArray *)addrs
                        port:(int)port
-                      assoc:(uint32_t *)assoc
+                   assocPtr:(NSNumber **)assoc
                        data:(NSData *)data
                      stream:(uint16_t)streamId
                    protocol:(u_int32_t)protocolId
