@@ -61,7 +61,7 @@
 
 - (void)stopListeningFor:(UMLayerSctp *)layer;
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx;
-- (void)processError:(UMSocketError)err;
+- (void)processError:(UMSocketError)err inArea:(NSString *)area;
 - (void)processHangUp;
 - (void)processInvalidSocket;
 
@@ -75,14 +75,14 @@
 #if defined(ULIBSCTP_INTERNAL)
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)port
-                            assocPtr:(NSNumber *)assoc
+                            assocPtr:(NSNumber **)assoc
                                layer:(UMLayerSctp *)layer;
 - (UMSocketSCTP *) peelOffAssoc:(NSNumber *)assoc
                           error:(UMSocketError *)errptr;
 
 - (ssize_t) sendToAddresses:(NSArray *)addrs
                        port:(int)remotePort
-                      assoc:(NSNumber *)assocptr
+                   assocPtr:(NSNumber **)assocptr
                        data:(NSData *)data
                      stream:(uint16_t)streamId
                    protocol:(u_int32_t)protocolId

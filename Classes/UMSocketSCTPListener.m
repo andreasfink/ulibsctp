@@ -426,7 +426,7 @@
 {
 }
 
-- (void)processError:(UMSocketError)err
+- (void)processError:(UMSocketError)err inArea:(NSString *)area
 {
     /* FIXME */
     NSLog(@"processError %d %@ received in listener %@",err, [UMSocket getSocketErrorString:err], _name);
@@ -482,7 +482,7 @@
 
 - (ssize_t) sendToAddresses:(NSArray *)addrs
                        port:(int)remotePort
-                      assoc:(uint32_t *)assocptr
+                   assocPtr:(NSNumber **)assocptr
                        data:(NSData *)data
                      stream:(uint16_t)streamId
                    protocol:(u_int32_t)protocolId
@@ -523,7 +523,7 @@
     }
     r = [_umsocket sendToAddresses:addrs
                               port:remotePort
-                             assoc:assocptr
+                          assocPtr:assocptr
                               data:data
                             stream:streamId
                           protocol:protocolId

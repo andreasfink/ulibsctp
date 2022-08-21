@@ -403,8 +403,11 @@
                         [self logDebug:[NSString stringWithFormat:@"asking listener to connect to %@ on port %d",addrs,_configured_remote_port]];
                     }
         #endif
+                    
+
                     if(_encapsulatedOverTcp)
                     {
+#if defined(SCTP_OVER_TCP_ENCAPSULATION)
                         if(_directTcpEncapsulatedSocket != NULL)
                         {
                            [_directTcpEncapsulatedSocket close];
@@ -446,6 +449,7 @@
                                 [self reportStatus];
                             }
                             tmp_assocId = _directTcpEncapsulatedSocket.sock;
+
                         }
                         if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
                         {
@@ -460,6 +464,10 @@
                                 }
                             }
                         }
+#else
+                    /* we cant use the assoc to store the tcp socket anymore...*/
+                    NSLog(@"%@ openTask: directTcpEncapsulatedSocket currently not supported",_layerName);
+#endif
                     }
                     else
                     {
@@ -469,7 +477,7 @@
                             [self logDebug:@"_directSocket==NULL"];
             #endif
 
-                            NSnumber *tmp_assocId = NULL;
+                            NSNumber *tmp_assocId = NULL;
                             err = [_listener connectToAddresses:_configured_remote_addresses
                                                            port:_configured_remote_port
                                                        assocPtr:&tmp_assocId
@@ -776,17 +784,15 @@
                     [self logDebug:[NSString stringWithFormat:@" Calling sctp_sendmsg on _directsocket (%@)",[_configured_remote_addresses componentsJoinedByString:@","]]];
                 }
     #endif
+                NSNumber *tmp_assocId = _assocId;
                 sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
                                                          port:_configured_remote_port
-                                                        assoc:_assocId
+                                                     assocPtr:&tmp_assocId
                                                          data:task.data
                                                        stream:task.streamId
                                                      protocol:task.protocolId
                                                         error:&err];
-                if(tmp_assocId > 0)
-                {
-                    _assocId = @(tmp_assocId);
-                }
+                _assocId = tmp_assocId ;
             }
             else if(_directTcpEncapsulatedSocket)
             {
@@ -800,19 +806,16 @@
             }
             else
             {
-                uint32_t tmp_assocId = (uint32_t)_assocId.unsignedLongValue;
+                NSNumber *tmp_assocId = _assocId;
                 sent_packets = [_listener sendToAddresses:_configured_remote_addresses
                                                      port:_configured_remote_port
-                                                    assoc:&tmp_assocId
+                                                 assocPtr:&tmp_assocId
                                                      data:task.data
                                                    stream:task.streamId
                                                  protocol:task.protocolId
                                                     error:&err
                                                     layer:self];
-                if(tmp_assocId > 0)
-                {
-                    _assocId = @(tmp_assocId);
-                }
+                _assocId = tmp_assocId;
             }
             [_linkLock unlock];
             linkLocked = NO;
@@ -2262,15 +2265,15 @@
                                         layer:self];
                 if(xassocId != NULL)
                 {
-                    _assocId = xassocId
-                    [_registry registerAssoc:_assocId forLayer:self];
+                    _assocId = xassocId;
                 }
+                [_registry registerAssoc:_assocId forLayer:self];
             }
         }
     }
 }
 
-- (void)processError:(UMSocketError)err inArea:(NSString *)string
+- (void)processError:(UMSocketError)err inArea:(NSString *)area
 {
     @autoreleasepool
     {
@@ -2283,7 +2286,7 @@
 #if defined(POWER_DEBUG)
             NSLog(@"%@ processError: %d %@",_layerName,err, [UMSocket getSocketErrorString:err]);
 #endif
-            [self powerdown:[NSString stringWithFormat:@"_processError %@",[UMSocket getSocketErrorString:err]" in area %@",area]];
+            [self powerdown:[NSString stringWithFormat:@"_processError %@ in area %@",[UMSocket getSocketErrorString:err],area]];
             [self reportStatus];
         }
     }

@@ -95,7 +95,7 @@ typedef enum SCTP_SocketType_enum
 						  error:(UMSocketError *)errptr;
 
 - (UMSocketError) connect;
-- (UMSocketError) connectAssoc:(uint32_t *)assoc;
+- (UMSocketError) connectAssocPtr:(NSNumber **)assoc;
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)remotePort
                             assocPtr:(NSNumber **)assoc;

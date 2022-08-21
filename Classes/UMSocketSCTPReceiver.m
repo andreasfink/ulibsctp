@@ -588,7 +588,7 @@
         NSLog(@"  revent_hup = 1");
 #endif
         [listener processError:UMSocketError_connection_reset inArea:@"revent & POLLHUP (listener)"];
-        [layer processError:UMSocketError_connection_reset, inArea:@"revent & POLLHUP (layer)"];
+        [layer processError:UMSocketError_connection_reset inArea:@"revent & POLLHUP (layer)"];
     }
 #ifdef POLLRDHUP
     if(revent & POLLRDHUP)
