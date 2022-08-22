@@ -916,9 +916,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         }
         return NULL;
     }
-    if(assoc.unsignedIntValue == 0)
+    if(assoc.unsignedLongValue == 0)
     {
-        NSLog(@"Warning: assoc.unsignedIntValue == 0");
+        NSLog(@"Warning: assoc.unsignedLongValue == 0");
         if(errptr)
         {
             *errptr = UMSocketError_not_a_socket;
@@ -932,69 +932,63 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     UMSocketSCTP  *newcon =NULL;
     NSString *remoteAddress=@"";
     in_port_t remotePort=0;
-    if(type == UMSOCKET_TYPE_SCTP4ONLY_SEQPACKET)
-    {
-        struct    sockaddr_in sa4;
-        socklen_t slen4 = sizeof(sa4);
-        memset(&sa4,0x00,slen4);
-        UMMUTEX_LOCK(_controlLock);
-        newsock = sctp_peeloff(_sock,assoc.unsignedIntValue);
-        UMMUTEX_UNLOCK(_controlLock);
+    
+    UMMUTEX_LOCK(_controlLock);
+    sctp_assoc_t a = (sctp_assoc_t)assoc.unsignedLongValue;
+    newsock = sctp_peeloff(_sock,a);
+    UMMUTEX_UNLOCK(_controlLock);
 
-        if(newsock >=0)
+    if(newsock >=0)
+    {
+        if(type == UMSOCKET_TYPE_SCTP4ONLY_SEQPACKET)
         {
-            char hbuf[NI_MAXHOST];
-            char sbuf[NI_MAXSERV];
-            if (getnameinfo((struct sockaddr *)&sa4, slen4, hbuf, sizeof(hbuf), sbuf,
-                            sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV))
+            struct    sockaddr_in sa4;
+            socklen_t slen4 = sizeof(sa4);
+            memset(&sa4,0x00,slen4);
+            if(newsock >=0)
             {
-                remoteAddress = @"ipv4:0.0.0.0";
-                remotePort = 0;
+                char hbuf[NI_MAXHOST];
+                char sbuf[NI_MAXSERV];
+                if (getnameinfo((struct sockaddr *)&sa4, slen4, hbuf, sizeof(hbuf), sbuf,
+                                sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV))
+                {
+                    remoteAddress = @"ipv4:0.0.0.0";
+                    remotePort = 0;
+                }
+                else
+                {
+                    remoteAddress = @(hbuf);
+                    remoteAddress = [NSString stringWithFormat:@"ipv4:%@", remoteAddress];
+                    remotePort = sa4.sin_port;
+                }
             }
-            else
-            {
-                remoteAddress = @(hbuf);
-                remoteAddress = [NSString stringWithFormat:@"ipv4:%@", remoteAddress];
-                remotePort = sa4.sin_port;
-            }
-            TRACK_FILE_SOCKET(newsock,remoteAddress);
-            newcon.cryptoStream.fileDescriptor = newsock;
         }
-    }
-    else
-    {
-        /* IPv6 or dual mode */
-        struct    sockaddr_in6        sa6;
-        socklen_t slen6 = sizeof(sa6);
-        memset(&sa6,0x00,slen6);
-
-        UMMUTEX_LOCK(_controlLock);
-        newsock = sctp_peeloff(_sock,assoc.unsignedIntValue);
-        UMMUTEX_UNLOCK(_controlLock);
-
-        if(newsock >= 0)
+        else
         {
-            char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
-            if (getnameinfo((struct sockaddr *)&sa6, slen6, hbuf, sizeof(hbuf), sbuf,
-                            sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV))
+            /* IPv6 or dual mode */
+            struct    sockaddr_in6        sa6;
+            socklen_t slen6 = sizeof(sa6);
+            memset(&sa6,0x00,slen6);
+            if(newsock >= 0)
             {
-                remoteAddress = @"ipv6:[::]";
-                remotePort = 0;
+                char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+                if (getnameinfo((struct sockaddr *)&sa6, slen6, hbuf, sizeof(hbuf), sbuf,
+                                sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV))
+                {
+                    remoteAddress = @"ipv6:[::]";
+                    remotePort = 0;
+                }
+                else
+                {
+                    remoteAddress = @(hbuf);
+                    remotePort = sa6.sin6_port;
+                }
+                /* this is a IPv4 style address packed into IPv6 */
+                remoteAddress = [UMSocket unifyIP:remoteAddress];
             }
-            else
-            {
-                remoteAddress = @(hbuf);
-                remotePort = sa6.sin6_port;
-            }
-            /* this is a IPv4 style address packed into IPv6 */
-
-            remoteAddress = [UMSocket unifyIP:remoteAddress];
-            TRACK_FILE_SOCKET(newsock,remoteAddress);
         }
-    }
-
-    if(newsock >= 0)
-    {
+        TRACK_FILE_SOCKET(newsock,remoteAddress);
+        newcon.cryptoStream.fileDescriptor = newsock;
         newcon = [[UMSocketSCTP alloc]init];
         newcon.type = type;
 		newcon.socketDomain = _socketDomain;
@@ -1064,16 +1058,15 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #endif
         return newcon;
     }
-
+    /* sctp_peeloff returned error */
     UMSocketError e = [UMSocket umerrFromErrno:errno];
-
     if(errptr)
     {
         *errptr = e;
     }
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    NSLog(@"   returning nil/err = %@",[UMSocket getSocketErrorString:e]);
+    NSLog(@"   returning nil/err = %@ (errno=%d)",[UMSocket getSocketErrorString:e],errno);
 #endif
     return nil;
 }
