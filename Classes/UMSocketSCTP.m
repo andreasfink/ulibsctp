@@ -1297,15 +1297,16 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 
 
-    struct sctp_sndrcvinfo sinfo;
+    struct sctp_extrcvinfo sinfo;
     memset(&sinfo,0x00,sizeof(sinfo));
-    sinfo.sinfo_assoc_id = SCTP_ALL_ASSOC;
+    sinfo.sinfo_flags = SCTP_EXTRCV;
+    
     bytes_read = sctp_recvmsg(_sock,
                          &buffer,
                          SCTP_RXBUF,
                          remote_address_ptr,
                          &remote_address_len,
-                         &sinfo,
+                         &(sctp_sndrcvinfo *)sinfo,
                          &flags);
 
     if(bytes_read <= 0)
