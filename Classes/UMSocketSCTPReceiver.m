@@ -590,8 +590,8 @@
         NSLog(@"  revent_invalid = 1");
 #endif
         /* socket might got closed in the meantime. */
-//      [listener processError:UMSocketError_invalid_file_descriptor socket:socket  inArea:@"revent & POLLNVAL"];
-//      [layer processError:UMSocketError_invalid_file_descriptor socket:socket  inArea:@"revent & POLLNVAL"];
+        [listener processError:UMSocketError_invalid_file_descriptor socket:socket  inArea:@"revent & POLLNVAL"];
+        [layer processError:UMSocketError_invalid_file_descriptor socket:socket  inArea:@"revent & POLLNVAL"];
     }
 
     if(revent & (POLLIN | POLLPRI))
@@ -767,15 +767,6 @@
                [_registry unregisterIncomingTcpLayer:layer];
            }
         }
-    }
-    if(revent_invalid)
-    {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"  calling processInvalidSocket");
-
-#endif
-        [layer processInvalidSocket];
-        [listener processInvalidSocket];
     }
     return returnValue;
 }
