@@ -2335,6 +2335,11 @@
                 [_registry unregisterLayer:self];
                 [self reportStatus];
             }
+            else
+            {
+                NSString *s = [NSString stringWithFormat:@"got error UMSocketError_invalid_file_descriptor on socket %p (%d) but _directSocket is %p (%d). Ignoring",socket,socket.sock,_directSocket,_directSocket.sock];
+                [_layerHistory addLogEntry:s];
+            }
         }
         else
         {
