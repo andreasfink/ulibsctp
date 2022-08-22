@@ -160,13 +160,6 @@
 
     memset(pollfds, 0x00,(total_count+1)  * sizeof(struct pollfd));
     int events = POLLIN | POLLPRI | POLLERR | POLLHUP | POLLNVAL;
-#ifdef POLLRDBAND
-    events |= POLLRDBAND;
-#endif
-    
-#ifdef POLLRDHUP
-    events |= POLLRDHUP;
-#endif
     nfds_t j=0;
 
     for(NSUInteger i=0;i<listeners_count;i++)
@@ -493,10 +486,6 @@
     {
         [a addObject:@"POLLRDNORM"];
     }
-    if(revent & POLLRDBAND)
-    {
-        [a addObject:@"POLLRDBAND"];
-    }
     if(revent & POLLWRBAND)
     {
         [a addObject:@"POLLWRBAND"];
@@ -594,37 +583,17 @@
         [listener processError:revent_error socket:socket  inArea:s];
         [layer processError:revent_error socket:socket  inArea:s];
     }
-#ifdef POLLRDHUP
-    if(revent & POLLRDHUP)
-    {
-        revent_hup = 1;
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"  revent_hup = 1");
-#endif
-        NSString *s = [NSString stringWithFormat:@"handlePollResult:(revent & POLLRDHUP,listener=%p,layer=%@ socket=%@",
-                                 listener.name,layer.layerName,socket.description];
-        [listener processError:revent_error socket:socket inArea:s];
-        [layer processError:revent_error socket:socket inArea:s];
-    }
-#endif
     if(revent & POLLNVAL)
     {
         revent_invalid = 1;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSLog(@"  revent_invalid = 1");
 #endif
-        [listener processError:UMSocketError_invalid_file_descriptor socket:socket  inArea:@"revent & POLLRDHUP (POLLNVAL)"];
-        [layer processError:UMSocketError_invalid_file_descriptor socket:socket  inArea:@"revent & POLLRDHUP (POLLNVAL)"];
+        /* socket might got closed in the meantime. */
+//      [listener processError:UMSocketError_invalid_file_descriptor socket:socket  inArea:@"revent & POLLNVAL"];
+//      [layer processError:UMSocketError_invalid_file_descriptor socket:socket  inArea:@"revent & POLLNVAL"];
     }
-#ifdef POLLRDBAND
-        if(revent & POLLRDBAND)
-        {
-            revent_has_data = 1;
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"  revent_has_data = 1");
-#endif
-        }
-#endif
+
     if(revent & (POLLIN | POLLPRI))
     {
         revent_has_data = 1;
