@@ -33,6 +33,7 @@
 
 #include "ulibsctp_config.h"
 
+
 #ifdef HAVE_SCTP_SCTP_H
 #include <sctp/sctp.h>
 #include <sctp/sctp_uio.h>
@@ -42,13 +43,10 @@
 #include "netinet/sctp.h"
 #endif
 
-
 #if defined(__APPLE__)
 #include <sys/utsname.h>
 #define MSG_NOTIFICATION_MAVERICKS 0x40000        /* notification message */
 #define MSG_NOTIFICATION_YOSEMITE  0x80000        /* notification message */
-#define ULIBSCTP_SCTP_SENDV_SUPPORTED 1
-#define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
 
 #ifndef MSG_NOTIFICATION
 #define MSG_NOTIFICATION MSG_NOTIFICATION_YOSEMITE
@@ -71,7 +69,7 @@
 
 static int _global_msg_notification_mask = 0;
 
-/*
+#ifdef LINUX
 int sctp_sendv(int s, const struct iovec *iov, int iovcnt,
                struct sockaddr *addrs, int addrcnt, void *info,
                socklen_t infolen, unsigned int infotype, int flags);
@@ -80,7 +78,8 @@ int sctp_sendv(int s, const struct iovec *iov, int iovcnt,
 int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                struct sockaddr *from, socklen_t *fromlen, void *info,
                socklen_t *infolen, unsigned int *infotype, int *flags);
-*/
+#endif
+
 
 @implementation UMSocketSCTP
 
