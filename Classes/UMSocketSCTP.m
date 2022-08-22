@@ -1288,7 +1288,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     ssize_t                 bytes_read = 0;
     char                    buffer[SCTP_RXBUF+1];
-    int                     flags=MSG_NOTIFICATION;
+    int                     flags=0;
 
     memset(&buffer[0],0xFA,sizeof(buffer));
     memset(remote_address_ptr,0x00,sizeof(remote_address_len));
@@ -1299,7 +1299,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     struct sctp_sndrcvinfo sinfo;
     memset(&sinfo,0x00,sizeof(sinfo));
-    sinfo.sinfo_flags = SCTP_SNDRCV;
     
     bytes_read = sctp_recvmsg(_sock,
                          &buffer,
