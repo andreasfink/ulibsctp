@@ -1288,7 +1288,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     ssize_t                 bytes_read = 0;
     char                    buffer[SCTP_RXBUF+1];
-    int                     flags=0;
+    int                     flags=MSG_NOTIFICATION;
 
     memset(&buffer[0],0xFA,sizeof(buffer));
     memset(remote_address_ptr,0x00,sizeof(remote_address_len));
