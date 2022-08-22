@@ -75,19 +75,19 @@
     [s appendFormat:@".socket =  %@\n",_socket];
     if(_streamId)
     {
-        [s appendFormat:@".streamId =  %@\n",_streamId];
+        [s appendFormat:@".streamId =  0x%4X\n",_streamId.unsignedShortValue];
     }
     if(_protocolId)
     {
-        [s appendFormat:@".protocolId =  %@\n",_protocolId];
+        [s appendFormat:@".protocolId =  0x%8X\n",_protocolId.unsignedIntValue];
     }
     if(_context)
     {
-        [s appendFormat:@".context =  %@\n",_context];
+        [s appendFormat:@".context =  %8X\n",_context.unsignedIntValue];
     }
     if(_assocId)
     {
-        [s appendFormat:@".assocId =  %@\n",_assocId];
+        [s appendFormat:@".assocId =  %8X\n",_assocId.unsignedIntValue];
     }
     [s appendFormat:@".remoteAddress = %@\n",_remoteAddress];
     [s appendFormat:@".rempotePort =  %d\n",_remotePort];
