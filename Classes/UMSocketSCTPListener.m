@@ -469,7 +469,7 @@
             NSLog(@"   returns assoc=%ld",(long)*assocptr);
         }
     }
-    [layer.layerHistory addLogEntry:[NSString stringWithFormat:@"  returns err=%d (%s), assoc=%@",err,[UMSocket getSocketErrorString:err].*assocptr]];
+    [layer.layerHistory addLogEntry:[NSString stringWithFormat:@"  returns err=%d (%@), assoc=%@",err,[UMSocket getSocketErrorString:err],*assocptr]];
     return err;
 }
 
