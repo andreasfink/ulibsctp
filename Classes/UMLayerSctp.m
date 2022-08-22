@@ -159,10 +159,12 @@
    
 }
 
+/* public API for upper interface */
+
 - (void)dataFor:(id<UMLayerSctpUserProtocol>)caller
            data:(NSData *)sendingData
-       streamId:(NSNumber *)sid
-     protocolId:(NSNumber *)pid
+       streamId:(uint16_t)sid
+     protocolId:(uint32_t)pid
      ackRequest:(NSDictionary *)ack
 {
     [self dataFor:caller
@@ -173,10 +175,11 @@
       synchronous:YES];
 }
 
+/* public API for upper interface */
 - (void)dataFor:(id<UMLayerSctpUserProtocol>)caller
            data:(NSData *)sendingData
-       streamId:(NSNumber *)sid
-     protocolId:(NSNumber *)pid
+       streamId:(uint16_t)sid
+     protocolId:(uint32_t)pid
      ackRequest:(NSDictionary *)ack
     synchronous:(BOOL)sync
 {
@@ -186,8 +189,8 @@
         [[UMSctpTask_Data alloc]initWithReceiver:self
                                           sender:caller
                                             data:sendingData
-                                        streamId:sid
-                                      protocolId:pid
+                                        streamId:@(sid)
+                                      protocolId:@(pid)
                                       ackRequest:ack];
         if(sync)
         {

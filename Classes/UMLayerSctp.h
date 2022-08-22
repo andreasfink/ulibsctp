@@ -134,14 +134,14 @@
 - (void)closeFor:(id<UMLayerSctpUserProtocol>)caller;
 - (void)dataFor:(id<UMLayerSctpUserProtocol>)caller
            data:(NSData *)sendingData
-       streamId:(NSNumber *)sid
-     protocolId:(NSNumber *)pid
+       streamId:(uint16_t)sid
+     protocolId:(uint32_t)pid
      ackRequest:(NSDictionary *)ack;
 
 - (void)dataFor:(id<UMLayerSctpUserProtocol>)caller
            data:(NSData *)sendingData
-       streamId:(NSNumber *)sid
-     protocolId:(NSNumber *)pid
+       streamId:(uint16_t)sid
+     protocolId:(uint32_t)pid
      ackRequest:(NSDictionary *)ack
     synchronous:(BOOL)sync;
 
