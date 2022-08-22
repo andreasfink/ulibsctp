@@ -61,7 +61,7 @@
 
 - (void)stopListeningFor:(UMLayerSctp *)layer;
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx;
-- (void)processError:(UMSocketError)err inArea:(NSString *)area;
+- (void)processError:(UMSocketError)err socket:(UMSocket *)s inArea:(NSString *)area;
 - (void)processHangUp;
 - (void)processInvalidSocket;
 

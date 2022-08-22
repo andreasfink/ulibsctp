@@ -425,7 +425,7 @@
 {
 }
 
-- (void)processError:(UMSocketError)err inArea:(NSString *)area
+- (void)processError:(UMSocketError)err socket:(UMSocket *)s inArea:(NSString *)area;
 {
     /* FIXME */
     NSLog(@"processError %d %@ received in listener %@",err, [UMSocket getSocketErrorString:err], _name);

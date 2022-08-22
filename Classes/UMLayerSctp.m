@@ -2304,7 +2304,7 @@
     }
 }
 
-- (void)processError:(UMSocketError)err inArea:(NSString *)area
+- (void)processError:(UMSocketError)err socket:(UMSocket *)socket inArea:(NSString *)area
 {
     @autoreleasepool
     {
@@ -2317,11 +2317,17 @@
 #if defined(POWER_DEBUG)
             NSLog(@"%@ processError: %d %@",_layerName,err, [UMSocket getSocketErrorString:err]);
 #endif
-            [self powerdown:[NSString stringWithFormat:@"_processError %@ in area %@",[UMSocket getSocketErrorString:err],area]];
-            [self reportStatus];
+            if(err==UMSocketError_invalid_file_descriptor)
+            {
+                if(_directSocket == socket)
+                {
+                    [self powerdown:[NSString stringWithFormat:@"_processError %@ in area %@",[UMSocket getSocketErrorString:err],area]];
+                    [self reportStatus];
+                }
+            }
         }
     }
-} ;
+}
 
 
 
