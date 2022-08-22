@@ -1138,56 +1138,30 @@
 {
     @autoreleasepool
     {
+        BOOL peeloffFailed = NO;
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         NSMutableString *s = [[NSMutableString alloc]init];
         [s appendFormat:@"processReceivedData: \n%@",rx.description];
         [self logDebug:s];
 #endif
-        if(rx.assocId !=NULL)
+        if(!_encapsulatedOverTcp)
         {
-            if((_assocId == NULL) && (_directSocket == NULL))
+            if(rx.assocId !=NULL)
             {
                 _assocId = rx.assocId;
-            }
-        }
-        if((_directSocket == NULL)
-           && (!_encapsulatedOverTcp)
-           && (rx.assocId!=NULL))
-        {
+                if(_directSocket == NULL)
+                {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-            [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %@",rx.assocId]];
+                    [self logDebug:[NSString stringWithFormat:@"processReceivedData: Peeling of assoc %@",rx.assocId]];
 #endif
-            UMSocketError err = UMSocketError_no_error;
-
-            
-            if(rx.assocId==NULL)
-            {
-                [_layerHistory addLogEntry:[NSString stringWithFormat:@"  peeloff called with assocptr == NULL,setting err=UMSocketError_not_a_socket"]];
-                _directSocket = NULL;
-                err = UMSocketError_not_a_socket;
-            }
-            else if(rx.assocId.unsignedIntValue == 0)
-            {
-                [_layerHistory addLogEntry:[NSString stringWithFormat:@"  peeloff called with assoc==0, setting err=UMSocketError_not_a_socket"]];
-                 _directSocket = NULL;
-                 err = UMSocketError_not_a_socket;
-            }
-            else
-            {
-                _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
-                [_layerHistory addLogEntry:[NSString stringWithFormat:@"peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
-            }
-
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-            [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
-#endif
-            if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress) &&(err !=UMSocketError_not_a_socket))
-            {
-                [_directSocket close];
-                [_registry unregisterAssoc:_assocId];
-                _assocId=NULL;
-                _directSocket = NULL;
-                _assocId = NULL;
+                    UMSocketError err = UMSocketError_no_error;
+                    _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
+                    [_layerHistory addLogEntry:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
+                    if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
+                    {
+                        peeloffFailed = YES;
+                    }
+                }
             }
         }
         if(rx.err==UMSocketError_try_again)
@@ -1264,6 +1238,17 @@
             [self powerdownInReceiverThread:[NSString stringWithFormat:@"rx.err=%@",[UMSocket getSocketErrorString:rx.err]]];
             [self reportStatus];
         }
+        else if(peeloffFailed)
+        {
+            [_directSocket close];
+            [_registry unregisterAssoc:_assocId];
+            _assocId=NULL;
+            _directSocket = NULL;
+            NSString *s = [NSString stringWithFormat:@"processReceivedData peeloff failed"];
+            [self logMinorError:s];
+            [self powerdownInReceiverThread:s];
+            [self reportStatus];
+        }
         else
         {
             if(rx.flags & SCTP_OVER_TCP_SETUP_CONFIRM)
@@ -1276,7 +1261,6 @@
             }
             else if(rx.isNotification)
             {
-
                 [self handleEvent:rx.data
                          streamId:rx.streamId
                        protocolId:rx.protocolId];
@@ -1290,7 +1274,6 @@
         }
     }
 }
-
 
 -(void) handleEvent:(NSData *)event
            streamId:(NSNumber *)streamId
