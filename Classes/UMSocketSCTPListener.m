@@ -410,7 +410,7 @@
 
             UMSocketError err = [_umsocket abortToAddress:rx.remoteAddress
                                                      port:rx.remotePort
-                                                    assoc:rx.assoc
+                                                    assoc:rx.assocId
                                                    stream:rx.streamId
                                                  protocol:rx.protocolId];
             if(err !=UMSocketError_no_error)
