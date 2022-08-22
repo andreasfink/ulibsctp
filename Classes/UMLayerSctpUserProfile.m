@@ -29,7 +29,7 @@
     return self;
 }
 
-- (BOOL) wantsStreamId:(int)stream
+- (BOOL) wantsStreamId:(NSNumber *)stream
 {
     if(allMessages)
     {
@@ -41,7 +41,7 @@
     }
     for(NSNumber *n in streamIds)
     {
-        if (n.intValue == stream)
+        if (n.unsignedLongValue == stream.unsignedLongValue)
         {
             return YES;
         }
@@ -49,7 +49,7 @@
     return NO;
 }
 
-- (BOOL) wantsProtocolId:(int)proto
+- (BOOL) wantsProtocolId:(NSNumber *)proto
 {
     if(allMessages)
     {
@@ -61,7 +61,7 @@
     }
     for(NSNumber *n in protocolIds)
     {
-        if (n.intValue == proto)
+        if (n.unsignedLongValue == proto.unsignedLongValue)
         {
             return YES;
         }

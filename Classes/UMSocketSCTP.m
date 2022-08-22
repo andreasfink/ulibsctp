@@ -1075,8 +1075,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                        port:(int)remotePort
                    assocPtr:(NSNumber **)assocptr
                        data:(NSData *)data
-                     stream:(uint16_t)streamId
-                   protocol:(u_int32_t)protocolId
+                     stream:(NSNumber *)streamId
+                   protocol:(NSNumber *)protocolId
                       error:(UMSocketError *)err2
 {
 	UMAssert(assocptr!=NULL,@"assocptr can not be NULL");
@@ -1133,9 +1133,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     NSNumber *a = *assocptr;
     struct sctp_sndinfo send_info;
     memset(&send_info,0x00,sizeof(struct sctp_sndinfo));
-    send_info.snd_sid = streamId;
+    send_info.snd_sid = streamId.unsignedIntValue;
     send_info.snd_flags = 0;
-    send_info.snd_ppid = htonl(protocolId);
+    send_info.snd_ppid = htonl(protocolId.unsignedLongValue);
     send_info.snd_context = 0;
     send_info.snd_assoc_id = (sctp_assoc_t)[a unsignedLongValue];
 
@@ -1218,9 +1218,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (UMSocketError) abortToAddress:(NSString *)addr
                             port:(int)remotePort
-                           assoc:(uint32_t)assoc
-                          stream:(uint16_t)streamId
-                        protocol:(u_int32_t)protocolId
+                           assoc:(NSNumber *)assoc
+                          stream:(NSNumber *)streamId
+                        protocol:(NSNumber *)protocolId
 {
     UMSocketError err = UMSocketError_no_error;
     ssize_t sp = 0;
@@ -1233,13 +1233,13 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     uint32_t context=0;
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-    NSLog(@"sctp_sendmsg(_sock=%d,\n\tdata.bytes=NULL\n\tdata.length=0\n\t(struct sockaddr *)remote_sockaddr.bytes=%p\n\t(socklen_t)remote_sockaddr.length=%ld\n\tprotocolId=%ld\n\tflags=%ld\n\tstreamId=%ld\n\ttimetolive=%ld\n\tcontext=%ld\n);\n",
+    NSLog(@"sctp_sendmsg(_sock=%d,\n\tdata.bytes=NULL\n\tdata.length=0\n\t(struct sockaddr *)remote_sockaddr.bytes=%p\n\t(socklen_t)remote_sockaddr.length=%ld\n\tprotocolId=%lu\n\tflags=%ld\n\tstreamId=%lu\n\ttimetolive=%ld\n\tcontext=%ld\n);\n",
           (int)_sock,
           remote_sockaddr.bytes,
           (long)remote_sockaddr.length,
-          (long)protocolId,
+          protocolId.unsignedLongValue,
           (long)flags, /* flags */
-          (long)streamId,
+          streamId.unsignedLongValue,
           (long)timetolive, // timetolive,
           (long)context); // context);
 #endif
@@ -1249,9 +1249,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                       0,
                       (struct sockaddr *)remote_sockaddr.bytes,
                       (socklen_t)remote_sockaddr.length,
-                      htonl(protocolId),
+                      htonl(protocolId.unsignedLongValue),
                       flags, /* flags */
-                      streamId,
+                      streamId.unsignedShortValue,
                       timetolive, // timetolive,
                       context); // context);
     if(sp<0)
@@ -1359,8 +1359,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     assoc = sinfo.sinfo_assoc_id;
 #endif
 
-    rx.socket = @(_sock);
-
+    
     if(bytes_read <= 0)
     {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1382,12 +1381,13 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         if(flags & _msg_notification_mask)
         {
             rx.isNotification = YES;
-        }
-        rx.streamId = streamId;
-        rx.protocolId = protocolId;
-        rx.context = context;
-        rx.assocId = @((uint32_t)assoc);
+        }        
         rx.socket = @(_sock);
+        rx.streamId = @(streamId);
+        rx.protocolId = @(protocolId);
+        rx.context = @(context);
+        rx.assocId = @(assoc);
+
     }
     return rx;
 }

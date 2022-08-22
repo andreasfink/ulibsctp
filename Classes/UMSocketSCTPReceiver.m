@@ -889,8 +889,8 @@
         else
         {
             rx = [[UMSocketSCTPReceivedPacket alloc]init];
-            rx.streamId = header.streamId;
-            rx.protocolId = header.protocolId;
+            rx.streamId = @(header.streamId);
+            rx.protocolId = @(header.protocolId);
             rx.context = 0;
             rx.data = receivedData;
             rx.remoteAddress = umsocket.connectedRemoteAddress;

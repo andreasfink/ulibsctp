@@ -408,10 +408,9 @@
             NSLog(@"sending abort");
 #endif
 
-            uint32_t assoc = rx.assocId.unsignedIntValue;
             UMSocketError err = [_umsocket abortToAddress:rx.remoteAddress
                                                      port:rx.remotePort
-                                                    assoc:assoc
+                                                    assoc:rx.assoc
                                                    stream:rx.streamId
                                                  protocol:rx.protocolId];
             if(err !=UMSocketError_no_error)
@@ -484,8 +483,8 @@
                        port:(int)remotePort
                    assocPtr:(NSNumber **)assocptr
                        data:(NSData *)data
-                     stream:(uint16_t)streamId
-                   protocol:(u_int32_t)protocolId
+                     stream:(NSNumber *)streamId
+                   protocol:(NSNumber *)protocolId
                       error:(UMSocketError *)err2
                       layer:(UMLayerSctp *)layer
 {

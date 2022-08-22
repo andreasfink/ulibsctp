@@ -84,8 +84,8 @@
                        port:(int)remotePort
                    assocPtr:(NSNumber **)assocptr
                        data:(NSData *)data
-                     stream:(uint16_t)streamId
-                   protocol:(u_int32_t)protocolId
+                     stream:(NSNumber *)streamId
+                   protocol:(NSNumber *)protocolId
                       error:(UMSocketError *)err2
                       layer:(UMLayerSctp *)layer;
 #endif

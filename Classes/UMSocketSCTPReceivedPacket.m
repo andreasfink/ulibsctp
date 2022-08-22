@@ -73,10 +73,22 @@
     [s appendFormat:@"UMSocketSCTPReceivedPacket %p\n",self];
     [s appendFormat:@".err =  %d %@\n",_err,[UMSocket getSocketErrorString:_err]];
     [s appendFormat:@".socket =  %@\n",_socket];
-    [s appendFormat:@".streamId =  %lu\n",(unsigned long)_streamId];
-    [s appendFormat:@".protocolId =  %lu\n",(unsigned long)_protocolId];
-    [s appendFormat:@".context =  %lu\n",(unsigned long)_context];
-    [s appendFormat:@".assocId =  %@\n",_assocId];
+    if(_streamId)
+    {
+        [s appendFormat:@".streamId =  %@\n",_streamId];
+    }
+    if(_protocolId)
+    {
+        [s appendFormat:@".protocolId =  %@\n",_protocolId];
+    }
+    if(_context)
+    {
+        [s appendFormat:@".context =  %@\n",_context];
+    }
+    if(_assocId)
+    {
+        [s appendFormat:@".assocId =  %@\n",_assocId];
+    }
     [s appendFormat:@".remoteAddress = %@\n",_remoteAddress];
     [s appendFormat:@".rempotePort =  %d\n",_remotePort];
     [s appendFormat:@".localAddress = %@\n",_localAddress];

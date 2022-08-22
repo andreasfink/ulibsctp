@@ -24,8 +24,8 @@
 @property(readwrite,assign) BOOL monitoring;
 
 - (UMLayerSctpUserProfile *)initWithDefaultProfile;
-- (BOOL) wantsStreamId:(int)stream;
-- (BOOL) wantsProtocolId:(int)proto;
+- (BOOL) wantsStreamId:(NSNumber *)stream;
+- (BOOL) wantsProtocolId:(NSNumber *)proto;
 - (BOOL) wantsStatusUpdates;
 - (BOOL) wantsMonitor;
 

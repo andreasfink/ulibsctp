@@ -12,21 +12,21 @@
 
 @interface UMSctpTask_Data : UMLayerTask
 {
-    NSData          *data;
-    uint16_t        streamId;
-    uint32_t        protocolId;
-    NSDictionary    *ackRequest;
+    NSData          *_data;
+    NSNumber        *_streamId;
+    NSNumber        *_protocolId;
+    NSDictionary    *_ackRequest;
 }
 
 @property (readwrite,strong)        NSData          *data;
-@property (readwrite,assign)        uint16_t        streamId;
-@property (readwrite,assign)        uint32_t        protocolId;
+@property (readwrite,strong)        NSNumber        *streamId;
+@property (readwrite,strong)        NSNumber        *protocolId;
 @property (readwrite,strong)        NSDictionary    *ackRequest;
 
 - (UMSctpTask_Data *)initWithReceiver:(UMLayerSctp *)rx
                                sender:(id<UMLayerSctpUserProtocol>)tx
                                  data:(NSData *)d
-                             streamId:(uint16_t)sid
-                           protocolId:(uint32_t)pid
+                             streamId:(NSNumber *)sid
+                           protocolId:(NSNumber *)pid
                            ackRequest:(NSDictionary *)ack;
 @end

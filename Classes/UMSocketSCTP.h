@@ -33,8 +33,8 @@ typedef enum SCTP_SocketType_enum
 
 @protocol UMSocketSCTP_dataDelegate
 - (UMSocketError) sctpReceivedData:(NSData *)data
-                          streamId:(uint32_t)streamId
-                        protocolId:(uint16_t)protocolId;
+                          streamId:(NSNumber *)streamId
+                        protocolId:(NSNumber *)protocolId;
 @end
 
 
@@ -110,22 +110,22 @@ typedef enum SCTP_SocketType_enum
                        port:(int)port
                    assocPtr:(NSNumber **)assoc
                        data:(NSData *)data
-                     stream:(uint16_t)streamId
-                   protocol:(u_int32_t)protocolId
+                     stream:(NSNumber *)streamId
+                   protocol:(NSNumber *)protocolId
                       error:(UMSocketError *)err2;
 
 
 
 - (UMSocketError) abortToAddress:(NSString *)addr
                             port:(int)remotePort
-                           assoc:(uint32_t)assoc
-                          stream:(uint16_t)streamId
-                        protocol:(u_int32_t)protocolId;
+                           assoc:(NSNumber *)assoc
+                          stream:(NSNumber *)streamId
+                        protocol:(NSNumber *)protocolId;
 
 /*
 - (ssize_t)sendSCTP:(NSData *)data
-             stream:(uint16_t)streamId
-           protocol:(u_int32_t)protocolId
+             stream:(NSNumber *)streamId
+           protocol:(NSNumber *)protocolId
               error:(UMSocketError *)err;
  */
 - (UMSocketSCTPReceivedPacket *)receiveSCTP;

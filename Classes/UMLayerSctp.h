@@ -134,14 +134,14 @@
 - (void)closeFor:(id<UMLayerSctpUserProtocol>)caller;
 - (void)dataFor:(id<UMLayerSctpUserProtocol>)caller
            data:(NSData *)sendingData
-       streamId:(uint16_t)sid
-     protocolId:(uint32_t)pid
+       streamId:(NSNumber *)sid
+     protocolId:(NSNumber *)pid
      ackRequest:(NSDictionary *)ack;
 
 - (void)dataFor:(id<UMLayerSctpUserProtocol>)caller
            data:(NSData *)sendingData
-       streamId:(uint16_t)sid
-     protocolId:(uint32_t)pid
+       streamId:(NSNumber *)sid
+     protocolId:(NSNumber *)pid
      ackRequest:(NSDictionary *)ack
     synchronous:(BOOL)sync;
 
@@ -179,8 +179,9 @@
 - (NSString *)statusString;
 
 -(void) handleEvent:(NSData *)event
-           streamId:(uint32_t)streamId
-         protocolId:(uint16_t)protocolId;
+           streamId:(NSNumber *)streamId
+         protocolId:(NSNumber *)protocolId;
+
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx;
 - (void)processError:(UMSocketError)err inArea:(NSString *)area;
 - (void)processHangUp;
@@ -190,9 +191,9 @@
 -(void) handleLinkDownTcpEcnap;
 
 - (ssize_t) sendEncapsulated:(NSData *)data
-                      assoc:(uint32_t *)assocptr
-                     stream:(uint16_t)streamId
-                   protocol:(u_int32_t)protocolId
+                      assoc:(NSNumber *)assocId
+                     stream:(NSNumber *)streamId
+                   protocol:(NSNumber *)protocolId
                       error:(UMSocketError *)err2
                        flags:(int)flags;
 

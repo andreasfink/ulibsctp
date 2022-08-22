@@ -19,26 +19,22 @@
 
 @implementation UMSctpTask_Data
 
-@synthesize data;
-@synthesize streamId;
-@synthesize protocolId;
-@synthesize ackRequest;
 
 - (UMSctpTask_Data *)initWithReceiver:(UMLayer *)rx
                                sender:(id<UMLayerSctpUserProtocol>)tx
                                  data:(NSData *)d
-                             streamId:(uint16_t)sid
-                           protocolId:(uint32_t)pid
+                             streamId:(NSNumber *)sid
+                           protocolId:(NSNumber *)pid
                            ackRequest:(NSDictionary *)ack
 {
     self = [super initWithName:[[self class]description]  receiver:rx sender:tx requiresSynchronisation:NO];
     if(self)
     {
         self.name = @"UMSctpTask_Data";
-        self.data = d;
-        self.streamId = sid;
-        self.protocolId = pid;
-        self.ackRequest = ack;
+        _data = d;
+        _streamId = sid;
+        _protocolId = pid;
+        _ackRequest = ack;
     }
     return self;
 }

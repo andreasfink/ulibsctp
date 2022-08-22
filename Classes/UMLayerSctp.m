@@ -161,8 +161,8 @@
 
 - (void)dataFor:(id<UMLayerSctpUserProtocol>)caller
            data:(NSData *)sendingData
-       streamId:(uint16_t)sid
-     protocolId:(uint32_t)pid
+       streamId:(NSNumber *)sid
+     protocolId:(NSNumber *)pid
      ackRequest:(NSDictionary *)ack
 {
     [self dataFor:caller
@@ -175,8 +175,8 @@
 
 - (void)dataFor:(id<UMLayerSctpUserProtocol>)caller
            data:(NSData *)sendingData
-       streamId:(uint16_t)sid
-     protocolId:(uint32_t)pid
+       streamId:(NSNumber *)sid
+     protocolId:(NSNumber *)pid
      ackRequest:(NSDictionary *)ack
     synchronous:(BOOL)sync
 {
@@ -516,14 +516,9 @@
                                 {
                                     @try
                                     {
-                                        uint32_t a=0;
-                                        if(_assocId)
-                                        {
-                                            a = (uint32_t)_assocId.unsignedLongValue;
-                                        }
                                         [_listener.umsocket abortToAddress:addr
                                                                       port:_configured_remote_port
-                                                                     assoc:a
+                                                                     assoc:_assocId
                                                                     stream:0
                                                                   protocol:0];
                                     }
@@ -722,8 +717,8 @@
     {
         NSMutableDictionary *report = [task.ackRequest mutableCopy];
         NSDictionary *ui = @{
-                         @"protocolId" : @(task.protocolId),
-                         @"streamId"   : @(task.streamId),
+                         @"protocolId" : task.protocolId,
+                         @"streamId"   : task.streamId,
                          @"data"       : task.data
                          };
         [report setObject:ui forKey:@"sctp_data"];
@@ -796,9 +791,8 @@
             }
             else if(_directTcpEncapsulatedSocket)
             {
-                uint32_t tmp_assocId = (uint32_t)_assocId.unsignedIntValue;
                 [self sendEncapsulated:task.data
-                                 assoc:&tmp_assocId
+                                 assoc:_assocId
                                 stream:task.streamId
                               protocol:task.protocolId
                                  error:&err
@@ -867,15 +861,15 @@
                 {
                     [u.user sctpMonitorIndication:self
                                            userId:u.userId
-                                         streamId:task.streamId
-                                       protocolId:task.protocolId
+                                         streamId:(uint16_t)task.streamId.unsignedIntValue
+                                       protocolId:(uint32_t)task.protocolId.unsignedLongValue
                                              data:task.data
                                          incoming:NO];
                 }
             }
             NSDictionary *ui = @{
-                                 @"protocolId" : @(task.protocolId),
-                                 @"streamId"   : @(task.streamId),
+                                 @"protocolId" : task.protocolId,
+                                 @"streamId"   : task.streamId,
                                  @"data"       : task.data
                                  };
             NSMutableDictionary *report = [task.ackRequest mutableCopy];
@@ -1262,12 +1256,11 @@
 
 
 -(void) handleEvent:(NSData *)event
-           streamId:(uint32_t)streamId
-         protocolId:(uint16_t)protocolId
+           streamId:(NSNumber *)streamId
+         protocolId:(NSNumber *)protocolId
 {
     @autoreleasepool
     {
-
         const union sctp_notification *snp;
         snp = event.bytes;
         switch(snp->sn_header.sn_type)
@@ -1310,8 +1303,8 @@
 
             default:
                 [self.logFeed majorErrorText:[NSString stringWithFormat:@"SCTP unknown event type: %hu", snp->sn_header.sn_type]];
-                [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-STREAM: %d",streamId]];
-                [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-PROTO: %d", protocolId]];
+                [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-STREAM: %lu",streamId.unsignedLongValue]];
+                [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-PROTO: %lu", protocolId.unsignedLongValue]];
                 [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-DATA: %@",event.description]];
         }
     }
@@ -1319,8 +1312,8 @@
 
 
 -(void) handleAssocChange:(NSData *)event
-                 streamId:(uint32_t)streamId
-               protocolId:(uint16_t)protocolId
+                 streamId:(NSNumber *)streamId
+               protocolId:(NSNumber *)protocolId
 {
     const union sctp_notification *snp;
     snp = event.bytes;
@@ -1476,8 +1469,8 @@
 }
 
 -(void) handlePeerAddrChange:(NSData *)event
-                    streamId:(uint32_t)streamId
-                  protocolId:(uint16_t)protocolId
+                    streamId:(NSNumber *)streamId
+                  protocolId:(NSNumber *)protocolId
 {
     const union sctp_notification *snp;
 
@@ -1544,8 +1537,8 @@
 }
 
 -(void) handleRemoteError:(NSData *)event
-                 streamId:(uint32_t)streamId
-               protocolId:(uint16_t)protocolId
+                 streamId:(NSNumber *)streamId
+               protocolId:(NSNumber *)protocolId
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     const union sctp_notification *snp;
@@ -1583,8 +1576,8 @@
 
 
 -(int) handleSendFailed:(NSData *)event
-               streamId:(uint32_t)streamId
-             protocolId:(uint16_t)protocolId
+               streamId:(NSNumber *)streamId
+             protocolId:(NSNumber *)protocolId
 {
     const union sctp_notification *snp;
     snp = event.bytes;
@@ -1639,8 +1632,8 @@
 
 
 -(int) handleShutdownEvent:(NSData *)event
-                  streamId:(uint32_t)streamId
-                protocolId:(uint16_t)protocolId
+                  streamId:(NSNumber *)streamId
+                protocolId:(NSNumber *)protocolId
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     const union sctp_notification *snp;
@@ -1685,8 +1678,8 @@
 
 
 -(int) handleAdaptionIndication:(NSData *)event
-                       streamId:(uint32_t)streamId
-                     protocolId:(uint16_t)protocolId
+                       streamId:(NSNumber *)streamId
+                     protocolId:(NSNumber *)protocolId
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     const union sctp_notification *snp;
@@ -1768,8 +1761,8 @@
 }
 
 -(int) handleAuthenticationEvent:(NSData *)event
-                        streamId:(uint32_t)streamId
-                      protocolId:(uint16_t)protocolId
+                        streamId:(NSNumber *)streamId
+                      protocolId:(NSNumber *)protocolId
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     const union sctp_notification *snp;
@@ -1822,8 +1815,8 @@
 
 #if defined(SCTP_STREAM_RESET_EVENT)
 -(int) handleStreamResetEvent:(NSData *)event
-                     streamId:(uint32_t)streamId
-                   protocolId:(uint16_t)protocolId
+                     streamId:(NSNumber *)streamId
+                   protocolId:(NSNumber *)protocolId
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     const union sctp_notification *snp;
@@ -1868,8 +1861,8 @@
 #endif
 
 -(int) handleSenderDryEvent:(NSData *)event
-                   streamId:(uint32_t)streamId
-                 protocolId:(uint16_t)protocolId
+                   streamId:(NSNumber *)streamId
+                 protocolId:(NSNumber *)protocolId
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     const union sctp_notification *snp;
@@ -1907,8 +1900,8 @@
 
 
 - (UMSocketError) sctpReceivedData:(NSData *)data
-                          streamId:(uint32_t)streamId
-                        protocolId:(uint16_t)protocolId
+                          streamId:(NSNumber *)streamId
+                        protocolId:(NSNumber *)protocolId
 {
     @autoreleasepool
     {
@@ -1920,8 +1913,8 @@
         {
             [self logDebug:[NSString stringWithFormat:@"RXT: got %u bytes on stream %u protocol_id: %u data:%@",
                             (unsigned int)data.length,
-                            (unsigned int)streamId,
-                            (unsigned int)protocolId,
+                            (unsigned int)streamId.unsignedIntValue,
+                            (unsigned int)protocolId.unsignedIntValue,
                             data.hexString]];
         }
     #endif
@@ -1966,16 +1959,16 @@
     #endif
                 [u.user sctpDataIndication:self
                                     userId:u.userId
-                                  streamId:streamId
-                                protocolId:protocolId
+                                  streamId:streamId.unsignedShortValue
+                                protocolId:protocolId.unsignedIntValue
                                       data:data];
             }
             if([u.profile wantsMonitor])
             {
                 [u.user sctpMonitorIndication:self
                                        userId:u.userId
-                                     streamId:streamId
-                                   protocolId:protocolId
+                                     streamId:streamId.unsignedShortValue
+                                   protocolId:protocolId.unsignedIntValue
                                          data:data
                                      incoming:YES];
             }
@@ -2331,28 +2324,20 @@
 
 
 - (ssize_t) sendEncapsulated:(NSData *)data
-                      assoc:(uint32_t *)assocptr
-                     stream:(uint16_t)streamId
-                   protocol:(u_int32_t)protocolId
+                      assoc:(NSNumber *)assoc
+                     stream:(NSNumber *)streamId
+                   protocol:(NSNumber *)protocolId
                       error:(UMSocketError *)err2
                        flags:(int)flags
 {
     UMSocketError err = UMSocketError_no_error;
-    if (*assocptr==-1)
-    {
-        if(err2)
-        {
-            *err2 = UMSocketError_not_connected;
-        }
-        return -1;
-    }
 
     sctp_over_tcp_header header;
     memset(&header,0,sizeof(header));
     header.header_length = htonl(sizeof(header));
     header.payload_length = htonl(data.length);
-    header.protocolId = htonl(protocolId);
-    header.streamId = htons(streamId);
+    header.protocolId = htonl(protocolId.unsignedLongValue);
+    header.streamId = htons(streamId.unsignedShortValue);
     header.flags = htons(flags);
 
     
