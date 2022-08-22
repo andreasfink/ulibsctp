@@ -1185,9 +1185,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                       data.length,
                       (struct sockaddr *)remote_sockaddr.bytes,
                       (socklen_t)remote_sockaddr.length,
-                      htonl(protocolId),
+                      htonl(protocolId.unsignedLongValue),
                       flags, /* flags */
-                      streamId,
+                      streamId.unsignedIntValue,
                       timetolive, // timetolive,
                       context); // context);
 
