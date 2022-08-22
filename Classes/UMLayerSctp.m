@@ -1334,6 +1334,7 @@
         self.status= UMSOCKET_STATUS_IS;
         if(_directSocket==NULL)
         {
+            _directSocket.isConnected=YES;
             UMSocketError err = UMSocketError_no_error;
             if(_assocId==NULL)
             {
@@ -1370,6 +1371,10 @@
     else if(snp->sn_assoc_change.sac_state==SCTP_COMM_LOST)
     {
         _assocId = @(snp->sn_assoc_change.sac_assoc_id);
+        if(_directSocket)
+        {
+            _directSocket.isConnected=NO;
+        }
         [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF (assocID=%ld)",(long)_assocId]];
 #if defined(POWER_DEBUG)
         NSLog(@"%@ SCTP_COMM_LOST",_layerName);
@@ -1387,6 +1392,10 @@
     }
     else if(snp->sn_assoc_change.sac_state==SCTP_CANT_STR_ASSOC)
     {
+        if(_directSocket)
+        {
+            _directSocket.isConnected=NO;
+        }
         [self.logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_CANT_STR_ASSOC"];
 #if defined(POWER_DEBUG)
         NSLog(@"%@ SCTP_CANT_STR_ASSOC",_layerName);
@@ -1404,6 +1413,10 @@
     }
     else if(snp->sn_assoc_change.sac_error!=0)
     {
+        if(_directSocket)
+        {
+            _directSocket.isConnected=NO;
+        }
         [self.logFeed majorError:snp->sn_assoc_change.sac_error withText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)->OFF"];
 #if defined(POWER_DEBUG)
         NSLog(@"%@ SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)",_layerName,snp->sn_assoc_change.sac_error );
