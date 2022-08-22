@@ -691,9 +691,8 @@
                         [session handleLinkUpTcpEcnap];
                         success = YES;
                         UMSocketError err2 = UMSocketError_no_error;
-                        uint32_t tmp_assocId;
                         [session sendEncapsulated:rx.data
-                                            assoc:&tmp_assocId
+                                            assoc:session.assocId
                                            stream:0
                                          protocol:0
                                             error:&err2

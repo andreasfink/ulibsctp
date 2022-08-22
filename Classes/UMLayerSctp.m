@@ -2324,7 +2324,7 @@
 
 
 - (ssize_t) sendEncapsulated:(NSData *)data
-                      assoc:(NSNumber *)assoc
+                       assoc:(NSNumber *)assoc
                      stream:(NSNumber *)streamId
                    protocol:(NSNumber *)protocolId
                       error:(UMSocketError *)err2
