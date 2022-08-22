@@ -1274,12 +1274,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     struct sockaddr_in      remote_address4;
     struct sockaddr *       remote_address_ptr;
     socklen_t               remote_address_len;
-    
-    
-    NSNumber                *streamId;
-    NSNumber                *protocolId;
-    NSNumber                *context;
-    NSNumber                *assoc;
 
     if(_socketFamily==AF_INET)
     {
@@ -1294,7 +1288,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     ssize_t                 bytes_read = 0;
     char                    buffer[SCTP_RXBUF+1];
-    int                     flags=0;
+    int                     flags=SCTP_RCVINFO;
 
     memset(&buffer[0],0xFA,sizeof(buffer));
     memset(remote_address_ptr,0x00,sizeof(remote_address_len));
@@ -1302,33 +1296,21 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     UMSocketSCTPReceivedPacket *rx = [[UMSocketSCTPReceivedPacket alloc]init];
 
 
-    struct sctp_rcvinfo     rinfo;
-    socklen_t               rinfo_len;
-    struct iovec            iov[1];
-    int                     iovcnt = 1;
-    unsigned int            infoType;
 
-    memset(&rinfo,0x00,sizeof(struct sctp_rcvinfo));
+    struct sctp_sndrcvinfo sinfo;
+    memset(&sinfo,0x00,sizeof(struct sctp_sndrcvinfo));
 
-    iov[0].iov_base = &buffer;
-    iov[0].iov_len = SCTP_RXBUF;
-    rinfo_len = sizeof(struct sctp_rcvinfo);
-    infoType = SCTP_RECVRCVINFO;
-    bytes_read = sctp_recvv(_sock,
-                            iov,
-                            iovcnt,
-                            remote_address_ptr,
-                            &remote_address_len,
-                            &rinfo,
-                            &rinfo_len,
-                            &infoType,
-                            &flags);
+#if defined(SCTP_FUTURE_ASSOC)
+    sinfo.sinfo_assoc_id = SCTP_FUTURE_ASSOC;
+#endif
+    bytes_read = sctp_recvmsg(_sock,
+                         &buffer,
+                         SCTP_RXBUF,
+                         remote_address_ptr,
+                         &remote_address_len,
+                         &sinfo,
+                         &flags);
 
-    streamId = @(rinfo.rcv_sid);
-    protocolId = @(ntohl(rinfo.rcv_ppid));
-    context = @(ntohl(rinfo.rcv_context));
-    assoc  = @(rinfo.rcv_assoc_id);
-    
     if(bytes_read <= 0)
     {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1342,21 +1324,20 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         rx.remotePort = [UMSocket portOfSockAddr:remote_address_ptr];
         rx.data = [NSData dataWithBytes:&buffer length:bytes_read];
         rx.flags = flags;
-		if(_msg_notification_mask==0)
-		{
-			_msg_notification_mask = MSG_NOTIFICATION;
-		}
+        if(_msg_notification_mask==0)
+        {
+            _msg_notification_mask = MSG_NOTIFICATION;
+        }
 
         if(flags & _msg_notification_mask)
         {
             rx.isNotification = YES;
-        }        
+        }
+        rx.streamId = @(sinfo.sinfo_stream);
+        rx.protocolId = @(ntohl(sinfo.sinfo_ppid));
+        rx.context = @(sinfo.sinfo_context);
+        rx.assocId = @(sinfo.sinfo_assoc_id);
         rx.socket = @(_sock);
-        rx.streamId = streamId;
-        rx.protocolId = protocolId;
-        rx.context = context;
-        rx.assocId = assoc;
-
     }
     return rx;
 }
