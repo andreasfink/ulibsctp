@@ -1306,7 +1306,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                          SCTP_RXBUF,
                          remote_address_ptr,
                          &remote_address_len,
-                         &(sctp_sndrcvinfo *)sinfo,
+                         (sctp_sndrcvinfo *)&sinfo,
                          &flags);
 
     if(bytes_read <= 0)
