@@ -1604,9 +1604,4 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     return err;
 }
 
-- (NSString *)description
-{
-    NSString *s = [super description];
-    
-}
 @end
