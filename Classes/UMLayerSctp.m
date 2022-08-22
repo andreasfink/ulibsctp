@@ -747,8 +747,8 @@
         if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"DATA: %@",task.data]];
-            [self logDebug:[NSString stringWithFormat:@" streamId: %u",task.streamId]];
-            [self logDebug:[NSString stringWithFormat:@" protocolId: %u",task.protocolId]];
+            [self logDebug:[NSString stringWithFormat:@" streamId: %@",task.streamId]];
+            [self logDebug:[NSString stringWithFormat:@" protocolId: %@",task.protocolId]];
             [self logDebug:[NSString stringWithFormat:@" ackRequest: %@",(task.ackRequest ? task.ackRequest.description  : @"(not present)")]];
         }
     #endif
