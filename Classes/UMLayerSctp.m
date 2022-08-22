@@ -1146,7 +1146,7 @@
             UMSocketError err = UMSocketError_no_error;
 
             _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
-	    [_layerHistory addLogEntry:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %lu",(unsigned long)rx.assocId.unsignedLongValue,(unsigned long)_directSocket]];
+            [_layerHistory addLogEntry:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d (err=%d)",(unsigned long)rx.assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
 #endif
