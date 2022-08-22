@@ -1270,6 +1270,11 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (UMSocketSCTPReceivedPacket *)receiveSCTP
 {
+    if(_msg_notification_mask==0)
+    {
+        _msg_notification_mask = MSG_NOTIFICATION;
+    }
+
     struct sockaddr_in6     remote_address6;
     struct sockaddr_in      remote_address4;
     struct sockaddr *       remote_address_ptr;
@@ -1288,7 +1293,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     ssize_t                 bytes_read = 0;
     char                    buffer[SCTP_RXBUF+1];
-    int                     flags=MSG_NOTIFICATION;
+    int                     flags=_msg_notification_mask;
 
     memset(&buffer[0],0xFA,sizeof(buffer));
     memset(remote_address_ptr,0x00,sizeof(remote_address_len));
@@ -1308,7 +1313,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                          &remote_address_len,
                          &sinfo,
                          &flags);
-
     if(bytes_read <= 0)
     {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
