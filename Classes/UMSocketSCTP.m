@@ -1314,7 +1314,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     iov[0].iov_base = &buffer;
     iov[0].iov_len = SCTP_RXBUF;
     rinfo_len = sizeof(struct sctp_rcvinfo);
-    infoType = SCTP_RECVV_RCVINFO;
+    infoType = SCTP_RECVRCVINFO;
     bytes_read = sctp_recvv(_sock,
                             iov,
                             iovcnt,
