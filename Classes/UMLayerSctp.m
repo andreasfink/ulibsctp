@@ -399,14 +399,13 @@
                 
                 if(!_isPassive)
                 {
-        #if defined(ULIBSCTP_CONFIG_DEBUG)
                     if(self.logLevel <= UMLOG_DEBUG)
                     {
                         NSString *addrs = [_configured_remote_addresses componentsJoinedByString:@","];
-                        [self logDebug:[NSString stringWithFormat:@"asking listener to connect to %@ on port %d",addrs,_configured_remote_port]];
+                        NSString *s = [NSString stringWithFormat:@"asking listener to connect to %@ on port %d",addrs,_configured_remote_port];
+                        [self logDebug:s];
+                        [_layerHistory addLogEntry:s];
                     }
-        #endif
-                    
 
                     if(_encapsulatedOverTcp)
                     {
@@ -496,12 +495,27 @@
             #if defined(ULIBSCTP_CONFIG_DEBUG)
                                     [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %@",_assocId]];
             #endif
-                                    _directSocket = [_listener peelOffAssoc:_assocId error:&err];
-                                    [_layerHistory addLogEntry:[NSString stringWithFormat:@"peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
+                                    if(_assocId==NULL)
+                                    {
+                                        [_layerHistory addLogEntry:[NSString stringWithFormat:@"  peeloff called with assocptr == NULL,setting err=UMSocketError_not_a_socket"]];
+                                        _directSocket = NULL;
+                                        err = UMSocketError_not_a_socket;
+                                    }
+                                    else if(_assocId.unsignedIntValue == 0)
+                                    {
+                                        [_layerHistory addLogEntry:[NSString stringWithFormat:@"  peeloff called with assoc==0, setting err=UMSocketError_not_a_socket"]];
+                                         _directSocket = NULL;
+                                         err = UMSocketError_not_a_socket;
+                                    }
+                                    else
+                                    {
+                                        _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+                                        [_layerHistory addLogEntry:[NSString stringWithFormat:@"peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
+                                    }
             #if defined(ULIBSCTP_CONFIG_DEBUG)
                                     [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
             #endif
-                                    if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
+                                    if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress) && (err!=UMSocketError_not_a_socket))
                                     {
                                         [_directSocket close];
                                         _directSocket = NULL;
@@ -1145,12 +1159,29 @@
 #endif
             UMSocketError err = UMSocketError_no_error;
 
-            _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
-            [_layerHistory addLogEntry:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d (err=%d)",(unsigned long)rx.assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
+            
+            if(rx.assocId==NULL)
+            {
+                [_layerHistory addLogEntry:[NSString stringWithFormat:@"  peeloff called with assocptr == NULL,setting err=UMSocketError_not_a_socket"]];
+                _directSocket = NULL;
+                err = UMSocketError_not_a_socket;
+            }
+            else if(rx.assocId.unsignedIntValue == 0)
+            {
+                [_layerHistory addLogEntry:[NSString stringWithFormat:@"  peeloff called with assoc==0, setting err=UMSocketError_not_a_socket"]];
+                 _directSocket = NULL;
+                 err = UMSocketError_not_a_socket;
+            }
+            else
+            {
+                _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
+                [_layerHistory addLogEntry:[NSString stringWithFormat:@"peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
+            }
+
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
 #endif
-            if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
+            if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress) &&(err !=UMSocketError_not_a_socket))
             {
                 [_directSocket close];
                 [_registry unregisterAssoc:_assocId];
@@ -1379,8 +1410,26 @@
         if(_directSocket==NULL)
         {
             UMSocketError err = UMSocketError_no_error;
-            _directSocket = [_listener peelOffAssoc:_assocId error:&err];
-            if(err != UMSocketError_no_error)
+            
+            if(_assocId==NULL)
+            {
+                [_layerHistory addLogEntry:[NSString stringWithFormat:@"  peeloff called with assocptr == NULL,setting err=UMSocketError_not_a_socket"]];
+                _directSocket = NULL;
+                err = UMSocketError_not_a_socket;
+            }
+            else if(_assocId.unsignedIntValue == 0)
+            {
+                [_layerHistory addLogEntry:[NSString stringWithFormat:@"  peeloff called with assoc==0, setting err=UMSocketError_not_a_socket"]];
+                 _directSocket = NULL;
+                 err = UMSocketError_not_a_socket;
+            }
+            else
+            {
+                _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+                [_layerHistory addLogEntry:[NSString stringWithFormat:@"peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
+            }
+
+            if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress) && (err!=UMSocketError_not_a_socket))
             {
                 _directSocket = NULL;
                 [_registry unregisterAssoc:_assocId];

@@ -458,6 +458,7 @@
     {
         [self startListeningFor:layer];
     }
+    [layer.layerHistory addLogEntry:[NSString stringWithFormat:@"calling sctp_connectx(%@:%d)",[addrs componentsJoinedByString:@","],port]];
     UMSocketError err = [_umsocket connectToAddresses:addrs
                                                  port:port
                                              assocPtr:assocptr];
@@ -468,6 +469,7 @@
             NSLog(@"   returns assoc=%ld",(long)*assocptr);
         }
     }
+    [layer.layerHistory addLogEntry:[NSString stringWithFormat:@"  returns err=%d, assoc=%@",err,*assocptr]];
     return err;
 }
 
