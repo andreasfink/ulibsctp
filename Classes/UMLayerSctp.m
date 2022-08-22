@@ -727,7 +727,7 @@
         int attempts=0;
         /* we try to send as long as no ASSOC down has been received or at least once (as we might not have a direct socket yet */
         int maxatt = 50;
-        while((attempts < maxatt) &&  (self.status==UMSOCKET_STATUS_IS))
+        while((attempts < maxatt) && (self.status==UMSOCKET_STATUS_IS) && (sent_packets<1))
         {
             attempts++;
             [_linkLock lock];
@@ -801,6 +801,8 @@
                 
                 /* if we get here we have attempted 50 times and failed */
                 /* we can assume this connection dead */
+                NSString *s = @"tried to send 50 times and got UMSocketError_try_again every time";
+                [_layerHistory addLogEntry:s];
                 failed=YES;
             }
         }
@@ -838,9 +840,10 @@
             //report[@"backtrace"] = UMBacktrace(NULL,0);
             [user sentAckConfirmFrom:self userInfo:report];
         }
-        else /* we had an error */
+        else if(failed)
         {
-            [_layerHistory addLogEntry:[NSString stringWithFormat:@"Error %d %@",uerr,[UMSocket getSocketErrorString:uerr]]];
+            NSString *s = [NSString stringWithFormat:@"Error %d %@",uerr,[UMSocket getSocketErrorString:uerr]];
+            [_layerHistory addLogEntry:s];
 
             if(uerr==UMSocketError_is_already_connected)
             {
@@ -1332,7 +1335,6 @@
         if(_directSocket==NULL)
         {
             UMSocketError err = UMSocketError_no_error;
-            
             if(_assocId==NULL)
             {
                 [_layerHistory addLogEntry:[NSString stringWithFormat:@"  peeloff called with assocptr == NULL,setting err=UMSocketError_not_a_socket"]];
