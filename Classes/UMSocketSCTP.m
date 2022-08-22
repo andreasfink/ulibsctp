@@ -1302,13 +1302,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     UMSocketSCTPReceivedPacket *rx = [[UMSocketSCTPReceivedPacket alloc]init];
 
-#if defined __APPLE__
-// we want to test unix behaviour here... so we ignore this for now
-//define ULIBSCTP_SCTP_RECVV_SUPPORTED 1
-#undef ULIBSCTP_SCTP_RECVV_SUPPORTED
-#endif
-
-#if defined(ULIBSCTP_SCTP_RECVV_SUPPORTED)
 
     struct sctp_rcvinfo     rinfo;
     socklen_t               rinfo_len;
@@ -1336,26 +1329,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     protocolId = @(ntohl(rinfo.rcv_ppid));
     context = @(ntohl(rinfo.rcv_context));
     assoc  = @(rinfo.rcv_assoc_id);
-#else
-
-    struct sctp_sndrcvinfo sinfo;
-    memset(&sinfo,0x00,sizeof(sinfo));
-#if defined(SCTP_FUTURE_ASSOC)
-    sinfo.sinfo_assoc_id = SCTP_FUTURE_ASSOC;
-#endif
-    bytes_read = sctp_recvmsg(_sock,
-                         &buffer,
-                         SCTP_RXBUF,
-                         remote_address_ptr,
-                         &remote_address_len,
-                         &sinfo,
-                         &flags);
-    streamId = @(sinfo.sinfo_stream);
-    protocolId = @(ntohl(sinfo.sinfo_ppid));
-    context = @(sinfo.sinfo_context);
-    assoc = @(sinfo.sinfo_assoc_id);
-#endif
-
     
     if(bytes_read <= 0)
     {
