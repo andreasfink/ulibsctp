@@ -1356,15 +1356,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     int eno = 0;
 
     int events = POLLIN | POLLPRI | POLLERR | POLLHUP | POLLNVAL;
-    
-#ifdef POLLRDBAND
-    events |= POLLRDBAND;
-#endif
-
-#ifdef POLLRDHUP
-    events |= POLLRDHUP;
-#endif
-    
+        
     memset(pollfds,0,sizeof(pollfds));
     pollfds[0].fd = _sock;
     pollfds[0].events = events;
@@ -1417,27 +1409,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             }
             *hasHup = 1;
         }
-        
-#ifdef POLLRDHUP
-        if(ret2 & POLLRDHUP)
-        {
-            if((returnValue==UMSocketError_no_data) || (returnValue==UMSocketError_no_error))
-            {
-                returnValue = UMSocketError_connection_reset;
-            }
-            *hasHup = 1;
-        }
-#endif
         if(ret2 & POLLNVAL)
         {
             returnValue = UMSocketError_file_descriptor_not_open;
         }
-#ifdef POLLRDBAND
-        if(ret2 & POLLRDBAND)
-        {
-            *hasData = 1;
-        }
-#endif
         /* There is data to read.*/
         if(ret2 & (POLLIN | POLLPRI))
         {

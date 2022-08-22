@@ -2306,25 +2306,45 @@
 
 - (void)processError:(UMSocketError)err socket:(UMSocket *)socket inArea:(NSString *)area
 {
+    if(err==UMSocketError_no_data)
+    {
+       return;
+    }
+    if(err==UMSocketError_no_error)
+    {
+        return;
+    }
     @autoreleasepool
     {
         if(_logLevel <=UMLOG_MINOR)
         {
             NSLog(@"processError %d %@ received in UMLayerSctp %@",err, [UMSocket getSocketErrorString:err], _layerName);
         }
-        if((err != UMSocketError_no_data) || (err!=UMSocketError_no_error))
-        {
 #if defined(POWER_DEBUG)
             NSLog(@"%@ processError: %d %@",_layerName,err, [UMSocket getSocketErrorString:err]);
 #endif
-            if(err==UMSocketError_invalid_file_descriptor)
+        if(err==UMSocketError_invalid_file_descriptor)
+        {
+            if(_directSocket == socket)
             {
-                if(_directSocket == socket)
-                {
-                    [self powerdown:[NSString stringWithFormat:@"_processError %@ in area %@",[UMSocket getSocketErrorString:err],area]];
-                    [self reportStatus];
-                }
+                _directSocket = NULL;
+                self.status= UMSOCKET_STATUS_OOS;
+                self.status= UMSOCKET_STATUS_OFF;
+                [_registry unregisterAssoc:_assocId];
+                _assocId = NULL;
+                [_registry unregisterLayer:self];
+                [self reportStatus];
             }
+            else
+            {
+                NSString *s = [NSString stringWithFormat:@"got error UMSocketError_invalid_file_descriptor on socket %p (%d) but _directSocket is %p (%d). Ignoring",socket,socket.sock,_directSocket,_directSocket.sock];
+                [_layerHistory addLogEntry:s];
+            }
+        }
+        else
+        {
+            [self powerdown:[NSString stringWithFormat:@"processError %d %@",err,[UMSocket getSocketErrorString:err]]];
+            [self reportStatus];
         }
     }
 }
