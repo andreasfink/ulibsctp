@@ -407,6 +407,8 @@
 
                     if(_encapsulatedOverTcp)
                     {
+#ifdef FIXME
+                        
 #if defined(SCTP_OVER_TCP_ENCAPSULATION)
                         if(_directTcpEncapsulatedSocket != NULL)
                         {
@@ -416,7 +418,7 @@
                         [self logDebug:@"_directTcpEncapsulatedSocket==NULL"];
     #endif
 
-                        tmp_assocId = 0;
+                        tmp_assocId = NULL;
                         if(_configured_remote_addresses.count < 0)
                         {
                             err = UMSocketError_invalid_port_or_address;
@@ -468,6 +470,7 @@
                     /* we cant use the assoc to store the tcp socket anymore...*/
                     NSLog(@"%@ openTask: directTcpEncapsulatedSocket currently not supported",_layerName);
 #endif
+#endif  /* FIXME */
                     }
                     else
                     {

@@ -727,7 +727,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 {
 	UMAssert(assocptr!=NULL,@"assocptr can not be NULL");
 
-    sctp_assoc_t assoc = -1;
+    
+    sctp_assoc_t tmp_assoc = -2;
 
     int count = 0;
     NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
@@ -748,15 +749,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         NSLog(@"calling sctp_connectx (%@)", [addrs componentsJoinedByString:@" "]);
 #endif
         
-        sctp_assoc_t tmp_assoc = -2;
-        if(assocptr)
-        {
-            *assocptr = NULL;
-        }
         
         int err =  sctp_connectx(_sock,(struct sockaddr *)remote_sockaddr.bytes,count,&tmp_assoc);
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-        if((*assocptr) && (tmp_assoc != -2) && (err==0))
+        if((tmp_assoc != -2) && (err==0))
         {
             *assocptr = @(tmp_assoc);
         }
@@ -781,10 +777,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         }
     }
     
-    [_historyLog addLogEntry:[NSString stringWithFormat:@"connect(%@:%d) assoc=%lu %@",
+    [_historyLog addLogEntry:[NSString stringWithFormat:@"connect(%@:%d) assoc=%@ %@",
                            [addrs componentsJoinedByString:@","],
                            remotePort,
-                           (unsigned long)assoc,
+                           *assocptr,
                            [UMSocket getSocketErrorString:returnValue]]];
     return returnValue;
 }
