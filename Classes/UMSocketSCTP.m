@@ -1275,7 +1275,12 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     struct sockaddr_in      remote_address4;
     struct sockaddr *       remote_address_ptr;
     socklen_t               remote_address_len;
-    sctp_assoc_t            assoc;
+    
+    
+    NSNumber                *streamId;
+    NSNumber                *protocolId;
+    NSNumber                *context;
+    NSNumber                *assoc;
 
     if(_socketFamily==AF_INET)
     {
@@ -1291,9 +1296,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     ssize_t                 bytes_read = 0;
     char                    buffer[SCTP_RXBUF+1];
     int                     flags=0;
-    uint16_t                streamId;
-    uint32_t                protocolId;
-    uint32_t                context;
 
     memset(&buffer[0],0xFA,sizeof(buffer));
     memset(remote_address_ptr,0x00,sizeof(remote_address_len));
@@ -1330,17 +1332,17 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                             &infoType,
                             &flags);
 
-    streamId = rinfo.rcv_sid;
-    protocolId = ntohl(rinfo.rcv_ppid);
-    context = ntohl(rinfo.rcv_context);
-    assoc  = rinfo.rcv_assoc_id;
+    streamId = @(rinfo.rcv_sid);
+    protocolId = @(ntohl(rinfo.rcv_ppid));
+    context = @(ntohl(rinfo.rcv_context));
+    assoc  = @(rinfo.rcv_assoc_id);
 #else
 
     struct sctp_sndrcvinfo sinfo;
+    memset(&sinfo,0x00,sizeof(sinfo));
 #if defined(SCTP_FUTURE_ASSOC)
     sinfo.sinfo_assoc_id = SCTP_FUTURE_ASSOC;
 #endif
-    memset(&sinfo,0xFF,sizeof(struct sctp_sndrcvinfo));
     bytes_read = sctp_recvmsg(_sock,
                          &buffer,
                          SCTP_RXBUF,
@@ -1348,11 +1350,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                          &remote_address_len,
                          &sinfo,
                          &flags);
-
-    streamId = sinfo.sinfo_stream;
-    protocolId = ntohl(sinfo.sinfo_ppid);
-    context = sinfo.sinfo_context;
-    assoc = sinfo.sinfo_assoc_id;
+    streamId = @(sinfo.sinfo_stream);
+    protocolId = @(ntohl(sinfo.sinfo_ppid));
+    context = @(sinfo.sinfo_context);
+    assoc = @(sinfo.sinfo_assoc_id);
 #endif
 
     
@@ -1379,10 +1380,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             rx.isNotification = YES;
         }        
         rx.socket = @(_sock);
-        rx.streamId = @(streamId);
-        rx.protocolId = @(protocolId);
-        rx.context = @(context);
-        rx.assocId = @(assoc);
+        rx.streamId = streamId;
+        rx.protocolId = protocolId;
+        rx.context = context;
+        rx.assocId = assoc;
 
     }
     return rx;
