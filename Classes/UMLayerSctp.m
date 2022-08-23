@@ -853,7 +853,7 @@
                     NSLog(@"already connected");
                 }
             }
-            [self reportError:errno taskData:task];
+            [self reportError:uerr taskData:task];
             [self powerdown:@"error in _dataTask"];
             [self reportStatus];
         }
@@ -1335,25 +1335,9 @@
         self.status= UMSOCKET_STATUS_IS;
         if(_directSocket==NULL)
         {
-            _directSocket.isConnected=YES;
             UMSocketError err = UMSocketError_no_error;
-            if(_assocId==NULL)
-            {
-                [_layerHistory addLogEntry:[NSString stringWithFormat:@"  peeloff called with assocptr == NULL,setting err=UMSocketError_not_a_socket"]];
-                _directSocket = NULL;
-                err = UMSocketError_not_a_socket;
-            }
-            else if(_assocId.unsignedIntValue == 0)
-            {
-                [_layerHistory addLogEntry:[NSString stringWithFormat:@"  peeloff called with assoc==0, setting err=UMSocketError_not_a_socket"]];
-                 _directSocket = NULL;
-                 err = UMSocketError_not_a_socket;
-            }
-            else
-            {
-                _directSocket = [_listener peelOffAssoc:_assocId error:&err];
-                [_layerHistory addLogEntry:[NSString stringWithFormat:@"peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
-            }
+            _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+            [_layerHistory addLogEntry:[NSString stringWithFormat:@"peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
 
             if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress) && (err!=UMSocketError_not_a_socket))
             {
