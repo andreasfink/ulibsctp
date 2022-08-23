@@ -79,6 +79,118 @@
 }
 
 
+- (UMSocketError) waitAndHandleData_Listeners
+{
+    UMAssert(_registry!=NULL,@"_registry is NULL");
+
+    UMSocketError returnValue = UMSocketError_generic_error;
+    NSArray *listeners = [_registry allListeners];
+    NSUInteger listeners_count = listeners.count;
+    NSUInteger listeners_count_valid = 0;
+    NSMutableArray *valid_listeners             = [[NSMutableArray alloc]init];
+
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+    NSLog(@"listeners_count=%d",(int)listeners_count);
+#endif
+
+    if(listeners_count == 0)
+    {
+        sleep(1);
+        return UMSocketError_no_data;
+    }
+
+    struct pollfd *pollfds = calloc((listeners_count+1),sizeof(struct pollfd));
+    NSAssert(pollfds !=0,@"can not allocate memory for poll()");
+
+    memset(pollfds, 0x00,(listeners_count+1)  * sizeof(struct pollfd));
+    int events = POLLIN | POLLPRI | POLLERR | POLLHUP | POLLNVAL;
+    nfds_t j=0;
+
+    for(NSUInteger i=0;i<listeners_count;i++)
+    {
+        UMSocketSCTPListener *listener = listeners[i];
+        if(listener.isInvalid==NO)
+        {
+            listeners_count_valid++;
+            [valid_listeners addObject:listener];
+            pollfds[j].fd = listener.umsocket.fileDescriptor;
+            pollfds[j].events = events;
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+            NSLog(@"pollfds[%d] = %d  (listener)",(int)j,(int)listener.umsocket.fileDescriptor);
+#endif
+        }
+    }
+
+    _timeoutInMs = 10000;
+    int ret1 = poll(pollfds, j, _timeoutInMs);
+    UMMicroSec poll_time = ulib_microsecondTime();
+    if (ret1 < 0)
+    {
+        int eno = errno;
+        if((eno==EINPROGRESS) || (eno == EINTR) || (eno==EAGAIN)  || (eno==EBUSY))
+        {
+            returnValue = UMSocketError_no_data;
+        }
+        else
+        {
+            returnValue = [UMSocket umerrFromErrno:eno];
+        }
+    }
+    else if (ret1 == 0)
+    {
+        returnValue = UMSocketError_no_data;
+    }
+    else /* ret1 > 0 */
+    {
+        /* we have some event to handle. */
+        returnValue = UMSocketError_no_error;
+
+        UMSocketSCTPListener    *listener = NULL;
+        j = 0;
+        for(NSUInteger i=0;i<listeners_count_valid;i++)
+        {
+            
+            listener = valid_listeners[i];
+            UMSocketSCTP *theSocket = listener.umsocket;
+            if(theSocket == NULL)
+            {
+                continue;
+            }
+            int revent = pollfds[j].revents;
+            UMSocketError r = [self handlePollResult:revent
+                                            listener:listener
+                                               layer:NULL
+                                              socket:theSocket
+                                         socketEncap:NULL
+                                           poll_time:poll_time
+                                                type:SCTP_SOCKET_TYPE_LISTENER_SCTP];
+            if(r != UMSocketError_no_error)
+            {
+                returnValue= r;
+            }
+            j++;
+        }
+    }
+    switch(returnValue)
+    {
+        case UMSocketError_has_data_and_hup:
+        case UMSocketError_has_data:
+        case UMSocketError_no_error:
+        case UMSocketError_no_data:
+        case UMSocketError_timed_out:
+            break;
+        default:
+            /* if poll returns an error, we will not have hit the timeout. Hence we risk a busy loop */
+            usleep(100000); /* sleep 0.1 sec */
+            break;
+    }
+    if(pollfds)
+    {
+        free(pollfds);
+        pollfds=NULL;
+    }
+    return returnValue;
+}
 
 - (UMSocketError) waitAndHandleData
 {
@@ -257,7 +369,6 @@
     _timeoutInMs = 10000;
     NSLog(@"calling poll(timeout=%8.2fs)",((double)_timeoutInMs)/1000.0);
 #endif
-
     NSAssert(_timeoutInMs > 100,@"UMSocketSCTP Receiver: _timeoutInMs is smaller than 100ms");
 
     //valid_total_count = j;
@@ -295,15 +406,15 @@
         UMSocketSCTPListener    *listener = NULL;
         UMLayerSctp             *outbound = NULL;
         UMLayerSctp             *inbound = NULL;
-        UMSocketSCTP            *socket = NULL;
+        UMSocketSCTP            *theSocket = NULL;
         UMSocket                *socketEncap = NULL;
 
         j = 0;
         for(NSUInteger i=0;i<listeners_count_valid;i++)
         {
             listener = valid_listeners[i];
-            socket = listener.umsocket;
-            if(socket == NULL)
+            theSocket = listener.umsocket;
+            if(theSocket == NULL)
             {
                 continue;
             }
@@ -311,7 +422,7 @@
             UMSocketError r = [self handlePollResult:revent
                                             listener:listener
                                                layer:NULL
-                                              socket:socket
+                                              socket:theSocket
                                          socketEncap:NULL
                                            poll_time:poll_time
                                                 type:SCTP_SOCKET_TYPE_LISTENER_SCTP];
@@ -346,8 +457,8 @@
         for(NSUInteger i=0;i<outbound_count_valid;i++)
         {
             outbound = valid_outbound_layers[i];
-            socket = outbound.directSocket;
-            if(socket == NULL)
+            theSocket = outbound.directSocket;
+            if(theSocket == NULL)
             {
                 continue;
             }
@@ -355,7 +466,7 @@
             UMSocketError r = [self handlePollResult:revent
                                             listener:NULL
                                                layer:outbound
-                                              socket:socket
+                                              socket:theSocket
                                          socketEncap:NULL
                                            poll_time:poll_time
                                                 type:SCTP_SOCKET_TYPE_OUTBOUND];
@@ -368,8 +479,8 @@
         for(NSUInteger i=0;i<inbound_count_valid;i++)
         {
             inbound = valid_inbound_layers[i];
-            socket = inbound.directSocket;
-            if(socket == NULL)
+            theSocket = inbound.directSocket;
+            if(theSocket == NULL)
             {
                 continue;
             }
@@ -377,7 +488,7 @@
             UMSocketError r = [self handlePollResult:revent
                                             listener:NULL
                                                layer:inbound
-                                              socket:socket
+                                              socket:theSocket
                                          socketEncap:NULL
                                            poll_time:poll_time
                                                 type:SCTP_SOCKET_TYPE_INBOUND];
