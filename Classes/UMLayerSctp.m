@@ -549,7 +549,8 @@
                             }
                             err = [_directSocket connectToAddresses:_configured_remote_addresses
                                                                 port:_configured_remote_port
-                                                            assocPtr:&tmp_assocId];
+                                                            assocPtr:&tmp_assocId
+                                                              layer:self];
                             if(tmp_assocId !=NULL)
                             {
                                 _assocId = tmp_assocId;
@@ -667,72 +668,14 @@
 }
 
 
-- (void)reportError:(int)err taskData:(UMSctpTask_Data *)task
+- (void)reportError:(UMSocketError)err taskData:(UMSctpTask_Data *)task
 {
-    [self addToLayerHistoryLog:[NSString stringWithFormat:@"reportError(%d)",err] ];
 
     id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
 
-    NSString *errString=NULL;
-    NSString *reason = NULL;
-    switch(err)
-    {
-        case 0:
-            break;
-        case EBADF:
-            errString=@"EBADF";
-            reason=@"An invalid descriptor was specified";
-            break;
-        case ENOTSOCK:
-            errString=@"ENOTSOCK";
-            reason=@"The argument s is not a socket";
-            break;
-        case EFAULT:
-            errString=@"EFAULT";
-            reason=@"An invalid user space address was specified";
-            break;
-        case EMSGSIZE:
-            errString=@"EMSGSIZE";
-            reason=@"The socket requires that message be sent atomically, and the size of the message to be sent made this impossible.";
-            break;
-        case EAGAIN:
-            errString=@"EAGAIN";
-            reason=@"Resource temporarily unavailable";
-            break;
-        case ENOBUFS:
-            errString=@"ENOBUFS";
-            reason=@"The system was unable to allocate an internal buffer. The operation may succeed when buffers become available.";
-            break;
-        case EACCES:
-            errString=@"EACCES";
-            reason=@"The SO_BROADCAST option is not set on the socket, and a broadcast address was given as the destination.";
-            break;
-        case EHOSTUNREACH:
-            errString=@"EHOSTUNREACH";
-            reason=@"The destination address specified an unreachable host.";
-            break;
-        case ENOTCONN:
-            errString=@"ENOTCONN";
-            reason=@"socket is not connected.";
-            break;
-        case EPIPE:
-            errString=@"EPIPE";
-            reason=@"pipe is broken.";
-            break;
-        case ECONNRESET:
-            errString=@"ECONNRESET";
-            reason=@"connection is reset by peer.";
-            break;
-        case EADDRNOTAVAIL:
-            errString=@"EADDRNOTAVAIL";
-            reason= @"address is no available";
-            break;
-        default:
-            errString=[NSString stringWithFormat:@"ERROR %d",errno];
-            reason=[NSString stringWithFormat:@"unknown error %d %s",errno,strerror(errno)];
-            break;
-    }
-    [self logMajorError:[NSString stringWithFormat:@"%@: %@",errString,reason]];
+    NSString *errString= [UMSocket getSocketErrorString:err];;
+    [self addToLayerHistoryLog:[NSString stringWithFormat:@"reportError(%d) %@",err,errString]];
+    [self logMajorError:[NSString stringWithFormat:@"%@",errString]];
     if(task.ackRequest)
     {
         NSMutableDictionary *report = [task.ackRequest mutableCopy];
@@ -744,13 +687,12 @@
         [report setObject:ui forKey:@"sctp_data"];
         NSDictionary *errDict = @{
                               @"exception"  : errString,
-                              @"reason"     : reason,
                               };
         [report setObject:errDict forKey:@"sctp_error"];
         [user sentAckFailureFrom:self
                     userInfo:report
                        error:errString
-                      reason:reason
+                      reason:@""
                    errorInfo:errDict];
     }
 }
@@ -780,13 +722,13 @@
         }
         
         BOOL failed = NO;
-        UMSocketError err = UMSocketError_no_error;
+        UMSocketError uerr = UMSocketError_no_error;
 
         ssize_t sent_packets = 0;
         int attempts=0;
         /* we try to send as long as no ASSOC down has been received or at least once (as we might not have a direct socket yet */
         int maxatt = 50;
-        while((attempts < maxatt) &&  (self.status==UMSOCKET_STATUS_IS))
+        while((attempts < maxatt) && (self.status==UMSOCKET_STATUS_IS) && (sent_packets<1))
         {
             attempts++;
             [_linkLock lock];
@@ -806,7 +748,7 @@
                                                          data:task.data
                                                        stream:task.streamId
                                                      protocol:task.protocolId
-                                                        error:&err];
+                                                        error:&uerr];
                 _assocId = tmp_assocId ;
             }
             else if(_directTcpEncapsulatedSocket)
@@ -815,7 +757,7 @@
                                  assoc:_assocId
                                 stream:task.streamId
                               protocol:task.protocolId
-                                 error:&err
+                                 error:&uerr
                                  flags:0];
             }
             else
@@ -827,7 +769,7 @@
                                                      data:task.data
                                                    stream:task.streamId
                                                  protocol:task.protocolId
-                                                    error:&err
+                                                    error:&uerr
                                                     layer:self];
                 _assocId = tmp_assocId;
             }
@@ -839,12 +781,12 @@
             {
                 break;
             }
-            if(errno != EAGAIN)
+            if(uerr != UMSocketError_try_again)
             {
                 failed=YES;
                 break;
             }
-            if(errno == EAGAIN)
+            if(uerr == UMSocketError_try_again)
             {
                 /* we have EAGAIN */
                 /* lets try up to 50 times and wait 200ms every 10th time */
@@ -860,6 +802,8 @@
                 
                 /* if we get here we have attempted 50 times and failed */
                 /* we can assume this connection dead */
+                NSString *s = @"tried to send 50 times and got UMSocketError_try_again every time";
+                [_layerHistory addLogEntry:s];
                 failed=YES;
             }
         }
@@ -897,13 +841,12 @@
             //report[@"backtrace"] = UMBacktrace(NULL,0);
             [user sentAckConfirmFrom:self userInfo:report];
         }
-        else /* we had an error */
+        else if(failed)
         {
-            if(_logLevel <=UMLOG_MINOR)
-            {
-                NSLog(@"Error %d %s",errno,strerror(errno));
-            }
-            if(errno==EISCONN)
+            NSString *s = [NSString stringWithFormat:@"Error %d %@",uerr,[UMSocket getSocketErrorString:uerr]];
+            [_layerHistory addLogEntry:s];
+
+            if(uerr==UMSocketError_is_already_connected)
             {
                 if(_logLevel <=UMLOG_MINOR)
                 {
@@ -1392,8 +1335,8 @@
         self.status= UMSOCKET_STATUS_IS;
         if(_directSocket==NULL)
         {
+            _directSocket.isConnected=YES;
             UMSocketError err = UMSocketError_no_error;
-            
             if(_assocId==NULL)
             {
                 [_layerHistory addLogEntry:[NSString stringWithFormat:@"  peeloff called with assocptr == NULL,setting err=UMSocketError_not_a_socket"]];
@@ -1429,6 +1372,10 @@
     else if(snp->sn_assoc_change.sac_state==SCTP_COMM_LOST)
     {
         _assocId = @(snp->sn_assoc_change.sac_assoc_id);
+        if(_directSocket)
+        {
+            _directSocket.isConnected=NO;
+        }
         [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF (assocID=%ld)",(long)_assocId]];
 #if defined(POWER_DEBUG)
         NSLog(@"%@ SCTP_COMM_LOST",_layerName);
@@ -1446,6 +1393,10 @@
     }
     else if(snp->sn_assoc_change.sac_state==SCTP_CANT_STR_ASSOC)
     {
+        if(_directSocket)
+        {
+            _directSocket.isConnected=NO;
+        }
         [self.logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_CANT_STR_ASSOC"];
 #if defined(POWER_DEBUG)
         NSLog(@"%@ SCTP_CANT_STR_ASSOC",_layerName);
@@ -1463,6 +1414,10 @@
     }
     else if(snp->sn_assoc_change.sac_error!=0)
     {
+        if(_directSocket)
+        {
+            _directSocket.isConnected=NO;
+        }
         [self.logFeed majorError:snp->sn_assoc_change.sac_error withText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)->OFF"];
 #if defined(POWER_DEBUG)
         NSLog(@"%@ SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)",_layerName,snp->sn_assoc_change.sac_error );

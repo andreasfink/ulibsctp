@@ -461,7 +461,8 @@
     [layer.layerHistory addLogEntry:[NSString stringWithFormat:@"calling sctp_connectx(%@:%d)",[addrs componentsJoinedByString:@","],port]];
     UMSocketError err = [_umsocket connectToAddresses:addrs
                                                  port:port
-                                             assocPtr:assocptr];
+                                             assocPtr:assocptr
+                                                layer:layer];
     if(assocptr)
     {
         if(_logLevel == UMLOG_DEBUG)
@@ -497,7 +498,8 @@
     {
         UMSocketError err = [_umsocket connectToAddresses:addrs
                                                      port:remotePort
-                                                 assocPtr:assocptr];
+                                                 assocPtr:assocptr
+                                                    layer:layer];
         if(err!=UMSocketError_no_error)
         {
             NSString *estr = [UMSocket getSocketErrorString:err];

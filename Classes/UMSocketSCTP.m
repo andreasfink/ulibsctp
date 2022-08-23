@@ -708,7 +708,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     UMSocketError e = [self connectToAddresses:_requestedRemoteAddresses
                         port:_requestedRemotePort
-                    assocPtr:&assoc];
+                    assocPtr:&assoc
+                       layer:NULL];
     return e;
 }
 
@@ -716,13 +717,15 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 {
     UMSocketError e = [self connectToAddresses:_requestedRemoteAddresses
                                           port:_requestedRemotePort
-                                      assocPtr:assoc];
+                                      assocPtr:assoc
+                                         layer:NULL];
     return e;
 }
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)remotePort
                             assocPtr:(NSNumber **)assocptr
+                               layer:(UMLayer *)layer
 {
 	UMAssert(assocptr!=NULL,@"assocptr can not be NULL");
 
@@ -766,6 +769,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 			{
 				_connectx_pending = YES;
                 self.status = UMSOCKET_STATUS_OOS;
+                self.isConnecting=YES;
+                self.isConnected=NO;
 			}
         }
         else
@@ -773,6 +778,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             _connectx_pending = YES;
             self.status = UMSOCKET_STATUS_IS;
             returnValue = UMSocketError_no_error;
+            self.isConnected=YES;
         }
     }
     
@@ -1074,6 +1080,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                    protocol:(NSNumber *)protocolId
                       error:(UMSocketError *)err2
 {
+    int flags = 0;
+    int timetolive = 0;
+    int context = 0;
+
 	UMAssert(assocptr!=NULL,@"assocptr can not be NULL");
     UMSocketError err = UMSocketError_no_error;
 
@@ -1087,68 +1097,32 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         return -1;
     }
 
-    err = [self connectToAddresses:addrs
-                              port:remotePort
-                          assocPtr:assocptr];
-    if(err==UMSocketError_is_already_connected)
+    if(self.isConnected==NO)
     {
-        err = UMSocketError_no_error;
-        *err2 =err;
-    }
-    if(err!= UMSocketError_is_already_connected)
-    {
-        err = UMSocketError_no_error;
-        if(err2)
+        err = [self connectToAddresses:addrs
+                                  port:remotePort
+                              assocPtr:assocptr
+                                 layer:NULL];
+        if((err == UMSocketError_is_already_connected) || (err==UMSocketError_in_progress))
         {
-            *err2 = err;
+            err = UMSocketError_no_error;
+            if(err2)
+            {
+                *err2 =err;
+            }
         }
-    }
-    else if((err != UMSocketError_no_error) && (err != UMSocketError_in_progress) )
-    {
-        if(err2)
+        else
         {
-            *err2 = err;
+            if(err2)
+            {
+                *err2 = err;
+            }
+            return -1;
         }
-        return -1;
     }
 	int count = 0;
-	int flags=0;
 
 	NSData *remote_sockaddr = [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily]; /* returns struct sockaddr data in NSData */
-
-    [UMSocketSCTP sockaddrFromAddresses:addrs port:remotePort count:&count socketFamily:_socketFamily];
-#if defined(ULIBSCTP_SCTP_SENDV_SUPPORTED)
-
-
-    struct iovec iov[1];
-    iov[0].iov_base = (void *)data.bytes;
-    iov[0].iov_len = data.length;
-    int iovcnt = 1;
-
-    NSNumber *a = *assocptr;
-    struct sctp_sndinfo send_info;
-    memset(&send_info,0x00,sizeof(struct sctp_sndinfo));
-    send_info.snd_sid = streamId.unsignedIntValue;
-    send_info.snd_flags = 0;
-    send_info.snd_ppid = htonl(protocolId.unsignedLongValue);
-    send_info.snd_context = 0;
-    send_info.snd_assoc_id = (sctp_assoc_t)[a unsignedLongValue];
-
-
-    sp = sctp_sendv(_sock,
-                    iov,
-                    iovcnt,
-                    (struct sockaddr *)remote_sockaddr.bytes,
-                    count,
-                    &send_info,
-                    sizeof(struct sctp_sndinfo),
-                    SCTP_SENDV_SNDINFO,
-                    flags);
-#else
-
-	int timetolive=8000;
-	int context=0;
-
 #if defined(ULIBSCTP_CONFIG_DEBUG)
 	NSMutableString *s = [[NSMutableString alloc]init];
 
@@ -1174,7 +1148,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 		NSLog(@"%@",s);
 	}
 #endif
-
     sp = sctp_sendmsg(_sock,
                       (const void *)data.bytes,
                       data.length,
@@ -1185,8 +1158,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                       streamId.unsignedIntValue,
                       timetolive, // timetolive,
                       context); // context);
-
-#endif
 
     if(sp<0)
     {
@@ -1201,7 +1172,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     {
         err = UMSocketError_no_data;
     }
-
     if(err2)
     {
         *err2 = err;
