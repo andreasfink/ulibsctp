@@ -708,7 +708,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     UMSocketError e = [self connectToAddresses:_requestedRemoteAddresses
                         port:_requestedRemotePort
-                    assocPtr:&assoc];
+                    assocPtr:&assoc
+                       layer:NULL];
     return e;
 }
 
@@ -716,13 +717,15 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 {
     UMSocketError e = [self connectToAddresses:_requestedRemoteAddresses
                                           port:_requestedRemotePort
-                                      assocPtr:assoc];
+                                      assocPtr:assoc
+                                         layer:NULL];
     return e;
 }
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)remotePort
                             assocPtr:(NSNumber **)assocptr
+                               layer:(UMLayer *)layer
 {
 	UMAssert(assocptr!=NULL,@"assocptr can not be NULL");
 
@@ -1098,7 +1101,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     {
         err = [self connectToAddresses:addrs
                                   port:remotePort
-                              assocPtr:assocptr];
+                              assocPtr:assocptr
+                                 layer:NULL];
         if((err == UMSocketError_is_already_connected) || (err==UMSocketError_in_progress))
         {
             err = UMSocketError_no_error;

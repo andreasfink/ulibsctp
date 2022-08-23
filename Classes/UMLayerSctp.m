@@ -549,7 +549,8 @@
                             }
                             err = [_directSocket connectToAddresses:_configured_remote_addresses
                                                                 port:_configured_remote_port
-                                                            assocPtr:&tmp_assocId];
+                                                            assocPtr:&tmp_assocId
+                                                              layer:self];
                             if(tmp_assocId !=NULL)
                             {
                                 _assocId = tmp_assocId;
