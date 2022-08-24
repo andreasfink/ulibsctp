@@ -718,12 +718,12 @@
         switch(self.status)
         {
             case UMSOCKET_STATUS_FOOS:
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
+#if defined(ULIBSCTP_CONFIG_DEBUG)
                 if(self.logLevel <=UMLOG_DEBUG)
                 {
                     [self logDebug:@"manual M-FOOS->IS requested"];
                 }
-    #endif
+#endif
 #if defined(POWER_DEBUG)
                 NSLog(@"%@ manual M-FOOS->IS requested",_layerName);
 #endif
