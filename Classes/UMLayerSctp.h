@@ -74,6 +74,9 @@
 }
 
 //@property(readwrite,strong) UMSocketSCTP    *sctpSocket;
+
+@property(readwrite,strong) UMSynchronizedArray *users;
+
 @property(readwrite,strong) NSDate          *startButtonPressed;
 @property(readwrite,strong) NSDate          *stopButtonPressed;
 
