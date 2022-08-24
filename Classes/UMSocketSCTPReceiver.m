@@ -250,7 +250,6 @@
     {
         NSLog(@"inbound_tcp_layers=NULL");
     }
-
     NSLog(@"listeners_count=%d",(int)listeners_count);
     NSLog(@"tcp_listeners_count=%d",(int)tcp_listeners_count);
     NSLog(@"outbound_count=%d",(int)outbound_count);
@@ -277,7 +276,7 @@
     for(NSUInteger i=0;i<listeners_count;i++)
     {
         UMSocketSCTPListener *listener = listeners[i];
-        if(listener.isInvalid==NO)
+        if((listener.isInvalid==NO) && (listener.umsocket.hasSocket) && (listener.umsocket.fileDescriptor >=0))
         {
             listeners_count_valid++;
             [valid_listeners addObject:listener];
@@ -292,7 +291,7 @@
     for(NSUInteger i=0;i<tcp_listeners_count;i++)
     {
         UMSocketSCTPListener *listener = tcp_listeners[i];
-        if(listener.isInvalid==NO)
+        if((listener.isInvalid==NO) && (listener.umsocket.hasSocket) && (listener.umsocket.fileDescriptor >=0))
         {
             tcp_listeners_count_valid++;
             [valid_tcp_listeners addObject:listener];
@@ -307,7 +306,7 @@
     for(NSUInteger i=0;i<outbound_count;i++)
     {
         UMLayerSctp *layer = outbound_layers[i];
-        if(layer.directSocket!=NULL)
+        if((layer.directSocket!=NULL) && (layer.directSocket.hasSocket) && (layer.directSocket.fileDescriptor >=0))
         {
             outbound_count_valid++;
             [valid_outbound_layers addObject:layer];
@@ -322,7 +321,7 @@
     for(NSUInteger i=0;i<inbound_count;i++)
     {
         UMLayerSctp *layer = inbound_layers[i];
-        if(layer.directSocket!=NULL)
+        if((layer.directSocket!=NULL) && (layer.directSocket.hasSocket) && (layer.directSocket.fileDescriptor >=0))
         {
             inbound_count_valid++;
             [valid_inbound_layers addObject:layer];
@@ -337,7 +336,7 @@
     for(NSUInteger i=0;i<outbound_tcp_count;i++)
     {
         UMLayerSctp *layer = outbound_tcp_layers[i];
-        if(layer.directTcpEncapsulatedSocket!=NULL)
+        if((layer.directTcpEncapsulatedSocket!=NULL) && (layer.directTcpEncapsulatedSocket.hasSocket) && (layer.directTcpEncapsulatedSocket.fileDescriptor >=0))
         {
             outbound_tcp_count_valid++;
             [valid_outbound_tcp_layers addObject:layer];
@@ -352,7 +351,7 @@
     for(NSUInteger i=0;i<inbound_tcp_count;i++)
     {
         UMLayerSctp *layer = inbound_tcp_layers[i];
-        if(layer.directTcpEncapsulatedSocket!=NULL)
+        if((layer.directTcpEncapsulatedSocket!=NULL) && (layer.directTcpEncapsulatedSocket.hasSocket) && (layer.directTcpEncapsulatedSocket.fileDescriptor >=0))
         {
             inbound_tcp_count_valid++;
             [valid_inbound_tcp_layers addObject:layer];
@@ -406,23 +405,21 @@
         UMSocketSCTPListener    *listener = NULL;
         UMLayerSctp             *outbound = NULL;
         UMLayerSctp             *inbound = NULL;
-        UMSocketSCTP            *theSocket = NULL;
-        UMSocket                *socketEncap = NULL;
-
+        UMSocket                *theSocket = NULL;
         j = 0;
         for(NSUInteger i=0;i<listeners_count_valid;i++)
         {
             listener = valid_listeners[i];
             theSocket = listener.umsocket;
-            if(theSocket == NULL)
-            {
+            if((theSocket==NULL) || (theSocket.hasSocket==NO) || (theSocket.fileDescriptor < 0))
+             {
                 continue;
             }
             int revent = pollfds[j].revents;
             UMSocketError r = [self handlePollResult:revent
                                             listener:listener
                                                layer:NULL
-                                              socket:theSocket
+                                              socket:(UMSocketSCTP *)theSocket
                                          socketEncap:NULL
                                            poll_time:poll_time
                                                 type:SCTP_SOCKET_TYPE_LISTENER_SCTP];
@@ -435,8 +432,8 @@
         for(NSUInteger i=0;i<tcp_listeners_count_valid;i++)
         {
             listener = valid_tcp_listeners[i];
-            socketEncap  = listener.umsocketEncapsulated;
-            if(socketEncap == NULL)
+            theSocket  = listener.umsocketEncapsulated;
+            if((theSocket==NULL) || (theSocket.hasSocket==NO) || (theSocket.fileDescriptor < 0))
             {
                 continue;
             }
@@ -445,7 +442,7 @@
                                             listener:listener
                                                layer:NULL
                                               socket:NULL
-                                         socketEncap:socketEncap
+                                         socketEncap:theSocket
                                            poll_time:poll_time
                                                 type:SCTP_SOCKET_TYPE_LISTENER_TCP];
             if(r != UMSocketError_no_error)
@@ -458,7 +455,7 @@
         {
             outbound = valid_outbound_layers[i];
             theSocket = outbound.directSocket;
-            if(theSocket == NULL)
+            if((theSocket==NULL) || (theSocket.hasSocket==NO) || (theSocket.fileDescriptor < 0))
             {
                 continue;
             }
@@ -466,7 +463,7 @@
             UMSocketError r = [self handlePollResult:revent
                                             listener:NULL
                                                layer:outbound
-                                              socket:theSocket
+                                              socket:(UMSocketSCTP *)theSocket
                                          socketEncap:NULL
                                            poll_time:poll_time
                                                 type:SCTP_SOCKET_TYPE_OUTBOUND];
@@ -480,7 +477,7 @@
         {
             inbound = valid_inbound_layers[i];
             theSocket = inbound.directSocket;
-            if(theSocket == NULL)
+            if((theSocket==NULL) || (theSocket.hasSocket==NO) || (theSocket.fileDescriptor < 0))
             {
                 continue;
             }
@@ -488,7 +485,7 @@
             UMSocketError r = [self handlePollResult:revent
                                             listener:NULL
                                                layer:inbound
-                                              socket:theSocket
+                                              socket:(UMSocketSCTP *)theSocket
                                          socketEncap:NULL
                                            poll_time:poll_time
                                                 type:SCTP_SOCKET_TYPE_INBOUND];
@@ -501,8 +498,8 @@
         for(NSUInteger i=0;i<outbound_tcp_count_valid;i++)
         {
             outbound = valid_outbound_tcp_layers[i];
-            socketEncap  = outbound.directTcpEncapsulatedSocket;
-            if(socketEncap == NULL)
+            theSocket  = outbound.directTcpEncapsulatedSocket;
+            if((theSocket==NULL) || (theSocket.hasSocket==NO) || (theSocket.fileDescriptor < 0))
             {
                 continue;
             }
@@ -511,7 +508,7 @@
                                             listener:NULL
                                                layer:outbound
                                               socket:NULL
-                                         socketEncap:socketEncap
+                                         socketEncap:theSocket
                                            poll_time:poll_time
                                                 type:SCTP_SOCKET_TYPE_OUTBOUND_TCP];
             if(r != UMSocketError_no_error)
@@ -523,8 +520,8 @@
         for(NSUInteger i=0;i<inbound_tcp_count_valid;i++)
         {
             inbound = valid_inbound_tcp_layers[i];
-            socketEncap  = inbound.directTcpEncapsulatedSocket;
-            if(socketEncap == NULL)
+            theSocket  = inbound.directTcpEncapsulatedSocket;
+            if((theSocket==NULL) || (theSocket.hasSocket==NO) || (theSocket.fileDescriptor < 0))
             {
                 continue;
             }
@@ -533,7 +530,7 @@
                                             listener:NULL
                                                layer:inbound
                                               socket:NULL
-                                         socketEncap:socketEncap
+                                         socketEncap:theSocket
                                            poll_time:poll_time
                                                 type:SCTP_SOCKET_TYPE_INBOUND_TCP];
             if(r != UMSocketError_no_error)

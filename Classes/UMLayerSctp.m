@@ -2097,6 +2097,7 @@
                 NSString *s = [NSString stringWithFormat:@"processError *IGNORED* (%d,%@) fd=%d inArea %@",err,[UMSocket getSocketErrorString:err],_directSocket.sock,area];
                 [_layerHistory addLogEntry:s];
 #if 0
+                /* this seems to cause a buggy sequence*/
                 [self setStatus:UMSOCKET_STATUS_OOS reason:s];
                 [self setStatus:UMSOCKET_STATUS_OFF reason:s];
                 [_registry unregisterAssoc:_assocId];
