@@ -2110,7 +2110,7 @@
         }
         else
         {
-            [self powerdown:[NSString stringWithFormat:@"processError %d %@",err,[UMSocket getSocketErrorString:err]]];
+            [self powerdown:[NSString stringWithFormat:@"processError %d %@ for fd=%d",err,[UMSocket getSocketErrorString:err],socket.sock]];
             [self reportStatus];
         }
     }
