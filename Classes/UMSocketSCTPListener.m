@@ -467,7 +467,7 @@
     {
         if(_logLevel == UMLOG_DEBUG)
         {
-            NSLog(@"   returns assoc=%ld",(long)*assocptr);
+            NSLog(@"   returns assoc=%@",*assocptr);
         }
     }
     [layer.layerHistory addLogEntry:[NSString stringWithFormat:@"  returns err=%d (%@), assoc=%@",err,[UMSocket getSocketErrorString:err],*assocptr]];
