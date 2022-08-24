@@ -15,6 +15,7 @@
 @protocol UMLayerSctpUserProtocol<UMLayerUserProtocol>
 
 - (NSString *)layerName;
+- (NSString *)layerType;
 
 - (void) sctpStatusIndication:(UMLayer *)caller
                        userId:(id)uid

@@ -80,7 +80,7 @@
 @property(readwrite,strong) NSDate          *startButtonPressed;
 @property(readwrite,strong) NSDate          *stopButtonPressed;
 
--(void)setStatus:(UMSocketStatus)s;
+-(void)setStatus:(UMSocketStatus)s reason:(NSString *)reason;
 -(UMSocketStatus)status;
 
 //@property(readwrite,strong) UMBackgrounder  *receiverThread;

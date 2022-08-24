@@ -53,6 +53,11 @@
 
 @implementation UMLayerSctp
 
+-(NSString *)layerType
+{
+    return @"sctp";
+}
+
 - (UMLayerSctp *)init
 {
     self = [self initWithTaskQueueMulti:NULL name:@"sctp-dummy"];
@@ -391,7 +396,7 @@
                             }
                         }
                         [_directSocket close];
-                        self.status = UMSOCKET_STATUS_OFF;
+                        [self setStatus:UMSOCKET_STATUS_OFF reason:@"closing old direct socket in openTask"];
                     }
                     NSNumber *tmp_assocId = NULL;
                     err = [_listener connectToAddresses:_configured_remote_addresses
@@ -404,7 +409,7 @@
                         {
                             _assocId = tmp_assocId;
                         }
-                        self.status = UMSOCKET_STATUS_OOS;
+                        [self setStatus:UMSOCKET_STATUS_OOS reason:@"_listener connectToAddress was successfully executed"];
                     }
                     if(self.logLevel <= UMLOG_DEBUG)
                     {
@@ -687,7 +692,7 @@
 
         [_linkLock lock];
         [self powerdown:@"_foosTask"];
-        self.status = UMSOCKET_STATUS_FOOS;
+        [self setStatus:UMSOCKET_STATUS_FOOS reason:@"FOOS requested"];
     #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <=UMLOG_DEBUG)
         {
@@ -722,7 +727,8 @@
 #if defined(POWER_DEBUG)
                 NSLog(@"%@ manual M-FOOS->IS requested",_layerName);
 #endif
-                self.status = UMSOCKET_STATUS_OFF;
+                [self setStatus:UMSOCKET_STATUS_OFF reason:@"_isTask"];
+
 #if defined(POWER_DEBUG)
                 NSLog(@"%@ isTask(OFF)",_layerName);
 #endif
@@ -812,8 +818,9 @@
         }
     #endif
         //[_receiverThread shutdownBackgroundTask];
-        self.status= UMSOCKET_STATUS_OOS;
-        self.status= UMSOCKET_STATUS_OFF;
+        [self setStatus:UMSOCKET_STATUS_OOS reason:@"powerdown"];
+        [self setStatus:UMSOCKET_STATUS_OFF reason:@"powerdown"];
+
         if(_assocId!=NULL)
         {
             [_registry unregisterAssoc:_assocId];
@@ -865,7 +872,7 @@
             [self.logFeed debugText:[NSString stringWithFormat:@"powerdown"]];
         }
     #endif
-        self.status= UMSOCKET_STATUS_OFF;
+        [self setStatus:UMSOCKET_STATUS_OFF reason:@"powerdownInReceiverThread"];
         if(_assocId!=NULL)
         {
             [_registry unregisterAssoc:_assocId];
@@ -1015,7 +1022,8 @@
         {
             if(rx.flags & SCTP_OVER_TCP_SETUP_CONFIRM)
             {
-                self.status= UMSOCKET_STATUS_IS;
+                [self setStatus:UMSOCKET_STATUS_IS reason:@"SCTP_OVER_TCP_SETUP_CONFIRM"];
+
 #if defined(POWER_DEBUG)
                 NSLog(@"%@ SCTP_OVER_TCP_SETUP_CONFIRM",_layerName);
 #endif
@@ -1151,7 +1159,8 @@
         _listener.firstMessage=YES;
         _assocId = @(snp->sn_assoc_change.sac_assoc_id);
         [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS (assocID=%ld)",(long)_assocId]];
-        self.status= UMSOCKET_STATUS_IS;
+        [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP"];
+
         if(_directSocket==NULL)
         {
             UMSocketError err = UMSocketError_no_error;
@@ -1241,7 +1250,7 @@
 -(void) handleLinkUpTcpEcnap
 {
     [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_TCP_ASSOC_CHANGE: SCTP_COMM_UP->IS"]];
-    self.status = UMSOCKET_STATUS_IS;
+    [self setStatus:UMSOCKET_STATUS_IS reason:@"handleLinkUpTcpEcnap"];
     [_reconnectTimer stop];
 #if defined(POWER_DEBUG)
     NSLog(@"%@ handleLinkUpTcpEcnap",_layerName);
@@ -1254,7 +1263,7 @@
 {
     _listener.firstMessage=YES;
     [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_TCP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF"]];
-    self.status = UMSOCKET_STATUS_OFF;
+    [self setStatus:UMSOCKET_STATUS_OFF reason:@"handleLinkDownTcpEcnap"];
 #if defined(POWER_DEBUG)
     NSLog(@"%@ handleLinkDownTcpEcnap",_layerName);
 #endif
@@ -1646,8 +1655,7 @@
         [self logDebug:[NSString stringWithFormat:@"  strreset_assoc_id: %d", (int)snp->sn_strreset_event.strreset_assoc_id]];
     }
 #endif
-    
-    self.status= UMSOCKET_STATUS_OFF;
+    [self setStatus:UMSOCKET_STATUS_OFF reason:@"handleStreamResetEvent"];
 #if defined(POWER_DEBUG)
     NSLog(@"%@ handleStreamResetEvent",_layerName);
 #endif
@@ -1737,7 +1745,7 @@
 #if defined(POWER_DEBUG)
             NSLog(@"%@ receiving data: force change status to IS",_layerName);
 #endif
-            self.status= UMSOCKET_STATUS_IS;
+            [self setStatus:UMSOCKET_STATUS_IS reason:@"sctpReceiveData"];
             [self reportStatus];
         }
 
@@ -2086,8 +2094,9 @@
             if(_directSocket == socket)
             {
                 _directSocket = NULL;
-                self.status= UMSOCKET_STATUS_OOS;
-                self.status= UMSOCKET_STATUS_OFF;
+                NSString *s = [NSString stringWithFormat:@"processError(%d,%@) inArea %@",err,[UMSocket getSocketErrorString:err],area];
+                [self setStatus:UMSOCKET_STATUS_OOS reason:s];
+                [self setStatus:UMSOCKET_STATUS_OFF reason:s];
                 [_registry unregisterAssoc:_assocId];
                 _assocId = NULL;
                 [_registry unregisterLayer:self];
@@ -2282,16 +2291,17 @@
     return dict;
 }
 
--(void)setStatus:(UMSocketStatus)s
+
+-(void)setStatus:(UMSocketStatus)s reason:(NSString *)reason
 {
     UMSocketStatus oldStatus = _status;
     _status = s;
     if(oldStatus != _status)
     {
         [self reportStatus];
-        [self addToLayerHistoryLog:[NSString stringWithFormat:@"status change from %@ to %@",
+        [self addToLayerHistoryLog:[NSString stringWithFormat:@"status change from %@ to %@ because of %@",
                         [UMLayerSctp socketStatusString:oldStatus],
-                        [UMLayerSctp socketStatusString:_status] ] ];
+                        [UMLayerSctp socketStatusString:_status],reason ] ];
     }
 }
 

@@ -24,7 +24,7 @@
 		A6827E121E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = A6827E101E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A68974271A2D1EF800854472 /* UMSctpTask_AdminSetConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = A68974251A2D1EF800854472 /* UMSctpTask_AdminSetConfig.h */; };
 		A68974281A2D1EF800854472 /* UMSctpTask_AdminSetConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = A68974261A2D1EF800854472 /* UMSctpTask_AdminSetConfig.m */; };
-		A68974791A2D440F00854472 /* UMLayerSctpUser.h in Headers */ = {isa = PBXBuildFile; fileRef = A68974771A2D440F00854472 /* UMLayerSctpUser.h */; };
+		A68974791A2D440F00854472 /* UMLayerSctpUser.h in Headers */ = {isa = PBXBuildFile; fileRef = A68974771A2D440F00854472 /* UMLayerSctpUser.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A689747A1A2D440F00854472 /* UMLayerSctpUser.m in Sources */ = {isa = PBXBuildFile; fileRef = A68974781A2D440F00854472 /* UMLayerSctpUser.m */; };
 		A689747D1A2D4C5D00854472 /* UMSctpTask_AdminDetach.h in Headers */ = {isa = PBXBuildFile; fileRef = A689747B1A2D4C5D00854472 /* UMSctpTask_AdminDetach.h */; };
 		A689747E1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m in Sources */ = {isa = PBXBuildFile; fileRef = A689747C1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m */; };
