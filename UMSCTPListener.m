@@ -16,19 +16,21 @@
 @implementation UMSCTPListener
 
 
-- (UMSCTPListener *)init
+- (UMSCTPListener *)initWithName:(NSString *)name
+                          socket:(UMSocketSCTP *)sock
+                   eventDelegate:(id<UMSCTPListenerProcessEventsDelegate>)evDel
+                    readDelegate:(id<UMSCTPListenerReadPacketDelegate>)readDel
+                 processDelegate:(id<UMSCTPListenerProcessDataDelegate>)procDel
 {
-    return [self initWithName:@"UMSCTPListener"];
-}
-
-- (UMSCTPListener *)initWithName:(NSString *)name;
-{
-
     self = [super init];
     if(self)
     {
         self.name = name;
-        _timeoutInMs = 3000; /* 3 sec */
+        _timeoutInMs = 300; /* 300 msec */
+        _umsocket = sock;
+        _eventDelegate = evDel;
+        _readDelegate = readDel;
+        _processDelegate = procDel;
     }
     return self;
 }
@@ -152,68 +154,39 @@
 #endif
         int revent_error = UMSocketError_no_error;
         int revent_hup = 0;
+        int revent_dohup = 0;
         int revent_has_data = 0;
         int revent_invalid = 0;
         if(revent & POLLERR)
         {
             revent_error = [_umsocket getSocketError];
+            [_eventDelegate processError:revent_error];
             if(     (revent_error != UMSocketError_no_error)
                 &&  (revent_error != UMSocketError_no_data)
                 &&  (revent_error !=UMSocketError_in_progress))
             {
-                revent_hup = 1;
-                [_eventDelegate processError:revent_error socket:_umsocket inArea:@"[UMSCTPListener waitAndHandleData]#1" layer:_layer];
+                revent_dohup = 1;
             }
         }
         if(revent & POLLHUP)
         {
             revent_hup = 1;
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"  revent_hup = 1");
-#endif
-            if(revent_error)
-            [_eventDelegate processHangupOnSocket:_umsocket inArea:@"[UMSCTPListener waitAndHandleData]#2" layer:_layer];
         }
         if(revent & POLLNVAL)
         {
-    revent_invalid = 1;
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"  revent_invalid = 1");
-#endif
-            [_eventDelegate processInvalidValueOnSocket:_umsocket inArea:@"[UMSCTPListener waitAndHandleData]#3" layer:_layer];
+            revent_invalid = 1;
         }
         if(revent & (POLLIN | POLLPRI))
         {
             revent_has_data = 1;
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"  revent_has_data = 1");
-#endif
         }
+        
         if(revent_has_data)
         {
             UMSocketSCTPReceivedPacket *rx = NULL;
-
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-            NSLog(@"  receiving packet");
-#endif
-            if(_readDelegate)
-            {
-                rx = [_readDelegate receiveSCTP];
-            }
-            else
-            {
-                rx = [_umsocket receiveSCTP];
-            }
-            if((_layer) && (_dataDelegate==NULL))
-            {
-                [_layer processReceivedData:rx];
-            }
-            else
-            {
-                [_dataDelegate processReceivedData:rx];
-
-            }
-            if(revent_hup)
+            rx = [_readDelegate receiveSCTP];
+            [_processDelegate processReceivedData:rx];
+            if((revent_hup) || (revent_dohup))
             {
                 returnValue = UMSocketError_has_data_and_hup;
             }
@@ -224,7 +197,7 @@
         }
         if(revent_hup)
         {
-            [_layer processHangUp];
+            [_eventDelegate processHangup];
         }
     }
     return returnValue;

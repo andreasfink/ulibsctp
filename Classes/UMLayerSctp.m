@@ -302,17 +302,7 @@
     {
         [self addToLayerHistoryLog:@"_openTask"];
 
-        NSNumber *tmp_assocId = NULL;
         BOOL sendAbort = task.sendAbortFirst;
-        
-        id<UMLayerUserProtocol> caller = task.sender;
-
-        if(self.logLevel <= UMLOG_DEBUG)
-        {
-            NSString *s = [NSString stringWithFormat:@"%@ is asking us to start SCTP %@->%@",caller.layerName,_configured_local_addresses,_configured_remote_addresses];
-            [self logDebug:s];
-        }
-
         [_linkLock lock];
         @try
         {
@@ -323,50 +313,32 @@
                     NSLog(@"UMSOCKET_STATUS_FOOS");
                 }
                 [self logMajorError:@"OpenTask: failed due to M-FOOS"];
+                [self addToLayerHistoryLog:@"OpenTask: failed due to M-FOOS"];
+
             }
             else if(self.status == UMSOCKET_STATUS_OOS)
             {
                 [self logMinorError:@"already establishing"];
+                [self addToLayerHistoryLog:@"OpenTask: already establishing"];
+
             }
             else if(self.status== UMSOCKET_STATUS_IS)
             {
                 [self logMinorError:@"already in service"];
+                [self addToLayerHistoryLog:@"OpenTask: already in service"];
+                return;
             }
             else
             {
-        #if defined(ULIBSCTP_CONFIG_DEBUG)
-                if(self.logLevel <= UMLOG_DEBUG)
-                {
-                    [self logDebug:[NSString stringWithFormat:@"socket()"]];
-                }
-        #endif
                 UMSocketError err = UMSocketError_no_error;
-
                 if(self.logLevel <= UMLOG_DEBUG)
                 {
                     NSString *addrs = [_configured_local_addresses componentsJoinedByString:@","];
                     [self logDebug:[NSString stringWithFormat:@"getting listener on %@ on port %d",addrs,_configured_local_port]];
                 }
-                if(_encapsulatedOverTcp)
-                {
-                    if(_isPassive)
-                    {
-                        [_layerHistory addLogEntry:@"getOrAddTcpListenerForPort"];
-                        _listener = [_registry getOrAddTcpListenerForPort:_configured_local_port];
-                    }
-                    else
-                    {
-                        _listener = NULL;
-                    }
-                }
-                else
-                {
-                    [_layerHistory addLogEntry:@"getOrAddListenerForPort"];
-                    _listener =  [_registry getOrAddListenerForPort:_configured_local_port localIps:_configured_local_addresses];
-                }
+                _listener =  [_registry getOrAddListenerForPort:_configured_local_port localIps:_configured_local_addresses];
                 _listener.mtu = _mtu;
                 _listener.dscp = _dscp;
-                
                 if(_minReceiveBufferSize > _listener.minReceiveBufferSize)
                 {
                     _listener.minReceiveBufferSize = _minReceiveBufferSize;
@@ -375,26 +347,18 @@
                 {
                     _listener.minSendBufferSize = _minSendBufferSize;
                 }
-
                 if(self.logLevel <= UMLOG_DEBUG)
                 {
                     [self logDebug:[NSString stringWithFormat:@"asking listener %@ to start",_listener]];
                 }
-                if(_encapsulatedOverTcp)
-                {
-                   if(_isPassive)
-                   {
-                       [_listener startListeningFor:self]; /* FIXME: what if we have an error */
-                       _listenerStarted = _listener.isListening;
-                   }
-                }
+                
                 else
                 {
                     [_listener startListeningFor:self];
                     _listenerStarted = _listener.isListening;
                 }
                 _newDestination = YES;
-                sleep(1);
+                usleep(100000);
                 _assocId = NULL;
                 
                 if(!_isPassive)
@@ -407,193 +371,54 @@
                         [_layerHistory addLogEntry:s];
                     }
 
-                    if(_encapsulatedOverTcp)
+                    if(_directSocket)
                     {
-#ifdef FIXME
-                        
-#if defined(SCTP_OVER_TCP_ENCAPSULATION)
-                        if(_directTcpEncapsulatedSocket != NULL)
+                        if(sendAbort)
                         {
-                           [_directTcpEncapsulatedSocket close];
-                        }
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
-                        [self logDebug:@"_directTcpEncapsulatedSocket==NULL"];
-    #endif
-
-                        tmp_assocId = NULL;
-                        if(_configured_remote_addresses.count < 0)
-                        {
-                            err = UMSocketError_invalid_port_or_address;
-                        }
-                        else
-                        {
-                            UMHost *lhost = [[UMHost alloc]initWithLocalhost];
-                            UMHost *host = [[UMHost alloc]initWithAddress:_configured_remote_addresses[0]];
-                            _directTcpEncapsulatedSocket = [[UMSocket alloc]initWithType:UMSOCKET_TYPE_TCP];
-                            [_directTcpEncapsulatedSocket setLocalHost:lhost];
-                            [_directTcpEncapsulatedSocket setLocalPort:_configured_local_port];
-                            [_directTcpEncapsulatedSocket setRemoteHost:host];
-                            [_directTcpEncapsulatedSocket setRemotePort:_configured_remote_port];
-                        
-                            
-                            err = [_directTcpEncapsulatedSocket connect];
-                            if(err == 0)
+                            for(NSString *addr in _configured_remote_addresses)
                             {
-                                tmp_assocId = _directTcpEncapsulatedSocket.sock;
-                                [self sendEncapsulated:[_encapsulatedOverTcpSessionKey dataValue]
-                                                 assoc:&tmp_assocId
-                                                stream:0
-                                              protocol:0
-                                                 error:&err
-                                                 flags:SCTP_OVER_TCP_SETUP | SCTP_OVER_TCP_NOTIFICATION];
-                                self.status = UMSOCKET_STATUS_OOS;
-#if defined(POWER_DEBUG)
-                                NSLog(@"%@ openTask: directTcpEncapsulatedSocket connect, err=0",_layerName);
-#endif
-                                [self reportStatus];
-                            }
-                            tmp_assocId = _directTcpEncapsulatedSocket.sock;
-
-                        }
-                        if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
-                        {
-                            if(tmp_assocId != 0)
-                            {
-                                _assocId = @(tmp_assocId);
-                                if((err != UMSocketError_no_error)
-                                && (err !=UMSocketError_in_progress))
+                                @try
                                 {
-                                    [_directTcpEncapsulatedSocket close];
-                                    _directTcpEncapsulatedSocket = NULL;
+                                    [_listener.umsocket abortToAddress:addr
+                                                                  port:_configured_remote_port
+                                                                 assoc:_assocId
+                                                                stream:0
+                                                              protocol:0];
+                                }
+                                @catch(NSException *e)
+                                {
                                 }
                             }
                         }
-#else
-                    /* we cant use the assoc to store the tcp socket anymore...*/
-                    NSLog(@"%@ openTask: directTcpEncapsulatedSocket currently not supported",_layerName);
-#endif
-#endif  /* FIXME */
+                        [_directSocket close];
+                        self.status = UMSOCKET_STATUS_OFF;
                     }
-                    else
+                    NSNumber *tmp_assocId = NULL;
+                    err = [_listener connectToAddresses:_configured_remote_addresses
+                                                   port:_configured_remote_port
+                                               assocPtr:&tmp_assocId
+                                                  layer:self];
+                    if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
                     {
-                        if((_directSocket==NULL) && (_directTcpEncapsulatedSocket==NULL))
+                        if(tmp_assocId !=NULL)
                         {
-            #if defined(ULIBSCTP_CONFIG_DEBUG)
-                            [self logDebug:@"_directSocket==NULL"];
-            #endif
-
-                            NSNumber *tmp_assocId = NULL;
-                            err = [_listener connectToAddresses:_configured_remote_addresses
-                                                           port:_configured_remote_port
-                                                       assocPtr:&tmp_assocId
-                                                          layer:self];
-                            if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
-                            {
-                                if(tmp_assocId !=NULL)
-                                {
-                                    _assocId = tmp_assocId;
-            #if defined(ULIBSCTP_CONFIG_DEBUG)
-                                    [self logDebug:[NSString stringWithFormat:@"Peeling of assoc %@",_assocId]];
-            #endif
-                                    if(_assocId==NULL)
-                                    {
-                                        [_layerHistory addLogEntry:[NSString stringWithFormat:@"  peeloff called with assocptr == NULL,setting err=UMSocketError_not_a_socket"]];
-                                        _directSocket = NULL;
-                                        err = UMSocketError_not_a_socket;
-                                    }
-                                    else if(_assocId.unsignedIntValue == 0)
-                                    {
-                                        [_layerHistory addLogEntry:[NSString stringWithFormat:@"  peeloff called with assoc==0, setting err=UMSocketError_not_a_socket"]];
-                                         _directSocket = NULL;
-                                         err = UMSocketError_not_a_socket;
-                                    }
-                                    else
-                                    {
-                                        _directSocket = [_listener peelOffAssoc:_assocId error:&err];
-                                        [_layerHistory addLogEntry:[NSString stringWithFormat:@"peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
-                                    }
-            #if defined(ULIBSCTP_CONFIG_DEBUG)
-                                    [self logDebug:[NSString stringWithFormat:@"directSocket is now %d", (int)_directSocket.sock]];
-            #endif
-                                    if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress) && (err!=UMSocketError_not_a_socket))
-                                    {
-                                        [_directSocket close];
-                                        _directSocket = NULL;
-                                        [_registry unregisterAssoc:_assocId];
-                                        _assocId=NULL;
-                                    }
-                                }
-                            }
+                            _assocId = tmp_assocId;
                         }
-                        else
-                        {
-            #if defined(ULIBSCTP_CONFIG_DEBUG)
-                            [self logDebug:[NSString stringWithFormat:@" using _directSocket"]];
-            #endif
-                            if(sendAbort)
-                            {
-                                for(NSString *addr in _configured_remote_addresses)
-                                {
-                                    @try
-                                    {
-                                        [_listener.umsocket abortToAddress:addr
-                                                                      port:_configured_remote_port
-                                                                     assoc:_assocId
-                                                                    stream:0
-                                                                  protocol:0];
-                                    }
-                                    @catch(NSException *e)
-                                    {
-                                    }
-                                }
-                            }
-                            err = [_directSocket connectToAddresses:_configured_remote_addresses
-                                                                port:_configured_remote_port
-                                                            assocPtr:&tmp_assocId
-                                                              layer:self];
-                            if(tmp_assocId !=NULL)
-                            {
-                                _assocId = tmp_assocId;
-                            }
-                        }
-                        if(self.logLevel <= UMLOG_DEBUG)
-                        {
-                            NSString *e = [UMSocket getSocketErrorString:err];
-                            [self logDebug:[NSString stringWithFormat:@"returns %d %@",err,e]];
-                        }
+                        self.status = UMSOCKET_STATUS_OOS;
                     }
-                }
-                if(_encapsulatedOverTcp)
-                {
-                    if(_isPassive == NO)
+                    if(self.logLevel <= UMLOG_DEBUG)
                     {
-                        [_registry registerOutgoingTcpLayer:self];
-                    }
-                    else
-                    {
-                        if(_encapsulatedOverTcpSessionKey)
-                        {
-                            [_registry registerSessionKey:_encapsulatedOverTcpSessionKey forLayer:self];
-                        }
+                        NSString *e = [UMSocket getSocketErrorString:err];
+                        [self logDebug:[NSString stringWithFormat:@"returns %d %@",err,e]];
                     }
                 }
-                else
-                {
-                    [_registry registerOutgoingLayer:self allowAnyRemotePortIncoming:_allowAnyRemotePortIncoming];
-                }
-                if ((err == UMSocketError_in_progress) || (err == UMSocketError_no_error))
-                {
-                    self.status = UMSOCKET_STATUS_OOS;
-                }
+                [_registry registerOutgoingLayer:self allowAnyRemotePortIncoming:_allowAnyRemotePortIncoming];
                 if(_allowAnyRemotePortIncoming)
                 {
                     [_registry registerIncomingLayer:self];
                 }
                 if(_assocId!=NULL)
                 {
-        #if defined(ULIBSCTP_CONFIG_DEBUG)
-                    [self logDebug:[NSString stringWithFormat:@" registering new assoc"]];
-        #endif
                     [_registry registerAssoc:_assocId forLayer:self];
                 }
                 [_registry startReceiver];
@@ -601,14 +426,13 @@
         }
         @catch (NSException *exception)
         {
+            [_layerHistory addLogEntry:[NSString stringWithFormat:@"Exception: %@",exception]];
             NSNumber *e = exception.userInfo[@"errno"];
             int err = e.intValue;
- //  #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <= UMLOG_DEBUG)
             {
                 [self logDebug:[NSString stringWithFormat:@"%@ %@",exception.name,exception.reason]];
             }
- //   #endif
             if(exception.userInfo)
             {
                 if(e)
@@ -622,11 +446,6 @@
             }
         }
         [_linkLock unlock];
-#if defined(POWER_DEBUG)
-        NSLog(@"%@ openTask(end)",_layerName);
-#endif
-
-        [self reportStatus];
     }
  }
 

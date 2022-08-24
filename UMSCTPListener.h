@@ -14,9 +14,9 @@
 
 @protocol UMSCTPListenerProcessEventsDelegate
 
-- (void) processError:(UMSocketError)err socket:(UMSocketSCTP *)s inArea:(NSString *)str layer:(id)layer;
-- (void) processHangupOnSocket:(UMSocketSCTP *)s inArea:(NSString *)str layer:(id)layer;
-- (void) processInvalidValueOnSocket:(UMSocketSCTP *)s inArea:(NSString *)str layer:(id)layer;
+- (void) processError:(UMSocketError)err;
+- (void) processHangup;
+- (void) processInvalidValue;
 
 @end
 
@@ -28,14 +28,20 @@
 - (UMSocketSCTPReceivedPacket *)receiveSCTP;
 @end
 
+/*
+ * UMSCTPListener is a background thread which sits on a socket and reads packets from it with the help of the read delegate
+ * then it passes the packets to the data delegate. If errors or state changes occur, the event delegate is called.
+ * It terminates if the socket receives a hangup or if an error condition forces the delegate to send a terminate command.
+ *
+ */
 
 @interface UMSCTPListener : UMBackgrounder
 {
     UMLayerSctp                                 *_layer;
     UMSocketSCTP                                *_umsocket;
     id<UMSCTPListenerProcessEventsDelegate>     _eventDelegate;
-    id<UMSCTPListenerProcessDataDelegate>       _dataDelegate;
     id<UMSCTPListenerReadPacketDelegate>        _readDelegate;
+    id<UMSCTPListenerProcessDataDelegate>       _processDelegate;
     int                                         _timeoutInMs;
     
 }
@@ -43,8 +49,14 @@
 @property(readwrite,strong,atomic)  UMLayer                                    *layer;
 @property(readwrite,strong,atomic)  UMSocketSCTP                               *umsocket;
 @property(readwrite,strong,atomic)  id<UMSCTPListenerProcessEventsDelegate>    eventDelegate;
-@property(readwrite,strong,atomic)  id<UMSCTPListenerProcessDataDelegate>      dataDelegate;
 @property(readwrite,strong,atomic)  id<UMSCTPListenerReadPacketDelegate>       readDelegate;
+@property(readwrite,strong,atomic)  id<UMSCTPListenerProcessDataDelegate>      processDelegate;
+
+- (UMSCTPListener *)initWithName:(NSString *)name
+                          socket:(UMSocketSCTP *)sock
+                   eventDelegate:(id<UMSCTPListenerProcessEventsDelegate>)evDel
+                    readDelegate:(id<UMSCTPListenerReadPacketDelegate>)readDel
+                 processDelegate:(id<UMSCTPListenerProcessDataDelegate>)procDel;
 
 @end
 
