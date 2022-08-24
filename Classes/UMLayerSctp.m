@@ -2094,13 +2094,16 @@
             if(_directSocket == socket)
             {
                 _directSocket = NULL;
-                NSString *s = [NSString stringWithFormat:@"processError(%d,%@) inArea %@",err,[UMSocket getSocketErrorString:err],area];
+                NSString *s = [NSString stringWithFormat:@"processError *IGNORED* (%d,%@) fd=%d inArea %@",err,[UMSocket getSocketErrorString:err],_directSocket.sock,area];
+                [_layerHistory addLogEntry:s];
+#if 0
                 [self setStatus:UMSOCKET_STATUS_OOS reason:s];
                 [self setStatus:UMSOCKET_STATUS_OFF reason:s];
                 [_registry unregisterAssoc:_assocId];
                 _assocId = NULL;
                 [_registry unregisterLayer:self];
                 [self reportStatus];
+#endif
             }
             else
             {
@@ -2110,8 +2113,7 @@
         }
         else
         {
-            [self powerdown:[NSString stringWithFormat:@"processError %d %@ for fd=%d",err,[UMSocket getSocketErrorString:err],socket.sock]];
-            [self reportStatus];
+            [self powerdown:[NSString stringWithFormat:@"processError (%d,%@) fd=%d inArea %@",err,[UMSocket getSocketErrorString:err],_directSocket.sock,area]];
         }
     }
 }
