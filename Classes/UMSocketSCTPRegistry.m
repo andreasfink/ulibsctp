@@ -113,7 +113,7 @@
 #endif
 
 {
-    [NSLog @("getOrAddListenerForPort:%d localIps:%@",port,ips);
+    NSLog(@"getOrAddListenerForPort:%d localIps:%@",port,ips);
 
 #ifdef USE_LISTENER1
     UMSocketSCTPListener *listener = NULL;
