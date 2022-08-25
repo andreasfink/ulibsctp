@@ -6,6 +6,8 @@
 //  Copyright © 2018 Andreas Fink (andreas@fink.org). All rights reserved.
 //
 
+#ifdef USE_LISTENER1
+
 #import <ulib/ulib.h>
 #import "UMSocketSCTP.h"
 
@@ -91,3 +93,5 @@
 #endif
 
 @end
+#endif
+

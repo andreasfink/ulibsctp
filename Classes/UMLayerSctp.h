@@ -23,7 +23,11 @@
 @class UMLayerSctpUser;
 @class UMLayerSctpUserProfile;
 @class UMSocketSCTPRegistry;
-@class UMSocketSCTPListener;
+#ifdef USE_LISTENER1
+@class  UMSocketSCTPListener;
+#else
+@class  UMSocketSCTPListener2;
+#endif
 
 @interface UMLayerSctp : UMLayer
 {
@@ -35,7 +39,11 @@
     UMThroughputCounter *_inboundThroughputBytes;
     UMThroughputCounter *_outboundThroughputBytes;
     UMSocketSCTPRegistry *_registry;
-    UMSocketSCTPListener *_listener;
+#ifdef USE_LISTENER1
+    UMSocketSCTPListener  *_listener;
+#else
+    UMSocketSCTPListener2 *_listener;
+#endif
     UMSocketSCTP         *_directSocket; /* after peeloff */
     UMSocket             *_directTcpEncapsulatedSocket; /* after peeloff */
     NSDate               *_startButtonPressed;
@@ -107,7 +115,12 @@
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputPackets;
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputBytes;
 @property(readwrite,strong,atomic)      UMSocketSCTPRegistry *registry;
+#ifdef USE_LISTENER1
 @property(readwrite,strong) UMSocketSCTPListener *listener;
+#else
+@property(readwrite,strong) UMSocketSCTPListener2 *listener;
+#endif
+
 @property(readwrite,strong) NSNumber    *assocId;
 @property(readwrite,assign) int         mtu;
 @property(readwrite,assign) BOOL        newDestination;

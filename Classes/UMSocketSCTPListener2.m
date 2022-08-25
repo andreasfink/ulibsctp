@@ -12,13 +12,13 @@
 
 @implementation UMSocketSCTPListener2
 
-
 - (void)dealloc
 {
     [_umsocket close];
     [_umsocketEncapsulated close];
     _umsocket = NULL;
     _umsocketEncapsulated = NULL;
+    _isInvalid=YES;
 }
 
 
@@ -33,6 +33,7 @@
         _logLevel = UMLOG_MINOR;
         _name = [NSString stringWithFormat:@"listener_%d",_port];
         _lock = [[UMMutex alloc]initWithName:_name];
+        _isInvalid=NO;
         if(_localIpAddresses == NULL)
         {
             _localIpAddresses = @[@"0.0.0.0"];
@@ -295,6 +296,31 @@
 - (int)mtu
 {
     return [_umsocket currentMtu];
+}
+
+
+- (void)startListeningFor:(UMLayerSctp *)layer
+{
+    [_lock lock];
+    if(_layers.count==0)
+    {
+        [self startBackgroundTask];
+        [_registry addListener:self];
+    }
+    _layers[layer.layerName] = layer;
+    [_lock unlock];
+}
+
+- (void)stopListeningFor:(UMLayerSctp *)layer
+{
+    [_lock lock];
+    [_layers removeObjectForKey:layer.layerName];
+    if(_layers.count==0)
+    {
+        [_registry removeListener:layer.listener];
+        [self shutdownBackgroundTask];
+    }
+    [_lock unlock];
 }
 
 @end

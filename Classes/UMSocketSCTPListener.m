@@ -6,6 +6,8 @@
 //  Copyright © 2018 Andreas Fink (andreas@fink.org). All rights reserved.
 //
 
+#ifdef USE_LISTENER1
+
 #define ULIBSCTP_INTERNAL 1
 
 #import "UMSocketSCTPListener.h"
@@ -335,11 +337,11 @@
     {
         if(_tcpEncapsulated)
         {
-            [_registry removeTcpListener:self];
+            [_registry removeTcpListener:layer.listener];
         }
         else
         {
-            [_registry removeListener:self];
+            [_registry removeListener:layer.listener];
         }
         [_umsocket close];
         _umsocket=NULL;
@@ -550,3 +552,4 @@
     return s;
 }
 @end
+#endif /* USE_LISTENER1 */

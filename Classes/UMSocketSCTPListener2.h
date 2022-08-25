@@ -66,6 +66,10 @@
 - (void)setMtu:(int)mtu;
 
 
+- (void)startListeningFor:(UMLayerSctp *)layer;
+- (void)stopListeningFor:(UMLayerSctp *)layer;
+
+
 #if defined(ULIBSCTP_INTERNAL)
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)port

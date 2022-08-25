@@ -33,7 +33,13 @@
 #import "UMLayerSctpUser.h"
 #import "UMLayerSctpUserProfile.h"
 #import "UMLayerSctpApplicationContextProtocol.h"
+
+#ifdef USE_LISTENER1
 #import "UMSocketSCTPListener.h"
+#else
+#import "UMSocketSCTPListener2.h"
+#endif
+
 #import "UMSocketSCTPRegistry.h"
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -360,6 +366,7 @@
                 else
                 {
                     [_listener startListeningFor:self];
+                    usleep(150000); /* lets give the system a chance to set isListening etc */
                     _listenerStarted = _listener.isListening;
                 }
                 _newDestination = YES;
@@ -426,7 +433,9 @@
                 {
                     [_registry registerAssoc:_assocId forLayer:self];
                 }
+#ifdef USE_LISTENER1
                 [_registry startReceiver];
+#endif
             }
         }
         @catch (NSException *exception)
@@ -472,7 +481,13 @@
             [self powerdown:@"_closeTask"];
             if(_listenerStarted==YES)
             {
+#ifdef USE_LISTENER1
                 [_listener stopListeningFor:self];
+#else
+                /* FIXME: we leave the listener open for now
+                   We should terminate the listener if we are the last one using it (but only then)
+                 */
+#endif
             }
             _listener = NULL;
         }
@@ -2030,6 +2045,7 @@
 {
     if(_listenerStarted==YES)
     {
+        
         [_listener stopListeningFor:self];
     }
     _listener = NULL;
@@ -2049,6 +2065,7 @@
         if(_isPassive)
         {
             [_listener startListeningFor:self];
+            usleep(150000); /* lets give the system a chance to update "isListening */
             _listenerStarted = _listener.isListening;
         }
         else

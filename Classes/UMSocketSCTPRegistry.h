@@ -7,9 +7,18 @@
 //
 
 #import <ulib/ulib.h>
+
+
+#ifdef USE_LISTENER1
 @class UMSocketSCTPListener;
-@class UMLayerSctp;
 @class UMSocketSCTPReceiver;
+
+#else
+@class UMSocketSCTPListener2;
+#endif
+
+@class UMLayerSctp;
+
 
 @interface UMSocketSCTPRegistry : UMObject
 {
@@ -17,8 +26,16 @@
     NSMutableDictionary     *_assocs;
 
     NSMutableArray                                           *_outgoingLayers;
+#ifdef USE_LISTENER1
     NSMutableArray<UMSocketSCTPListener *>                   *_incomingListeners;
     NSMutableDictionary<NSNumber *,UMSocketSCTPListener *>   *_incomingTcpListeners; /* key is @(port) */
+    UMSocketSCTPReceiver    *_receiver;
+    BOOL                    _receiverStarted;
+#else
+    NSMutableArray<UMSocketSCTPListener2 *>                   *_incomingListeners;
+    NSMutableDictionary<NSNumber *,UMSocketSCTPListener2 *>   *_incomingTcpListeners; /* key is @(port) */
+#endif
+    
     NSMutableArray          *_incomingLayers; /* once peeled of the listener */
     
     NSMutableArray          *_outgoingTcpLayers;
@@ -28,8 +45,6 @@
     NSMutableDictionary     *_outgoingLayersByAssoc;
     
     UMMutex                 *_lock;
-    UMSocketSCTPReceiver    *_receiver;
-    BOOL                    _receiverStarted;
     BOOL                    _sendAborts;
     UMLogLevel              _logLevel;
     NSMutableDictionary     *_layersBySessionKey;
@@ -43,28 +58,40 @@
 
 + (NSString *)keyForPort:(int)port ip:(NSString *)ip;
 
-- (UMSocketSCTPListener *)getOrAddListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips;
 
+
+#ifdef USE_LISTENER1
+- (UMSocketSCTPListener *)getOrAddListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips;
 - (UMSocketSCTPListener *)getListenerForPort:(int)port localIp:(NSString *)ip;
 - (UMSocketSCTPListener *)getListenerForPort:(int)port localIps:(NSArray *)ips;
-
-
 - (void)addListener:(UMSocketSCTPListener *)listener;
 - (void)addListener:(UMSocketSCTPListener *)listener forPort:(int)port localIp:(NSString *)ip;
 - (void)removeListener:(UMSocketSCTPListener *)listener;
 - (void)removeListener:(UMSocketSCTPListener *)listener forPort:(int)port localIp:(NSString *)ips;
-
 - (UMSocketSCTPListener *)getOrAddTcpListenerForPort:(int)port;
 - (UMSocketSCTPListener *)getTcpListenerForPort:(int)port;
 - (void)addTcpListener:(UMSocketSCTPListener *)listener;
 - (void)removeTcpListener:(UMSocketSCTPListener *)listener;
 
+#else
+- (UMSocketSCTPListener2 *)getOrAddListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips;
+- (UMSocketSCTPListener2 *)getListenerForPort:(int)port localIp:(NSString *)ip;
+- (UMSocketSCTPListener2 *)getListenerForPort:(int)port localIps:(NSArray *)ips;
+- (void)addListener:(UMSocketSCTPListener2 *)listener;
+- (void)addListener:(UMSocketSCTPListener2 *)listener forPort:(int)port localIp:(NSString *)ip;
+- (void)removeListener:(UMSocketSCTPListener2 *)listener;
+- (void)removeListener:(UMSocketSCTPListener2 *)listener forPort:(int)port localIp:(NSString *)ips;
+- (UMSocketSCTPListener2 *)getOrAddTcpListenerForPort:(int)port;
+- (UMSocketSCTPListener2 *)getTcpListenerForPort:(int)port;
+- (void)addTcpListener:(UMSocketSCTPListener2 *)listener;
+- (void)removeTcpListener:(UMSocketSCTPListener2 *)listener;
+#endif
+
+
+
 - (void)registerSessionKey:(NSString *)session_key forLayer:(UMLayerSctp *)layer;
 - (void)unregisterSessionKey:(NSString *)session_key;
 
-
-//- (UMSocketSCTPListener *)listenerForPort:(int)port localIps:(NSArray *)ips;
-//- (void)unregisterListener:(UMSocketSCTPListener *)e;
 
 - (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId;
 - (UMLayerSctp *)layerForSessionKey:(NSString *)sessionKey;
@@ -97,8 +124,10 @@
 - (NSArray *)allOutboundTcpLayers;
 - (NSArray *)allInboundTcpLayers;
 
+#ifdef USE_LISTENER1
 - (void)startReceiver;
 - (void)stopReceiver;
+#endif
 
 + (NSString *)registryKeyForLocalAddr:(NSString *)lo
                             localPort:(int)lp

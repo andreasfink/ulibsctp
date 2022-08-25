@@ -5,7 +5,7 @@
 //  Created by Andreas Fink on 18.05.18.
 //  Copyright © 2018 Andreas Fink (andreas@fink.org). All rights reserved.
 //
-
+#ifdef USE_LISTENER1
 #import <ulib/ulib.h>
 @class UMLayerSctp;
 @class UMSocketSCTPListener;
@@ -26,3 +26,4 @@
 - (UMSocketSCTPReceiver *)initWithRegistry:(UMSocketSCTPRegistry *)_registry;
 
 @end
+#endif
