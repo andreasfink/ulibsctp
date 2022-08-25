@@ -205,7 +205,6 @@
     [_assocs removeObjectForKey:assocId];
 }
 
-
 - (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId
 {
     return _assocs[assocId];

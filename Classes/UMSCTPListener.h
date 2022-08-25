@@ -60,6 +60,7 @@
 
 - (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer;
 - (void)unregisterAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer;
+- (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId;
 
 @end
 
