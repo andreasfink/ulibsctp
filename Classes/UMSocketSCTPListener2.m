@@ -44,6 +44,7 @@
 
 - (void)backgroundInit
 {
+    NSLog(@"_localIpAddresses=%@ port=%d",_localIpAddresses,_port);
     _umsocket = [[UMSocketSCTP alloc]initWithType:UMSOCKET_TYPE_SCTP_SEQPACKET name:_name];
     _umsocket.requestedLocalAddresses = _localIpAddresses;
     _umsocket.requestedLocalPort = _port;
