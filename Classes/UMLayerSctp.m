@@ -746,10 +746,10 @@
                 break;
 
             case UMSOCKET_STATUS_IS:
-                [self reportStatus:@"isTask reported IS"];
+                [self reportStatusWithReason:@"isTask reported IS"];
                 break; 
             case UMSOCKET_STATUS_LISTENING:
-                [self reportStatus:@"isTask reported LISTENING"];
+                [self reportStatusWithReason:@"isTask reported LISTENING"];
                 break;
         }
     }
