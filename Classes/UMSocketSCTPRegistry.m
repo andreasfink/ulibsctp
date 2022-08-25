@@ -130,7 +130,6 @@
 #ifdef USE_LISTENER1
             listener = [[UMSocketSCTPListener alloc]initWithPort:port localIpAddresses:ips];
 #else
-            NSLog(@"[[UMSocketSCTPListener2 alloc]initWithPort:%d localIpAddresses:%@];",port,ips);
             listener = [[UMSocketSCTPListener2 alloc]initWithPort:port localIpAddresses:ips];
 #endif
             listener.logLevel = _logLevel;
