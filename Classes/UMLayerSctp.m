@@ -928,6 +928,7 @@
         [s appendFormat:@"processReceivedData: \n%@",rx.description];
         [self logDebug:s];
 #endif
+#if USE_LISTENER1
         if(!_encapsulatedOverTcp)
         {
             if(rx.assocId !=NULL)
@@ -948,6 +949,7 @@
                 }
             }
         }
+#endif
         if(rx.err==UMSocketError_try_again)
         {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1176,6 +1178,7 @@
         [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS (assocID=%ld)",(long)_assocId]];
         [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP"];
 
+#if USE_LISTENER1
         if(_directSocket==NULL)
         {
             UMSocketError err = UMSocketError_no_error;
@@ -1190,6 +1193,7 @@
             }
             [_registry registerIncomingLayer:self];
         }
+#endif
         [_reconnectTimer stop];
 #if defined(POWER_DEBUG)
         NSLog(@"%@ SCTP_COMM_UP",_layerName);
