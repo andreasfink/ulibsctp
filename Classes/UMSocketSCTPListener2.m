@@ -25,8 +25,7 @@
 - (UMSocketSCTPListener2 *)initWithPort:(int)localPort
                       localIpAddresses:(NSArray *)addresses
 {
-    NSLog(@"initWithPort:%d _localIpAddresses=%@",_port,_localIpAddresses);
-
+    NSLog(@"initWithPort:%d _localIpAddresses=%@",localPort,addresses);
     NSString *name = [NSString stringWithFormat:@"listener_%d",_port];
 
     self = [super initWithName:name socket:NULL eventDelegate:self readDelegate:self processDelegate:self];
@@ -36,10 +35,13 @@
         _name = [NSString stringWithFormat:@"listener_%d",_port];
         _lock = [[UMMutex alloc]initWithName:_name];
         _isInvalid=NO;
+        _port = localPort;
+        _localIpAddresses = addresses;
         if(_localIpAddresses == NULL)
         {
             _localIpAddresses = @[@"0.0.0.0"];
         }
+    
     }
     return self;
 }
