@@ -397,6 +397,17 @@
                                                    @"entries" : a1,
                                                 };
 
+    a1 = [[NSMutableArray alloc]init];
+    arr = _assocs.allKeys;
+    for(NSNumber *key in arr)
+    {
+        [a1 addObject:key];
+    }
+    dict[@"assocs"] = @{ @"count"   : @(a1.count),
+                            @"entries" : a1,
+        };
+
+
     return dict;
 }
 
