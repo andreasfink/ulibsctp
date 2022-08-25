@@ -23,7 +23,7 @@
                  processDelegate:(id<UMSCTPListenerProcessDataDelegate>)procDel
 
 {
-    self = [super init];
+    self = [super initWithName:name workSleeper:NULL];
     if(self)
     {
         self.name = name;
