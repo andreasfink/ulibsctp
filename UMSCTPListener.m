@@ -21,6 +21,7 @@
                    eventDelegate:(id<UMSCTPListenerProcessEventsDelegate>)evDel
                     readDelegate:(id<UMSCTPListenerReadPacketDelegate>)readDel
                  processDelegate:(id<UMSCTPListenerProcessDataDelegate>)procDel
+
 {
     self = [super init];
     if(self)
@@ -68,7 +69,16 @@
 
    while((UMBackgrounder_running == self.runningStatus) && (mustQuit==NO))
    {
-       [self waitAndHandleData];
+       UMSocketError err = [self waitAndHandleData];
+       if(err==UMSocketError_not_a_socket)
+       {
+           mustQuit=YES;
+           [_eventDelegate processHangup];
+       }
+       if(err==UMSocketError_has_data_and_hup)
+       {
+           mustQuit = YES; /* it has already sent the processHangup event */
+       }
    }
    [self backgroundExit];
    self.runningStatus = UMBackgrounder_notRunning;
@@ -116,42 +126,6 @@
         returnValue = UMSocketError_no_error;
 
         int revent = pollfds[0].revents;
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSMutableArray *a = [[NSMutableArray alloc]init];
-        if(revent & POLLIN)
-        {
-            [a addObject:@"POLLIN"];
-        }
-        if(revent & POLLPRI)
-        {
-            [a addObject:@"POLLPRI"];
-        }
-        if(revent & POLLOUT)
-        {
-            [a addObject:@"POLLOUT"];
-        }
-        if(revent & POLLRDNORM)
-        {
-            [a addObject:@"POLLRDNORM"];
-        }
-        if(revent & POLLWRBAND)
-        {
-            [a addObject:@"POLLWRBAND"];
-        }
-        if(revent & POLLERR)
-        {
-            [a addObject:@"POLLERR"];
-        }
-        if(revent & POLLHUP)
-        {
-            [a addObject:@"POLLHUP"];
-        }
-        if(revent & POLLNVAL)
-        {
-            [a addObject:@"POLLNVAL"];
-        }
-        NSLog(@"handlePollResult:revent=%d %@",revent,[a componentsJoinedByString:@" | "]);
-#endif
         int revent_error = UMSocketError_no_error;
         int revent_hup = 0;
         int revent_dohup = 0;
@@ -180,7 +154,6 @@
         {
             revent_has_data = 1;
         }
-        
         if(revent_has_data)
         {
             UMSocketSCTPReceivedPacket *rx = NULL;
@@ -195,7 +168,7 @@
                 returnValue = UMSocketError_has_data;
             }
         }
-        if(revent_hup)
+        if((revent_hup) || (revent_dohup))
         {
             [_eventDelegate processHangup];
         }

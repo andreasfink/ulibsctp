@@ -378,7 +378,11 @@
 - (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId
 {
     UMMUTEX_LOCK(_lock);
-    UMLayerSctp *sctp = _outgoingLayersByAssoc[assocId];
+    UMLayerSctp *sctp = _assocs[assocId];
+    if(sctp==NULL)
+    {
+        sctp = _outgoingLayersByAssoc[assocId];
+    }
     UMMUTEX_UNLOCK(_lock);
     return sctp;
 }
