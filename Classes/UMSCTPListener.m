@@ -32,6 +32,7 @@
         _eventDelegate = evDel;
         _readDelegate = readDel;
         _processDelegate = procDel;
+        _assocs = [[UMSynchronizedDictionary alloc]init];
     }
     return self;
 }
@@ -174,5 +175,39 @@
         }
     }
     return returnValue;
+}
+
+- (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer
+{
+    UMLayerSctp *old = _assocs[assocId];
+    if((old != layer) && (old !=NULL))
+    {
+        NSString *s = [NSString stringWithFormat:@"Mismatch in Listener at RegisterAssoc. Layer in registry %@, layer asking to unregister %@, assoc=%@",old.layerName,layer.layerName,assocId];
+        [layer logMajorError:s];
+        [layer addToLayerHistoryLog:s];
+        [old logMajorError:s];
+        [old addToLayerHistoryLog:s];
+    }
+    _assocs[assocId] = layer;
+}
+
+- (void)unregisterAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer
+{
+    UMLayerSctp *old = _assocs[assocId];
+    if(old != layer)
+    {
+        NSString *s = [NSString stringWithFormat:@"Mismatch in Listener registry. Layer in registry %@, layer asking to unregister %@, assoc=%@",old.layerName,layer.layerName,assocId];
+        [layer logMajorError:s];
+        [layer addToLayerHistoryLog:s];
+        [old logMajorError:s];
+        [old addToLayerHistoryLog:s];
+    }
+    [_assocs removeObjectForKey:assocId];
+}
+
+
+- (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId
+{
+    return _assocs[assocId];
 }
 @end

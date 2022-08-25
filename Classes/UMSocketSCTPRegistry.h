@@ -23,7 +23,6 @@
 @interface UMSocketSCTPRegistry : UMObject
 {
     NSMutableDictionary     *_entries;
-    NSMutableDictionary     *_assocs;
 
     NSMutableArray                                           *_outgoingLayers;
 #ifdef USE_LISTENER1
@@ -93,7 +92,6 @@
 - (void)unregisterSessionKey:(NSString *)session_key;
 
 
-- (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId;
 - (UMLayerSctp *)layerForSessionKey:(NSString *)sessionKey;
 
 - (void)registerOutgoingLayer:(UMLayerSctp *)layer;
@@ -104,10 +102,6 @@
 - (void)registerIncomingLayer:(UMLayerSctp *)layer;
 - (void)registerIncomingTcpLayer:(UMLayerSctp *)layer;
 - (void)unregisterIncomingTcpLayer:(UMLayerSctp *)layer;
-
-- (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer;
-
-- (void)unregisterAssoc:(NSNumber *)assocId;
 
 - (void)unregisterLayer:(UMLayerSctp *)sctp;
 - (UMLayerSctp *)layerForLocalIp:(NSString *)ip1

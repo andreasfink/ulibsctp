@@ -151,7 +151,7 @@
         BOOL processed=NO;
         if(rx.assocId != NULL)
         {
-            UMLayerSctp *layer =  [_registry layerForAssoc:rx.assocId];
+            UMLayerSctp *layer =  [self layerForAssoc:rx.assocId];
             if(layer)
             {
                 [layer processReceivedData:rx];
@@ -173,7 +173,7 @@
                 {
                     if(rx.assocId)
                     {
-                        [_registry registerAssoc:rx.assocId forLayer:layer];
+                        [self registerAssoc:rx.assocId forLayer:layer];
                         if(layer.assocId==NULL)
                         {
                             layer.assocId = rx.assocId;

@@ -365,7 +365,7 @@
 #if defined(ULIBSCTP_CONFIG_DEBUG)
             NSLog(@"Looking into registry: %@",_registry);
 #endif
-            UMLayerSctp *layer =  [_registry layerForAssoc:rx.assocId];
+            UMLayerSctp *layer =  [_listener layerForAssoc:rx.assocId];
             if(layer)
             {
                 [layer processReceivedData:rx];

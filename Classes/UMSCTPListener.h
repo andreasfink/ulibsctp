@@ -43,7 +43,7 @@
     id<UMSCTPListenerReadPacketDelegate>        _readDelegate;
     id<UMSCTPListenerProcessDataDelegate>       _processDelegate;
     int                                         _timeoutInMs;
-    
+    UMSynchronizedDictionary                    *_assocs;
 }
 
 @property(readwrite,strong,atomic)  UMLayer                                    *layer;
@@ -57,6 +57,9 @@
                    eventDelegate:(id<UMSCTPListenerProcessEventsDelegate>)evDel
                     readDelegate:(id<UMSCTPListenerReadPacketDelegate>)readDel
                  processDelegate:(id<UMSCTPListenerProcessDataDelegate>)procDel;
+
+- (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer;
+- (void)unregisterAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer;
 
 @end
 

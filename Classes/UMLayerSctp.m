@@ -431,7 +431,7 @@
                 }
                 if(_assocId!=NULL)
                 {
-                    [_registry registerAssoc:_assocId forLayer:self];
+                    [_listener registerAssoc:_assocId forLayer:self];
                 }
 #ifdef USE_LISTENER1
                 [_registry startReceiver];
@@ -782,7 +782,7 @@
 
         if(_assocId!=NULL)
         {
-            [_registry unregisterAssoc:_assocId];
+            [_listener unregisterAssoc:_assocId forLayer:self];
             _assocId = NULL;
             /*
             for(NSString *addr in _configured_remote_addresses)
@@ -797,7 +797,7 @@
             if(_directSocket)
             {
                 [_directSocket close];
-                [_registry unregisterAssoc:_assocId];
+                [_listener unregisterAssoc:_assocId forLayer:self];
                 _assocId=NULL;
                 [_registry unregisterLayer:self];
             }
@@ -834,12 +834,10 @@
         [self setStatus:UMSOCKET_STATUS_OFF reason:@"powerdownInReceiverThread"];
         if(_assocId!=NULL)
         {
-            [_registry unregisterAssoc:_assocId];
+            [_listener unregisterAssoc:_assocId forLayer:self];
             _assocId = NULL;
         }
         [_directSocket close];
-        [_registry unregisterAssoc:_assocId];
-        _assocId=NULL;
         _directSocket = NULL;
     }
 }
@@ -958,7 +956,7 @@
         else if(peeloffFailed)
         {
             [_directSocket close];
-            [_registry unregisterAssoc:_assocId];
+            [_listener unregisterAssoc:_assocId forLayer:self];
             _assocId=NULL;
             _directSocket = NULL;
             NSString *s = [NSString stringWithFormat:@"processReceivedData peeloff failed"];
@@ -1110,7 +1108,7 @@
             if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress) && (err!=UMSocketError_not_a_socket))
             {
                 _directSocket = NULL;
-                [_registry unregisterAssoc:_assocId];
+                [_listener unregisterAssoc:_assocId forLayer:self];
                 _assocId=NULL;
             }
             [_registry registerIncomingLayer:self];
@@ -2002,7 +2000,7 @@
                 {
                     _assocId = xassocId;
                 }
-                [_registry registerAssoc:_assocId forLayer:self];
+                [_listener registerAssoc:_assocId forLayer:self];
             }
         }
     }

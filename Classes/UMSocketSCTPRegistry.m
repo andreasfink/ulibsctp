@@ -25,7 +25,6 @@
     if(self)
     {
         _entries = [[NSMutableDictionary alloc]init];
-        _assocs = [[NSMutableDictionary alloc]init];
         _lock = [[UMMutex alloc]initWithName:@"umsocket-sctp-registry"];
 #if USE_LISTENER1
         _receiver = [[UMSocketSCTPReceiver alloc]initWithRegistry:self];
@@ -37,7 +36,6 @@
         _incomingListeners = [[NSMutableArray alloc]init];
         _incomingTcpListeners = [[NSMutableDictionary alloc] init];
         _outgoingLayersByIpsAndPorts = [[NSMutableDictionary alloc]init];
-        _outgoingLayersByAssoc = [[NSMutableDictionary alloc]init];
         _layersBySessionKey = [[NSMutableDictionary alloc]init];
         _logLevel = UMLOG_MINOR;
 
@@ -338,18 +336,6 @@
                           @"entries" : a1,
                         };
 
-
-    arr = _assocs.allKeys;
-    
-    a1 = [[NSMutableArray alloc]init];
-    for(NSString *key in arr)
-    {
-        [a1 addObject:key];
-    }
-    dict[@"assocs"] = @{ @"count"   : @(arr.count),
-                          @"assocs" : a1,
-                        };
-
     arr = _outgoingLayers;
     a1 = [[NSMutableArray alloc]init];
     for(UMLayerSctp *layer in _outgoingLayers)
@@ -386,28 +372,6 @@
                                                    @"entries" : a1,
                                                 };
 
-
-    a1 = [[NSMutableArray alloc]init];
-    arr = _outgoingLayersByAssoc.allKeys;
-    for(NSNumber *key in arr)
-    {
-        [a1 addObject:key];
-    }
-    dict[@"outgoing-layers-by-assoc"] = @{ @"count"   : @(a1.count),
-                                                   @"entries" : a1,
-                                                };
-
-    a1 = [[NSMutableArray alloc]init];
-    arr = _assocs.allKeys;
-    for(NSNumber *key in arr)
-    {
-        [a1 addObject:key];
-    }
-    dict[@"assocs"] = @{ @"count"   : @(a1.count),
-                            @"entries" : a1,
-        };
-
-
     return dict;
 }
 
@@ -422,14 +386,6 @@
     for(NSString *key in arr)
     {
         [s appendFormat:@"  [%@]\n",key];
-    }
-
-    arr = _assocs.allKeys;
-    [s appendFormat:@".assoc: %d entries]\n",(int)arr.count];
-    for(NSString *key in arr)
-    {
-        UMLayerSctp *xlayer = _assocs[key];
-        [s appendFormat:@"  [%@] -> %@\n",key,xlayer.layerName];
     }
 
     [s appendFormat:@".outgoingLayers: %d entries]\n",(int)_outgoingLayers.count];
@@ -456,31 +412,12 @@
         [s appendFormat:@"  [%@] -> %@\n",key,xlayer.layerName];
     }
 
-
-    [s appendFormat:@".outgoingLayersByAssoc: %d entries]\n",(int)_outgoingLayersByAssoc.count];
-    arr = _outgoingLayersByAssoc.allKeys;
-    for(NSNumber *key in arr)
-    {
-        UMLayerSctp *xlayer = _outgoingLayersByAssoc[key];
-        [s appendFormat:@"  [%@] -> %@\n",key,xlayer.layerName];
-    }
     [s appendFormat:@"-----------------------------------------------------------\n"];
     return s;
 }
 
 
 
-- (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId
-{
-    UMMUTEX_LOCK(_lock);
-    UMLayerSctp *sctp = _assocs[assocId];
-    if(sctp==NULL)
-    {
-        sctp = _outgoingLayersByAssoc[assocId];
-    }
-    UMMUTEX_UNLOCK(_lock);
-    return sctp;
-}
 
 - (UMLayerSctp *)layerForLocalIp:(NSString *)ip1
                        localPort:(int)port1
@@ -642,39 +579,6 @@
     }
 }
 
-- (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer
-{
-    UMMUTEX_LOCK(_lock);
-    UMAssert(layer,@"layer is NULL");
-    if(assocId)
-    {
-        /* an active outbound connection */
-        if(_logLevel <=UMLOG_DEBUG)
-        {
-            NSLog(@"registerAssoc %@ forLayer:%@",assocId,layer.layerName);
-        }
-        _assocs[assocId] = layer;
-    }
-    UMMUTEX_UNLOCK(_lock);
-
-}
-
-- (void)unregisterAssoc:(NSNumber *)assocId
-{
-    UMMUTEX_LOCK(_lock);
-    if(assocId)
-    {
-        UMLayerSctp *layer = _assocs[assocId];
-        /* an active outbound connection */
-        if(_logLevel <=UMLOG_DEBUG)
-        {
-            NSLog(@"unregisterAssoc %@ forLayer:%@",assocId,layer.layerName);
-        }
-        [_assocs removeObjectForKey:assocId];
-    }
-    UMMUTEX_UNLOCK(_lock);
-}
-
 
 - (void)registerSessionKey:(NSString *)session_key forLayer:(UMLayerSctp *)layer
 {
@@ -700,10 +604,6 @@
         UMMUTEX_LOCK(_lock);
         @try
         {
-            if(layer.assocId !=NULL)
-            {
-                [_assocs removeObjectForKey:layer.assocId];
-            }
             /* we unregister every local IP / remote IP pair combination */
             
             NSArray *localAddrs = layer.configured_local_addresses;
@@ -804,11 +704,6 @@
     [s appendString:@"    <tr>\r\n"];
     [s appendFormat:@"        <td class=\"object_name\">_entries</td>\r\n"];
     [s appendFormat:@"        <td class=\"object_value\">%d</th>\r\n",(int)_entries.count];
-    [s appendString:@"    </tr>\r\n"];
-
-    [s appendString:@"    <tr>\r\n"];
-    [s appendFormat:@"        <td class=\"object_name\">_assocs</td>\r\n"];
-    [s appendFormat:@"        <td class=\"object_value\">%d</th>\r\n",(int)_assocs.count];
     [s appendString:@"    </tr>\r\n"];
 
     [s appendString:@"    <tr>\r\n"];
