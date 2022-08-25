@@ -781,7 +781,7 @@
                                             error:&err2
                                             flags:SCTP_OVER_TCP_SETUP_CONFIRM | SCTP_OVER_TCP_NOTIFICATION];
                         [session setStatus:UMSOCKET_STATUS_IS reason:@"SCTP_OVER_TCP_SETUP_CONFIRM | SCTP_OVER_TCP_NOTIFICATION"];
-                        [session reportStatus];
+                        [session reportStatus:@"SCTP_OVER_TCP_SETUP_CONFIRM | SCTP_OVER_TCP_NOTIFICATION"];
                     }
                     else
                     {

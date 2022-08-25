@@ -185,7 +185,7 @@
 - (void) powerdown;
 - (void) powerdown:(NSString *)reason;
 - (void) powerdownInReceiverThread;
-- (void)reportStatus;
+- (void)reportStatusWithReason:(NSString *)reason;
 #pragma mark -
 #pragma mark Config Handling
 - (void)setConfig:(NSDictionary *)cfg applicationContext:(id<UMLayerSctpApplicationContextProtocol>)appContext;
