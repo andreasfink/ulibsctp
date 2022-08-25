@@ -25,6 +25,8 @@
 - (UMSocketSCTPListener2 *)initWithPort:(int)localPort
                       localIpAddresses:(NSArray *)addresses
 {
+    NSLog(@"initWithPort:%d _localIpAddresses=%@",_port,_localIpAddresses);
+
     NSString *name = [NSString stringWithFormat:@"listener_%d",_port];
 
     self = [super initWithName:name socket:NULL eventDelegate:self readDelegate:self processDelegate:self];
