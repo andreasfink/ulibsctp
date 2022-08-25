@@ -1621,7 +1621,7 @@
     NSLog(@"%@ Size Mismatch in SCTP_SENDER_DRY_EVENT",_layerName);
 #endif
         [self powerdownInReceiverThread:@"Size mismatch in SCTP_SENDER_DRY_EVENT"];
-        [self reportStatusWithReason:@"Size mismatch in SCTP_SENDER_DRY_EVENT"]
+        [self reportStatusWithReason:@"Size mismatch in SCTP_SENDER_DRY_EVENT"];
         return UMSocketError_not_supported_operation;
     }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
