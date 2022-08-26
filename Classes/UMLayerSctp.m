@@ -926,7 +926,7 @@
             {
                 _assocId = rx.assocId;
             }
-            if((_usePeelOff) && (_directSocket == NULL))
+            if((_usePeelOff) && (_directSocket == NULL) && (rx.assocId))
             {
                 UMSocketError err = UMSocketError_no_error;
                 _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
@@ -1078,7 +1078,7 @@
         [_layerHistory addLogEntry:s];
         [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP*"];
         NSLog(@"peeloff1 %d %p",_usePeelOff,_directSocket);
-        if((_usePeelOff) && (_directSocket == NULL))
+        if((_usePeelOff) && (_directSocket == NULL) && (_assocId==NULL))
         {
             NSLog(@"peeloff2");
 
@@ -1109,7 +1109,7 @@
         {
             NSLog(@"peeloff2");
             UMSocketError err = UMSocketError_no_error;
-            _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+            _directSocket = [_listener peelOffAssoc:snp->sn_assoc_change.sac_assoc_id error:&err];
             NSLog(@"peeloff3");
             [_layerHistory addLogEntry:[NSString stringWithFormat:@"peeling off assoc %u into socket %p/%d err=%d",ass,_directSocket,_directSocket.sock,err]];
             NSLog(@"peeling off assoc %u into socket %p/%d err=%d",ass,_directSocket,_directSocket.sock,err);
