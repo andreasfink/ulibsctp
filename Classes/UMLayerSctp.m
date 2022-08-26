@@ -1077,11 +1077,38 @@
         [self.logFeed infoText:s];
         [_layerHistory addLogEntry:s];
         [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP"];
-        if((_directSocket==NULL) && (snp->sn_assoc_change.sac_assoc_id > 0))
+        NSLog(@"peeloff1");
+        if((_usePeelOff) && (_directSocket == NULL))
         {
             UMSocketError err = UMSocketError_no_error;
+            _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
+            [_layerHistory addLogEntry:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
+            if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
+            {
+                [_directSocket close];
+                [_listener unregisterAssoc:_assocId forLayer:self];
+                _assocId=NULL;
+                _directSocket = NULL;
+                NSString *s = [NSString stringWithFormat:@"processReceivedData peeloff failed"];
+                [self logMinorError:s];
+                [self powerdownInReceiverThread:s];
+                [self reportStatusWithReason:s];
+            }
+            else
+            {
+                [self startDirectSocketReceiver];
+            }
+        }
+#if 0
+        if((_directSocket==NULL) && (snp->sn_assoc_change.sac_assoc_id > 0))
+        {
+            NSLog(@"peeloff2");
+            UMSocketError err = UMSocketError_no_error;
             _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+            NSLog(@"peeloff3");
             [_layerHistory addLogEntry:[NSString stringWithFormat:@"peeling off assoc %u into socket %p/%d err=%d",ass,_directSocket,_directSocket.sock,err]];
+            NSLog(@"peeling off assoc %u into socket %p/%d err=%d",ass,_directSocket,_directSocket.sock,err);
+
             if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress) && (err!=UMSocketError_not_a_socket))
             {
                 [_listener unregisterAssoc:_assocId forLayer:self];
@@ -1090,6 +1117,7 @@
             }
             [_registry registerIncomingLayer:self];
         }
+#endif
         [_reconnectTimer stop];
         [self reportStatusWithReason:@"SCTP_COMM_UP"];
     }
