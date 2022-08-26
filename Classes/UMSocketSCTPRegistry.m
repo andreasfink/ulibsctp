@@ -104,32 +104,25 @@
     return [NSString stringWithFormat:@"%d,%@",port,addr];
 }
 
-#ifdef USE_LISTENER1
-- (UMSocketSCTPListener *)getOrAddListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips
-#else
 - (UMSocketSCTPListener2 *)getOrAddListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips
-#endif
-
 {
-    NSLog(@"getOrAddListenerForPort:%d localIps:%@",port,ips);
+    NSMutableString *s = [[NSMutableString alloc]init];
+    [s appendFormat:@"getOrAddListenerForPort:%d localIps:%@",port,ips];
 
-#ifdef USE_LISTENER1
-    UMSocketSCTPListener *listener = NULL;
-#else
     UMSocketSCTPListener2 *listener = NULL;
-#endif
     UMMUTEX_LOCK(_lock);
     @try
     {
         listener = [self getListenerForPort:port localIps:ips];
-
         if(listener == NULL)
         {
+            [s appendString:@" (new)"];
             listener = [[UMSocketSCTPListener2 alloc]initWithPort:port localIpAddresses:ips];
             listener.logLevel = _logLevel;
             listener.sendAborts = _sendAborts;
             [self addListener:listener];
         }
+        [s appendString:listener.name];
     }
     @catch(NSException *e)
     {
@@ -139,14 +132,11 @@
     {
         UMMUTEX_UNLOCK(_lock);
     }
+    NSLog(@"%@",s);
     return listener;
 }
 
-#ifdef USE_LISTENER1
-- (UMSocketSCTPListener *)getListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips
-#else
 - (UMSocketSCTPListener2 *)getListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips
-#endif
 {
     NSArray *ips2 = [ips sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
     NSString *s = [ips2 componentsJoinedByString:@","];
@@ -154,11 +144,7 @@
 }
 
 
-#ifdef USE_LISTENER1
-- (UMSocketSCTPListener *)getListenerForPort:(int)port localIp:(NSString *)ip
-#else
 - (UMSocketSCTPListener2 *)getListenerForPort:(int)port localIp:(NSString *)ip
-#endif
 {
     UMMUTEX_LOCK(_lock);
     NSString *key =[UMSocketSCTPRegistry keyForPort:port ip:ip];
