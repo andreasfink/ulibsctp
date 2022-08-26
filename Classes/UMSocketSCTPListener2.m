@@ -355,4 +355,10 @@
     return _assocs[assocId];
 }
 
+- (UMSocketSCTP *) peelOffAssoc:(NSNumber *)assoc
+                          error:(UMSocketError *)errptr
+{
+    return [_umsocket peelOffAssoc:assoc error:errptr];
+}
+
 @end
