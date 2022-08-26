@@ -117,7 +117,7 @@
             listener.logLevel = _logLevel;
             listener.sendAborts = _sendAborts;
             [self addListener:listener];
-            NSLog(@"getOrAddListenerForPort returns new listner %@",listener.name);
+            NSLog(@"getOrAddListenerForPort returns new listener %@",listener.name);
         }
     }
     @catch(NSException *e)
