@@ -870,7 +870,7 @@
 {
     @autoreleasepool
     {
-        else if(rx.err==UMSocketError_try_again)
+        if(rx.err==UMSocketError_try_again)
         {
             return;
         }
