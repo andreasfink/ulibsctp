@@ -2266,7 +2266,7 @@
                                     processDelegate:self];
     NSString *s = [NSString stringWithFormat:@"starting receiver on socket %p/%d assoc %@",_directSocket,_directSocket.sock,_assocId];
     [_layerHistory addLogEntry:s];
-    NSLog(@"%@",s)
+    NSLog(@"%@",s);
     [_directReceiver startBackgroundTask];
 }
 
