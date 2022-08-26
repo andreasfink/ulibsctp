@@ -860,11 +860,11 @@
     if(revent_hup)
     {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"  calling processHangUp");
+        NSLog(@"  calling processHangup");
 
 #endif
-        [layer processHangUp];
-        [listener processHangUp];
+        [layer processHangup];
+        [listener processHangup];
         if(layer!=NULL)
         {
            if(type==SCTP_SOCKET_TYPE_OUTBOUND_TCP)

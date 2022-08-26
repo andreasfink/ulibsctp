@@ -125,11 +125,7 @@
 
         if(listener == NULL)
         {
-#ifdef USE_LISTENER1
-            listener = [[UMSocketSCTPListener alloc]initWithPort:port localIpAddresses:ips];
-#else
             listener = [[UMSocketSCTPListener2 alloc]initWithPort:port localIpAddresses:ips];
-#endif
             listener.logLevel = _logLevel;
             listener.sendAborts = _sendAborts;
             [self addListener:listener];

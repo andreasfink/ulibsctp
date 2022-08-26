@@ -150,6 +150,4 @@ typedef enum SCTP_SocketType_enum
 - (void)setPathMtuDiscovery:(BOOL)enable;
 
 
-
-
 @end

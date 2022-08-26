@@ -12,7 +12,7 @@
 
 #import "UMSocketSCTP.h"
 
-#import "UMSocketSCTPListener.h"
+#import "UMSocketSCTPListener2.h"
 
 #include <fcntl.h>
 #include <unistd.h>

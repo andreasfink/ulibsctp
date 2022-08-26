@@ -10,7 +10,7 @@
 #import "UMLayerSctpUserProtocol.h"
 #import "UMLayerSctpApplicationContextProtocol.h"
 #import "UMSocketSCTP.h"
-
+#import "UMSCTPListener.h"
 @class UMSctpTask_AdminInit;
 @class UMSctpTask_AdminSetConfig;
 @class UMSctpTask_AdminAttach;
@@ -23,13 +23,9 @@
 @class UMLayerSctpUser;
 @class UMLayerSctpUserProfile;
 @class UMSocketSCTPRegistry;
-#ifdef USE_LISTENER1
-@class  UMSocketSCTPListener;
-#else
-@class  UMSocketSCTPListener2;
-#endif
+@class UMSocketSCTPListener2;
 
-@interface UMLayerSctp : UMLayer
+@interface UMLayerSctp : UMLayer<UMSCTPListenerProcessEventsDelegate,UMSCTPListenerReadPacketDelegate,UMSCTPListenerProcessDataDelegate>
 {
     UMSynchronizedArray *_users;
     //UMBackgrounder      *_receiverThread;
@@ -39,11 +35,7 @@
     UMThroughputCounter *_inboundThroughputBytes;
     UMThroughputCounter *_outboundThroughputBytes;
     UMSocketSCTPRegistry *_registry;
-#ifdef USE_LISTENER1
-    UMSocketSCTPListener  *_listener;
-#else
     UMSocketSCTPListener2 *_listener;
-#endif
     UMSocketSCTP         *_directSocket; /* after peeloff */
     UMSocket             *_directTcpEncapsulatedSocket; /* after peeloff */
     NSDate               *_startButtonPressed;
@@ -79,6 +71,7 @@
     NSString            *_encapsulatedOverTcpSessionKey;
     int                 _minReceiveBufferSize;
     int                 _minSendBufferSize;
+    UMSCTPListener      *_directReceiver;
 }
 
 //@property(readwrite,strong) UMSocketSCTP    *sctpSocket;
@@ -115,11 +108,7 @@
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputPackets;
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputBytes;
 @property(readwrite,strong,atomic)      UMSocketSCTPRegistry *registry;
-#ifdef USE_LISTENER1
-@property(readwrite,strong) UMSocketSCTPListener *listener;
-#else
 @property(readwrite,strong) UMSocketSCTPListener2 *listener;
-#endif
 
 @property(readwrite,strong) NSNumber    *assocId;
 @property(readwrite,assign) int         mtu;
@@ -200,8 +189,7 @@
 
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx;
 - (void)processError:(UMSocketError)err socket:(UMSocket *)s inArea:(NSString *)area;
-- (void)processHangUp;
-- (void)processInvalidSocket;
+- (void)processHangup;
 
 -(void) handleLinkUpTcpEcnap;
 -(void) handleLinkDownTcpEcnap;

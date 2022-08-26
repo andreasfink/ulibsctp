@@ -16,8 +16,6 @@
 
 - (void) processError:(UMSocketError)err;
 - (void) processHangup;
-- (void) processInvalidValue;
-
 @end
 
 @protocol UMSCTPListenerProcessDataDelegate
@@ -58,9 +56,6 @@
                     readDelegate:(id<UMSCTPListenerReadPacketDelegate>)readDel
                  processDelegate:(id<UMSCTPListenerProcessDataDelegate>)procDel;
 
-- (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer;
-- (void)unregisterAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer;
-- (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId;
 
 @end
 

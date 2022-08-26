@@ -23,9 +23,9 @@
 
 
 - (UMSocketSCTPListener2 *)initWithPort:(int)localPort
-                      localIpAddresses:(NSArray *)addresses
+                       localIpAddresses:(NSArray *)addresses
 {
-    NSString *name = [NSString stringWithFormat:@"listener_%d",_port];
+    NSString *name = [NSString stringWithFormat:@"RX:%d",localPort];
 
     self = [super initWithName:name socket:NULL eventDelegate:self readDelegate:self processDelegate:self];
     if(self)
@@ -221,10 +221,6 @@
 
 }
 
-- (void) processInvalidValue
-{
-    [self logMajorError:@"processInvalidValue"];
-}
 
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)port
@@ -324,6 +320,39 @@
         [self shutdownBackgroundTask];
     }
     [_lock unlock];
+}
+
+- (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer
+{
+    UMLayerSctp *old = _assocs[assocId];
+    if((old != layer) && (old !=NULL))
+    {
+        NSString *s = [NSString stringWithFormat:@"Mismatch in Listener at RegisterAssoc. Layer in registry %@, layer asking to unregister %@, assoc=%@",old.layerName,layer.layerName,assocId];
+        [layer logMajorError:s];
+        [layer addToLayerHistoryLog:s];
+        [old logMajorError:s];
+        [old addToLayerHistoryLog:s];
+    }
+    _assocs[assocId] = layer;
+}
+
+- (void)unregisterAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer
+{
+    UMLayerSctp *old = _assocs[assocId];
+    if(old != layer)
+    {
+        NSString *s = [NSString stringWithFormat:@"Mismatch in Listener registry. Layer in registry %@, layer asking to unregister %@, assoc=%@",old.layerName,layer.layerName,assocId];
+        [layer logMajorError:s];
+        [layer addToLayerHistoryLog:s];
+        [old logMajorError:s];
+        [old addToLayerHistoryLog:s];
+    }
+    [_assocs removeObjectForKey:assocId];
+}
+
+- (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId
+{
+    return _assocs[assocId];
 }
 
 @end

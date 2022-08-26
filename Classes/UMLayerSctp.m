@@ -34,11 +34,7 @@
 #import "UMLayerSctpUserProfile.h"
 #import "UMLayerSctpApplicationContextProtocol.h"
 
-#ifdef USE_LISTENER1
-#import "UMSocketSCTPListener.h"
-#else
 #import "UMSocketSCTPListener2.h"
-#endif
 
 #import "UMSocketSCTPRegistry.h"
 #include <netinet/in.h>
@@ -433,9 +429,6 @@
                 {
                     [_listener registerAssoc:_assocId forLayer:self];
                 }
-#ifdef USE_LISTENER1
-                [_registry startReceiver];
-#endif
             }
         }
         @catch (NSException *exception)
@@ -479,6 +472,7 @@
             }
 #endif
             [self powerdown:@"_closeTask"];
+            _directReceiver = NULL;
             if(_listenerStarted==YES)
             {
 #ifdef USE_LISTENER1
@@ -780,6 +774,7 @@
         [self setStatus:UMSOCKET_STATUS_OOS reason:@"powerdown"];
         [self setStatus:UMSOCKET_STATUS_OFF reason:@"powerdown"];
 
+       
         if(_assocId!=NULL)
         {
             [_listener unregisterAssoc:_assocId forLayer:self];
@@ -800,6 +795,10 @@
                 [_listener unregisterAssoc:_assocId forLayer:self];
                 _assocId=NULL;
                 [_registry unregisterLayer:self];
+            }
+            if(_directReceiver)
+            {
+                [_directReceiver shutdownBackgroundTask];
             }
             if(_directTcpEncapsulatedSocket)
             {
@@ -894,6 +893,10 @@
                     if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
                     {
                         peeloffFailed = YES;
+                    }
+                    else
+                    {
+                        [self startDirectSocketReceiver];
                     }
                 }
             }
@@ -1046,12 +1049,6 @@
     snp = event.bytes;
     NSUInteger len = event.length;
 
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(self.logLevel <= UMLOG_DEBUG)
-    {
-        [self logDebug:@"SCTP_ASSOC_CHANGE"];
-    }
-#endif
     if(len < sizeof (struct sctp_assoc_change))
     {
         [self.logFeed majorErrorText:@" Size Mismatch in SCTP_ASSOC_CHANGE"];
@@ -1093,41 +1090,39 @@
 #endif
     if((snp->sn_assoc_change.sac_state==SCTP_COMM_UP) && (snp->sn_assoc_change.sac_error== 0))
     {
-        _listener.firstMessage=YES;
-        _assocId = @(snp->sn_assoc_change.sac_assoc_id);
-        [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS (assocID=%ld)",(long)_assocId]];
-        [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP"];
+        uint32_t ass = snp->sn_assoc_change.sac_assoc_id;
+        _assocId = @(ass);
 
-#if USE_LISTENER1
-        if(_directSocket==NULL)
+        _listener.firstMessage=YES;
+        NSString *s=[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS (assocID=%u)",ass];
+        [self.logFeed infoText:s];
+        [_layerHistory addLogEntry:s];
+        [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP"];
+        if((_directSocket==NULL) && (snp->sn_assoc_change.sac_assoc_id > 0))
         {
             UMSocketError err = UMSocketError_no_error;
             _directSocket = [_listener peelOffAssoc:_assocId error:&err];
-            [_layerHistory addLogEntry:[NSString stringWithFormat:@"peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
-
+            [_layerHistory addLogEntry:[NSString stringWithFormat:@"peeling off assoc %u into socket %p/%d err=%d",ass,_directSocket,_directSocket.sock,err]];
             if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress) && (err!=UMSocketError_not_a_socket))
             {
-                _directSocket = NULL;
                 [_listener unregisterAssoc:_assocId forLayer:self];
+                _directSocket = NULL;
                 _assocId=NULL;
             }
             [_registry registerIncomingLayer:self];
         }
-#endif
         [_reconnectTimer stop];
-#if defined(POWER_DEBUG)
-        NSLog(@"%@ SCTP_COMM_UP",_layerName);
-#endif
         [self reportStatusWithReason:@"SCTP_COMM_UP"];
     }
     else if(snp->sn_assoc_change.sac_state==SCTP_COMM_LOST)
     {
-        _assocId = @(snp->sn_assoc_change.sac_assoc_id);
+        uint32_t ass = snp->sn_assoc_change.sac_assoc_id;
+        _assocId = @(ass);
         if(_directSocket)
         {
             _directSocket.isConnected=NO;
         }
-        [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF (assocID=%ld)",(long)_assocId]];
+        [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF (assocID=%u)",ass]];
 #if defined(POWER_DEBUG)
         NSLog(@"%@ SCTP_COMM_LOST",_layerName);
 #endif
@@ -2032,14 +2027,6 @@
                 _directSocket = NULL;
                 NSString *s = [NSString stringWithFormat:@"processError *IGNORED* (%d,%@) fd=%d inArea %@",err,[UMSocket getSocketErrorString:err],_directSocket.sock,area];
                 [_layerHistory addLogEntry:s];
-#if 0
-                /* this seems to cause a buggy sequence*/
-                [self setStatus:UMSOCKET_STATUS_OOS reason:s];
-                [self setStatus:UMSOCKET_STATUS_OFF reason:s];
-                [_registry unregisterAssoc:_assocId];
-                _assocId = NULL;
-                [_registry unregisterLayer:self];
-#endif
                 [self reportStatusWithReason:s];
             }
             else
@@ -2055,41 +2042,21 @@
     }
 }
 
-- (void)processHangUp
+- (void)processHangup
 {
     @autoreleasepool
     {
         if(_logLevel <=UMLOG_DEBUG)
         {
-            NSLog(@"processHangUp received in UMLayerSctp %@",_layerName);
+            NSLog(@"processHangup received in UMLayerSctp %@",_layerName);
         }
 #if defined(POWER_DEBUG)
-            NSLog(@"%@ processHangUp",_layerName);
+            NSLog(@"%@ processHangup",_layerName);
 #endif
-        [self powerdown:@"processHangUp"];
-        [self reportStatusWithReason:@"processHangUp"];
+        [self powerdown:@"processHangup"];
+        [self reportStatusWithReason:@"processHangup"];
     }
 }
-
-- (void)processInvalidSocket
-{
-    @autoreleasepool
-    {
-        if(_logLevel <=UMLOG_DEBUG)
-        {
-            NSLog(@"processInvalidSocket received in UMLayerSctp %@",_layerName);
-        }
-        _isInvalid = YES;
-#if defined(POWER_DEBUG)
-        NSLog(@"%@ processInvalidSocket",_layerName);
-#endif
-        [self powerdown:@"processInvalidSocket"];
-        [self reportStatusWithReason:@"processInvalidSocket"];
-    }
-}
-
-
-
 
 - (ssize_t) sendEncapsulated:(NSData *)data
                        assoc:(NSNumber *)assoc
@@ -2267,4 +2234,29 @@
             break;
     }
 }
+
+/* this starts a separate background task on the peeled off directSocket to receive packets */
+- (void)startDirectSocketReceiver
+{
+    NSString *name = [NSString stringWithFormat:@"RX:%@",_layerName];
+    _directReceiver = [[UMSCTPListener alloc]initWithName:name
+                                             socket:_directSocket
+                                      eventDelegate:self
+                                       readDelegate:self
+                                    processDelegate:self];
+    [_layerHistory addLogEntry:[NSString stringWithFormat:@"starting receiver on socket %p/%d assoc %@",_directSocket,_directSocket.sock,_assocId]];
+    [_directReceiver startBackgroundTask];
+}
+
+- (UMSocketSCTPReceivedPacket *)receiveSCTP
+{
+    UMSocketSCTPReceivedPacket *rx = [_directSocket receiveSCTP];
+    return rx;
+}
+
+- (void)processError:(UMSocketError)err
+{
+    return [self processError:err socket:_directSocket inArea:@"directSocketReceiver"];
+}
+
 @end

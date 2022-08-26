@@ -54,7 +54,6 @@
 
 - (void) processError:(UMSocketError)err;
 - (void) processHangup;
-- (void) processInvalidValue;
 - (void) processReceivedData:(UMSocketSCTPReceivedPacket *)rx;
 - (UMSocketSCTPReceivedPacket *)receiveSCTP;
 
@@ -87,6 +86,10 @@
                       error:(UMSocketError *)err2
                       layer:(UMLayerSctp *)layer;
 #endif
+
+- (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer;
+- (void)unregisterAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer;
+- (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId;
 
 @end
 
