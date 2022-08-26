@@ -1841,9 +1841,20 @@
         {
             _maxInitTimeout = 15; /* we send INIT every 15 sec */
         }
+        
         if (cfg[@"use-peeloff"])
         {
-            _usePeelOff = [cfg[@"use-peeloff"] boolValue];
+            id x = cfg[@"use-peeloff"];
+            NSLog(@"x=%@",x);
+            _usePeelOff = [x boolValue];
+            if(_usePeelOff)
+            {
+                NSLog@("YES");
+            }
+            else
+            {
+                NSLog@("NO");
+            }
         }
         else
         {
