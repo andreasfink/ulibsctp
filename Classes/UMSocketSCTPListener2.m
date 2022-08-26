@@ -25,13 +25,13 @@
 - (UMSocketSCTPListener2 *)initWithPort:(int)localPort
                        localIpAddresses:(NSArray *)addresses
 {
-    NSString *name = [NSString stringWithFormat:@"RX:%d",localPort];
+    NSString *name = [NSString stringWithFormat:@"RX:%d(%@)",localPort,[addresses componentsJoinedByString:@","]];
 
     self = [super initWithName:name socket:NULL eventDelegate:self readDelegate:self processDelegate:self];
     if(self)
     {
         _logLevel = UMLOG_MINOR;
-        _name = [NSString stringWithFormat:@"listener_%d",_port];
+        _name = name;
         _lock = [[UMMutex alloc]initWithName:_name];
         _isInvalid=NO;
         _port = localPort;
