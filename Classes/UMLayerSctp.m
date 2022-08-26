@@ -1080,9 +1080,12 @@
         NSLog(@"peeloff1 %d %p",_usePeelOff,_directSocket);
         if((_usePeelOff) && (_directSocket == NULL))
         {
+            NSLog(@"peeloff");
+
             UMSocketError err = UMSocketError_no_error;
             _directSocket = [_listener peelOffAssoc:_assocId error:&err];
-            [_layerHistory addLogEntry:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
+            NSString *s=[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err];
+            [_layerHistory addLogEntry:s];
             if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
             {
                 [_directSocket close];
@@ -1093,6 +1096,7 @@
                 [self logMinorError:s];
                 [self powerdownInReceiverThread:s];
                 [self reportStatusWithReason:s];
+                NSLog(@"%@",s);
             }
             else
             {
@@ -1844,17 +1848,7 @@
         
         if (cfg[@"use-peeloff"])
         {
-            id x = cfg[@"use-peeloff"];
-            NSLog(@"x=%@",x);
             _usePeelOff = [x boolValue];
-            if(_usePeelOff)
-            {
-                NSLog(@"YES");
-            }
-            else
-            {
-                NSLog(@"NO");
-            }
         }
         else
         {
