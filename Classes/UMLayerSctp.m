@@ -1077,7 +1077,7 @@
         [self.logFeed infoText:s];
         [_layerHistory addLogEntry:s];
         [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP*"];
-        NSLog(@"peeloff1");
+        NSLog(@"peeloff1 %d %p",_usePeelOff,_directSocket);
         if((_usePeelOff) && (_directSocket == NULL))
         {
             UMSocketError err = UMSocketError_no_error;
