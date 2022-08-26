@@ -1849,11 +1849,11 @@
             _usePeelOff = [x boolValue];
             if(_usePeelOff)
             {
-                NSLog@("YES");
+                NSLog(@"YES");
             }
             else
             {
-                NSLog@("NO");
+                NSLog(@"NO");
             }
         }
         else
