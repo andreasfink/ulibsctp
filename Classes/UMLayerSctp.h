@@ -72,6 +72,7 @@
     int                 _minReceiveBufferSize;
     int                 _minSendBufferSize;
     UMSCTPListener      *_directReceiver;
+    BOOL                _usePeelOff;
 }
 
 //@property(readwrite,strong) UMSocketSCTP    *sctpSocket;

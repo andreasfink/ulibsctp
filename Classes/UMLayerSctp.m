@@ -870,47 +870,20 @@
 {
     @autoreleasepool
     {
-        BOOL peeloffFailed = NO;
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSMutableString *s = [[NSMutableString alloc]init];
-        [s appendFormat:@"processReceivedData: \n%@",rx.description];
-        [self logDebug:s];
-#endif
-#if USE_LISTENER1
-        if(!_encapsulatedOverTcp)
+        else if(rx.err==UMSocketError_try_again)
         {
-            if(rx.assocId !=NULL)
-            {
-                _assocId = rx.assocId;
-                if(_directSocket == NULL)
-                {
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-                    [self logDebug:[NSString stringWithFormat:@"processReceivedData: Peeling of assoc %@",rx.assocId]];
-#endif
-                    UMSocketError err = UMSocketError_no_error;
-                    _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
-                    [_layerHistory addLogEntry:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
-                    if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
-                    {
-                        peeloffFailed = YES;
-                    }
-                    else
-                    {
-                        [self startDirectSocketReceiver];
-                    }
-                }
-            }
+            return;
         }
-#endif
-        if(rx.err==UMSocketError_try_again)
+        if(rx.err==UMSocketError_invalid_file_descriptor)
         {
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(_logLevel <=UMLOG_DEBUG)
             {
-                NSLog(@"receiveData: UMSocketError_try_again returned by receiveSCTP");
+                NSLog(@"receiveData: UMSocketError_invalid_file_descriptor returned by receiveSCTP");
             }
-    #endif
+            [self powerdownInReceiverThread:@"invalid_file_descriptor"];
+            [self reportStatusWithReason:@"processRedeivedData: invalid_file_descriptor"];
         }
+        
         else if(rx.err==UMSocketError_invalid_file_descriptor)
         {
             if(_logLevel <=UMLOG_DEBUG)
@@ -922,16 +895,7 @@
         }
         else if(rx.err==UMSocketError_connection_reset)
         {
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
-            if(_logLevel <=UMLOG_DEBUG)
-            {
-                NSLog(@"receiveData: UMSocketError_connection_reset returned by receiveSCTP");
-            }
-    #endif
             [self logDebug:@"ECONNRESET"];
-#if defined(POWER_DEBUG)
-            NSLog(@"%@ powerdown due to ECONNRESET",_layerName);
-#endif
             [self powerdownInReceiverThread:@"ECONNRESET"];
             [self reportStatusWithReason:@"processRedeivedData ECONNRESET"];
         }
@@ -956,19 +920,34 @@
             [self powerdownInReceiverThread:s];
             [self reportStatusWithReason:s];
         }
-        else if(peeloffFailed)
+        else /* UMSocketError_no_error */
         {
-            [_directSocket close];
-            [_listener unregisterAssoc:_assocId forLayer:self];
-            _assocId=NULL;
-            _directSocket = NULL;
-            NSString *s = [NSString stringWithFormat:@"processReceivedData peeloff failed"];
-            [self logMinorError:s];
-            [self powerdownInReceiverThread:s];
-            [self reportStatusWithReason:s];
-        }
-        else
-        {
+            if(rx.assocId !=NULL)
+            {
+                _assocId = rx.assocId;
+            }
+            if((_usePeelOff) && (_directSocket == NULL))
+            {
+                UMSocketError err = UMSocketError_no_error;
+                _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
+                [_layerHistory addLogEntry:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
+                if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
+                {
+                    [_directSocket close];
+                    [_listener unregisterAssoc:_assocId forLayer:self];
+                    _assocId=NULL;
+                    _directSocket = NULL;
+                    NSString *s = [NSString stringWithFormat:@"processReceivedData peeloff failed"];
+                    [self logMinorError:s];
+                    [self powerdownInReceiverThread:s];
+                    [self reportStatusWithReason:s];
+                }
+                else
+                {
+                    [self startDirectSocketReceiver];
+                }
+            }
+            
             if(rx.isNotification)
             {
                 [self handleEvent:rx.data
@@ -1834,7 +1813,14 @@
         {
             _maxInitTimeout = 15; /* we send INIT every 15 sec */
         }
-        
+        if (cfg[@"use-peeloff"])
+        {
+            _usePeelOff = [cfg[@"use-peeloff"] boolValue];
+        }
+        else
+        {
+            _usePeelOff = NO;
+        }
         if (cfg[@"max-init-attempts"])
         {
             _maxInitAttempts = [cfg[@"max-init-attempts"] intValue];
