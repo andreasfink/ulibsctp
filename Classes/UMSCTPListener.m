@@ -81,6 +81,7 @@
            mustQuit = YES; /* it has already sent the processHangup event */
        }
    }
+   NSLog(@"terminating %@",_name);
    [self backgroundExit];
    self.runningStatus = UMBackgrounder_notRunning;
    self.workSleeper = NULL;
@@ -104,6 +105,8 @@
     {
         _timeoutInMs = 100;
     }
+    _timeoutInMs = 2000;
+    NSLog(@"poll(pollfds[0]=%d",pollfds[0].fd);
     int ret1 = poll(pollfds, 1, _timeoutInMs);
     if (ret1 < 0)
     {
