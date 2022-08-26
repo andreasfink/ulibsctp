@@ -324,6 +324,11 @@
 
 - (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer
 {
+    if((assocId==NULL) || (layer==NULL))
+    {
+        return;
+    }
+
     UMLayerSctp *old = _assocs[assocId];
     if((old != layer) && (old !=NULL))
     {
@@ -338,8 +343,12 @@
 
 - (void)unregisterAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer
 {
+    if((assocId==NULL) || (layer==NULL))
+    {
+        return;
+    }
     UMLayerSctp *old = _assocs[assocId];
-    if(old != layer)
+    if((old != layer) && (old!=NULL))
     {
         NSString *s = [NSString stringWithFormat:@"Mismatch in Listener registry. Layer in registry %@, layer asking to unregister %@, assoc=%@",old.layerName,layer.layerName,assocId];
         [layer logMajorError:s];
