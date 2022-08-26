@@ -1076,7 +1076,7 @@
         NSString *s=[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS (assocID=%u)",ass];
         [self.logFeed infoText:s];
         [_layerHistory addLogEntry:s];
-        [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP"];
+        [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP*"];
         NSLog(@"peeloff1");
         if((_usePeelOff) && (_directSocket == NULL))
         {
