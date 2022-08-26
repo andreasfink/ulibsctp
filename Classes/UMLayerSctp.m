@@ -1848,7 +1848,7 @@
         
         if (cfg[@"use-peeloff"])
         {
-            _usePeelOff = [x boolValue];
+            _usePeelOff = [cfg[@"use-peeloff"] boolValue];
         }
         else
         {
