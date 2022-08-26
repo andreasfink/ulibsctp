@@ -1081,7 +1081,7 @@
         if((_usePeelOff) && (_directSocket == NULL))
         {
             UMSocketError err = UMSocketError_no_error;
-            _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
+            _directSocket = [_listener peelOffAssoc:_assocId error:&err];
             [_layerHistory addLogEntry:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
             if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
             {
