@@ -43,7 +43,6 @@
     NSLog(@"starting %@",_name);
 }
 
-
 - (void)backgroundExit
 {
     NSString *s = [NSString stringWithFormat:@"%@ (terminating)",_name];
@@ -81,7 +80,6 @@
            mustQuit = YES; /* it has already sent the processHangup event */
        }
    }
-   NSLog(@"terminating %@",_name);
    [self backgroundExit];
    self.runningStatus = UMBackgrounder_notRunning;
    self.workSleeper = NULL;
