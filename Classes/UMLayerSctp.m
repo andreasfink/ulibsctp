@@ -532,7 +532,6 @@
 
 - (void)_dataTask:(UMSctpTask_Data *)task
 {
-    BOOL linkLocked=NO;
     UMSleeper *sleeper = [[UMSleeper alloc]initFromFile:__FILE__ line:__LINE__ function:__func__];
     @autoreleasepool
     {
@@ -565,7 +564,6 @@
         {
             attempts++;
             [_linkLock lock];
-            linkLocked = YES;
             if(_directSocket)
             {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -584,15 +582,7 @@
                                                         error:&uerr];
                 _assocId = tmp_assocId ;
             }
-            else if(_directTcpEncapsulatedSocket)
-            {
-                [self sendEncapsulated:task.data
-                                 assoc:_assocId
-                                stream:task.streamId
-                              protocol:task.protocolId
-                                 error:&uerr
-                                 flags:0];
-            }
+            
             else
             {
                 NSNumber *tmp_assocId = _assocId;
@@ -607,7 +597,6 @@
                 _assocId = tmp_assocId;
             }
             [_linkLock unlock];
-            linkLocked = NO;
             
             /*  we loop until we get errno not EAGAIN or sent_packets returning > 0 */
             if(sent_packets > 0)

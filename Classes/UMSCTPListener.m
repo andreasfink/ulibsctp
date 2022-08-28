@@ -130,7 +130,6 @@
         int revent_hup = 0;
         int revent_dohup = 0;
         int revent_has_data = 0;
-        int revent_invalid = 0;
         if(revent & POLLERR)
         {
             revent_error = [_umsocket getSocketError];
@@ -145,10 +144,6 @@
         if(revent & POLLHUP)
         {
             revent_hup = 1;
-        }
-        if(revent & POLLNVAL)
-        {
-            revent_invalid = 1;
         }
         if(revent & (POLLIN | POLLPRI))
         {

@@ -656,7 +656,6 @@
     int revent_error = UMSocketError_no_error;
     int revent_hup = 0;
     int revent_has_data = 0;
-    int revent_invalid = 0;
     if(revent & POLLERR)
     {
         if(socket)
@@ -694,10 +693,6 @@
     }
     if(revent & POLLNVAL)
     {
-        revent_invalid = 1;
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"  revent_invalid = 1");
-#endif
         /* socket might got closed in the meantime. */
         [listener processError:UMSocketError_invalid_file_descriptor socket:socket  inArea:@"revent & POLLNVAL"];
         [layer processError:UMSocketError_invalid_file_descriptor socket:socket  inArea:@"revent & POLLNVAL"];
