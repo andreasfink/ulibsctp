@@ -87,7 +87,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 {
     _historyLog = [[UMHistoryLog alloc]initWithMaxLines:100];
     _sock = -1;
-    switch(type)
+    switch(_type)
     {
         case UMSOCKET_TYPE_SCTP4ONLY_SEQPACKET:
             _socketFamily=AF_INET;
@@ -228,7 +228,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 #endif
     }
     _msg_notification_mask = _global_msg_notification_mask;
-    status = UMSOCKET_STATUS_FOOS;
+    _status = UMSOCKET_STATUS_FOOS;
 }
 
 - (void)prepareLocalAddresses
@@ -802,7 +802,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     UMSocketSCTP  *newcon =NULL;
     NSString *remoteAddress=@"";
     in_port_t remotePort=0;
-    if(type == UMSOCKET_TYPE_SCTP4ONLY_SEQPACKET)
+    if(_type == UMSOCKET_TYPE_SCTP4ONLY_SEQPACKET)
     {
         struct    sockaddr_in sa4;
         socklen_t slen4 = sizeof(sa4);
@@ -827,7 +827,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                 remotePort = sa4.sin_port;
             }
             TRACK_FILE_SOCKET(newsock,remoteAddress);
-            newcon.cryptoStream.fileDescriptor = newsock;
         }
     }
     else
@@ -864,10 +863,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     
     if(newsock >= 0)
     {
-        newcon = [[UMSocketSCTP alloc]init];
-        newcon.type = type;
+        NSString *name = [NSString stringWithFormat:@"accept(%@)",_socketName];
+        newcon = [[UMSocketSCTP alloc]initWithType:_type name:name existingSocket:newsock];
         newcon.socketFamily = self.socketFamily;
-        newcon.direction =  direction;
+        newcon.direction =  _direction;
         newcon.status=UMSOCKET_STATUS_IS;
         newcon.localHost = self.localHost;
         newcon.remoteHost = self.remoteHost;
@@ -880,8 +879,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 		newcon.connectedLocalPort=self.connectedLocalPort;
 		newcon.connectedRemoteAddresses = _connectedRemoteAddresses;
 		newcon.connectedRemotePort=self.connectedRemotePort;
-
         newcon.cryptoStream = [[UMCrypto alloc]initWithRelatedSocket:newcon];
+        newcon.cryptoStream.fileDescriptor = newsock;
         newcon.isBound=NO;
         newcon.isListening=NO;
         newcon.isConnecting=NO;
@@ -891,7 +890,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         [newcon doInitReceiveBuffer];
         newcon.connectedRemoteAddress = remoteAddress;
         newcon.connectedRemotePort = remotePort;
-        newcon.useSSL = useSSL;
+        newcon.useSSL = _useSSL;
         [newcon updateMtu:_mtu];
         [newcon updateName];
         newcon.objectStatisticsName = @"UMSocket(accept)";
@@ -941,7 +940,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     if(newsock >=0)
     {
-        if(type == UMSOCKET_TYPE_SCTP4ONLY_SEQPACKET)
+        if(_type == UMSOCKET_TYPE_SCTP4ONLY_SEQPACKET)
         {
             struct    sockaddr_in sa4;
             socklen_t slen4 = sizeof(sa4);
@@ -989,16 +988,39 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             }
         }
         TRACK_FILE_SOCKET(newsock,remoteAddress);
-        newcon.cryptoStream.fileDescriptor = newsock;
-        newcon = [[UMSocketSCTP alloc]init];
-        newcon.type = type;
-		newcon.socketDomain = _socketDomain;
-		newcon.socketFamily = _socketFamily;
-		newcon.socketType = _socketType;
-		newcon.socketProto = _socketProto;
+        NSString *name = [NSString stringWithFormat:@"peeloff(%@)",_socketName];
+        newcon = [[UMSocketSCTP alloc]initWithType:_type name:name existingSocket:newsock];
+        newcon.isBound=NO;
+        newcon.isListening=NO;
+        newcon.isConnecting=NO;
+        newcon.isConnected=YES;
+        newcon.type = _type;
+        newcon.socketDomain = _socketDomain;
+        newcon.socketFamily = _socketFamily;
+        newcon.socketType = _socketType;
+        newcon.socketProto = _socketProto;
         newcon.xassoc = assoc;
-		[newcon initNetworkSocket];
-
+        newcon.direction =  _direction;
+        newcon.status= _status;
+        newcon.localHost = self.localHost;
+        newcon.remoteHost = self.remoteHost;
+        newcon.requestedLocalAddresses = _requestedLocalAddresses;
+        newcon.requestedLocalPort=self.requestedLocalPort;
+        newcon.requestedRemoteAddresses = _requestedRemoteAddresses;
+        newcon.requestedRemotePort=self.requestedRemotePort;
+        newcon.connectedLocalAddresses = _connectedLocalAddresses;
+        newcon.connectedLocalPort=self.connectedLocalPort;
+        newcon.connectedRemoteAddress = remoteAddress;
+        newcon.connectedRemotePort = remotePort;
+        newcon.cryptoStream = [[UMCrypto alloc]initWithRelatedSocket:newcon];
+        [newcon setSock: newsock];
+        [newcon switchToNonBlocking];
+        [newcon doInitReceiveBuffer];
+        newcon.useSSL = _useSSL;
+        [newcon updateMtu:_mtu];
+        [newcon updateName];
+        newcon.objectStatisticsName = @"UMSocket(peeloff)";
+        newcon.historyLog = [[UMHistoryLog alloc]initWithMaxLines:100];
 		newcon.configuredMaxSegmentSize = _configuredMaxSegmentSize;
 		int activeSctpMaxSegmentSize = 0;
 
@@ -1024,8 +1046,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 			}
 		}
 
-        newcon.direction =  direction;
-        newcon.status=status;
+        newcon.direction =  _direction;
+        newcon.status=_status;
         newcon.localHost = self.localHost;
         newcon.remoteHost = self.remoteHost;
         newcon.requestedLocalAddresses = _requestedLocalAddresses;
@@ -1037,6 +1059,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 		newcon.connectedRemoteAddresses = @[remoteAddress];
 		newcon.connectedRemotePort = remotePort;
         newcon.cryptoStream = [[UMCrypto alloc]initWithRelatedSocket:newcon];
+        newcon.cryptoStream.fileDescriptor = newsock;
         newcon.isBound=NO;
         newcon.isListening=NO;
         newcon.isConnecting=NO;
@@ -1044,11 +1067,11 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         [newcon setSock: newsock];
         [newcon switchToNonBlocking];
         [newcon doInitReceiveBuffer];
-        newcon.useSSL = useSSL;
+        newcon.useSSL = _useSSL;
         [newcon updateMtu:_mtu];
         [newcon updateName];
         newcon.objectStatisticsName = @"UMSocket(accept)";
-        [self reportStatus:@"accept () successful"];
+        [self reportStatus:@"peeloff () successful"];
         /* TODO: start SSL if required here */
         if(errptr)
         {
@@ -1501,7 +1524,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     err = listen(_sock,backlog);
     UMMUTEX_UNLOCK(_controlLock);
 
-    direction = direction | UMSOCKET_DIRECTION_INBOUND;
+    _direction = _direction | UMSOCKET_DIRECTION_INBOUND;
     if(err)
     {
         int eno = errno;
