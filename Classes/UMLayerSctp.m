@@ -310,7 +310,7 @@
         [self addToLayerHistoryLog:@"_openTask"];
 
         BOOL sendAbort = task.sendAbortFirst;
-        [_linkLock lock];
+        UMMUTEX_LOCK(_linkLock);
         @try
         {
             if(self.status == UMSOCKET_STATUS_FOOS)
@@ -452,7 +452,7 @@
                 [self powerdown:[NSString stringWithFormat:@"errno=%d exception:%@ %@",err,exception.name,exception.reason] ];
             }
         }
-        [_linkLock unlock];
+        UMMUTEX_UNLOCK(_linkLock);
     }
  }
 
@@ -461,7 +461,7 @@
     @autoreleasepool
     {
         [self addToLayerHistoryLog:@"_closeTask"];
-        [_linkLock lock];
+        UMMUTEX_LOCK(_linkLock);
         @try
         {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -492,7 +492,7 @@
                 NSLog(@"%@",e);
             }
         }
-        [_linkLock unlock];
+        UMMUTEX_UNLOCK(_linkLock);
 #if defined(POWER_DEBUG)
         NSLog(@"%@ closeTask(end)",_layerName);
 #endif
@@ -563,7 +563,7 @@
         while((attempts < maxatt) && (self.status==UMSOCKET_STATUS_IS) && (sent_packets<1))
         {
             attempts++;
-            [_linkLock lock];
+            UMMUTEX_LOCK(_linkLock);
             if(_directSocket)
             {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -596,8 +596,8 @@
                                                     layer:self];
                 _assocId = tmp_assocId;
             }
-            [_linkLock unlock];
-            
+            UMMUTEX_UNLOCK(_linkLock);
+
             /*  we loop until we get errno not EAGAIN or sent_packets returning > 0 */
             if(sent_packets > 0)
             {
@@ -688,7 +688,7 @@
     {
         [self addToLayerHistoryLog:@"_foosTask" ];
 
-        [_linkLock lock];
+        UMMUTEX_LOCK(_linkLock);
         [self powerdown:@"_foosTask"];
         [self setStatus:UMSOCKET_STATUS_FOOS reason:@"FOOS requested"];
     #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -697,7 +697,7 @@
             [self logDebug:@"FOOS"];
         }
     #endif
-        [_linkLock unlock];
+        UMMUTEX_UNLOCK(_linkLock);
 #if defined(POWER_DEBUG)
         NSLog(@"%@ manual FOOS",_layerName);
 #endif
