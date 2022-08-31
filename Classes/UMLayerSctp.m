@@ -626,10 +626,12 @@
                 /* we can assume this connection dead */
                 NSString *s = @"tried to send 50 times and got UMSocketError_try_again every time";
                 [_layerHistory addLogEntry:s];
-                failed=YES;
             }
         }
-        
+        if(attempts >= maxatt)
+        {
+            failed=YES;
+        }
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
@@ -663,7 +665,7 @@
             //report[@"backtrace"] = UMBacktrace(NULL,0);
             [user sentAckConfirmFrom:self userInfo:report];
         }
-        else if(failed)
+        else if((failed) && (uerr!=UMSocketError_no_error))
         {
             NSString *s = [NSString stringWithFormat:@"Error %d %@",uerr,[UMSocket getSocketErrorString:uerr]];
             [_layerHistory addLogEntry:s];
@@ -1065,7 +1067,7 @@
         NSString *s=[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS (assocID=%u)",ass];
         [self.logFeed infoText:s];
         [_layerHistory addLogEntry:s];
-        [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP*"];
+        [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP"];
         NSLog(@"peeloff1 %d %p",_usePeelOff,_directSocket);
         if((_usePeelOff) && (_directSocket == NULL) && (_assocId==NULL))
         {
@@ -2216,7 +2218,7 @@
         [self reportStatusWithReason:reason];
         [self addToLayerHistoryLog:[NSString stringWithFormat:@"status change from %@ to %@ because of %@",
                         [UMLayerSctp socketStatusString:oldStatus],
-                        [UMLayerSctp socketStatusString:_status],reason ] ];
+                        [UMLayerSctp socketStatusString:s],reason ] ];
     }
 }
 
