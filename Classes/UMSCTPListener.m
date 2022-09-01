@@ -27,7 +27,7 @@
     if(self)
     {
         self.name = name;
-        _timeoutInMs = 300; /* 300 msec */
+        _timeoutInMs = 500; /* 300 msec */
         _umsocket = sock;
         _eventDelegate = evDel;
         _readDelegate = readDel;
@@ -97,7 +97,7 @@
     struct pollfd   pollfds[2];
     memset(pollfds, 0x00,sizeof(pollfds));
     pollfds[0].fd = _umsocket.fileDescriptor;
-    pollfds[0].events = POLLIN | POLLPRI | POLLERR | POLLHUP | POLLNVAL;;
+    pollfds[0].events = POLLIN | POLLERR | POLLHUP;
 
     if(_timeoutInMs < 100)
     {
