@@ -1067,7 +1067,7 @@
         [_layerHistory addLogEntry:s];
         [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP"];
         NSLog(@"peeloff1 %d %p",_usePeelOff,_directSocket);
-        if((_usePeelOff) && (_directSocket == NULL) && (_assocId==NULL))
+        if((_usePeelOff) && (_directSocket == NULL) && (_assocId!=NULL))
         {
             NSLog(@"peeloff2");
 
