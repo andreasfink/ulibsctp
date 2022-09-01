@@ -406,13 +406,23 @@
                                                    port:_configured_remote_port
                                                assocPtr:&tmp_assocId
                                                   layer:self];
-                    if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
+
+                    if((err == UMSocketError_no_error)
+                       || (err==UMSocketError_in_progress))
                     {
                         if(tmp_assocId !=NULL)
                         {
                             _assocId = tmp_assocId;
                         }
                         [self setStatus:UMSOCKET_STATUS_OOS reason:@"_listener connectToAddress was successfully executed"];
+                    }
+                    if(err==UMSocketError_is_already_connected)
+                    {
+                        if(tmp_assocId !=NULL)
+                        {
+                            _assocId = tmp_assocId;
+                        }
+                        [self setStatus:UMSOCKET_STATUS_IS reason:@"_listener connectToAddress returns isAlreadyConnected"];
                     }
                     if(self.logLevel <= UMLOG_DEBUG)
                     {
