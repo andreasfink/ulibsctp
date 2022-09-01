@@ -327,7 +327,6 @@
             {
                 [self logMinorError:@"already establishing"];
                 [self addToLayerHistoryLog:@"OpenTask: already establishing"];
-
             }
             else if(self.status== UMSOCKET_STATUS_IS)
             {
@@ -354,21 +353,12 @@
                 {
                     _listener.minSendBufferSize = _minSendBufferSize;
                 }
-                if(self.logLevel <= UMLOG_DEBUG)
-                {
-                    [self logDebug:[NSString stringWithFormat:@"asking listener %@ to start",_listener]];
-                }
-                
-                else
-                {
-                    [_listener startListeningFor:self];
-                    usleep(150000); /* lets give the system a chance to set isListening etc */
-                    _listenerStarted = _listener.isListening;
-                }
+                [_listener startListeningFor:self];
+                usleep(150000); /* lets give the system a chance to set isListening etc */
+                _listenerStarted = _listener.isListening;
                 _newDestination = YES;
                 usleep(100000);
                 _assocId = NULL;
-                
                 if(!_isPassive)
                 {
                     if(self.logLevel <= UMLOG_DEBUG)
@@ -378,7 +368,6 @@
                         [self logDebug:s];
                         [_layerHistory addLogEntry:s];
                     }
-
                     if(_directSocket)
                     {
                         if(sendAbort)
@@ -407,8 +396,7 @@
                                                assocPtr:&tmp_assocId
                                                   layer:self];
 
-                    if((err == UMSocketError_no_error)
-                       || (err==UMSocketError_in_progress))
+                    if((err == UMSocketError_no_error) || (err==UMSocketError_in_progress))
                     {
                         if(tmp_assocId !=NULL)
                         {
@@ -416,13 +404,20 @@
                         }
                         [self setStatus:UMSOCKET_STATUS_OOS reason:@"_listener connectToAddress was successfully executed"];
                     }
-                    if(err==UMSocketError_is_already_connected)
+                    else if(err==UMSocketError_is_already_connected)
                     {
                         if(tmp_assocId !=NULL)
                         {
                             _assocId = tmp_assocId;
                         }
+                        [self setStatus:UMSOCKET_STATUS_OOS reason:@"_listener connectToAddress returns isAlreadyConnected"];
                         [self setStatus:UMSOCKET_STATUS_IS reason:@"_listener connectToAddress returns isAlreadyConnected"];
+                    }
+                    else
+                    {
+                        NSString *s = [NSString stringWithFormat:@"_listener connectToAddress failed with error %d %@",err,[UMSocket getSocketErrorString:err]];
+                        [self setStatus:UMSOCKET_STATUS_OFF reason:s];
+                        [self powerdown:s];
                     }
                     if(self.logLevel <= UMLOG_DEBUG)
                     {

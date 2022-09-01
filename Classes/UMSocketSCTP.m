@@ -765,7 +765,15 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         if (err < 0)
         {
             returnValue = [UMSocket umerrFromErrno:errno];
-			if((errno==EINPROGRESS) || (errno==EBUSY)) /* if we have a incoming connection we might get EBUSY */
+            if(returnValue==UMSocketError_is_already_connected)
+            {
+                self.status = UMSOCKET_STATUS_OOS;
+                self.status = UMSOCKET_STATUS_IS;
+                self.isConnecting=NO;
+                self.isConnected=YES;
+            }
+			else if(   (returnValue==UMSocketError_in_progress)
+                    || (returnValue==UMSocketError_busy)) /* if we have a incoming connection we might get EBUSY */
 			{
 				_connectx_pending = YES;
                 self.status = UMSOCKET_STATUS_OOS;
