@@ -1014,7 +1014,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         newcon.connectedRemoteAddress = remoteAddress;
         newcon.connectedRemotePort = remotePort;
         newcon.cryptoStream = [[UMCrypto alloc]initWithRelatedSocket:newcon];
-        [newcon setSock: newsock];
         [newcon switchToNonBlocking];
         [newcon doInitReceiveBuffer];
         newcon.useSSL = _useSSL;
