@@ -61,8 +61,8 @@
     }
     [self setBufferSizes];
     [_umsocket switchToNonBlocking];
-#define     LOG_MINOR_ERROR(err,area)   if(err) { NSString *s = [NSString stringWithFormat:@"ERROR in %@: %d %@",area,err,[UMSocket getSocketErrorString:err]]; [self logMinorError:s]; NSLog(@"%@",s); }
-#define     LOG_MAYOR_ERROR(err,area)  if(err) { NSString *s = [NSString stringWithFormat:@"ERROR in %@: %d %@",area,err,[UMSocket getSocketErrorString:err]]; [self logMajorError:s]; NSLog(@"%@",s); }
+#define     LOG_MINOR_ERROR(err,area)   if(err) { NSString *s = [NSString stringWithFormat:@"ERROR in %@: %d %@",area,err,[UMSocket getSocketErrorString:err]]; [self logMinorError:s]; }
+#define     LOG_MAYOR_ERROR(err,area)  if(err) { NSString *s = [NSString stringWithFormat:@"ERROR in %@: %d %@",area,err,[UMSocket getSocketErrorString:err]]; [self logMajorError:s]; }
 
     UMSocketError err = [_umsocket setNoDelay];
     LOG_MINOR_ERROR(err,@"setNoDelay");
@@ -90,10 +90,9 @@
 
     err = [_umsocket bind];
     LOG_MAYOR_ERROR(err,@"bind");
-    
-    _isBound = YES;
     if(err==UMSocketError_no_error)
     {
+        _isBound = YES;
         err = [_umsocket listen:128];
         LOG_MAYOR_ERROR(err,@"listen");
 
@@ -112,6 +111,8 @@
 {
     [_umsocket close];
     _umsocket = NULL;
+    _isBound=NO;
+    _isListening=NO;
     [super backgroundExit];
 
 }

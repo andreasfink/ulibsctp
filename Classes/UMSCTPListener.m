@@ -33,18 +33,23 @@
         _readDelegate = readDel;
         _processDelegate = procDel;
         _assocs = [[UMSynchronizedDictionary alloc]init];
+        NSLog(@"UMSCTPListener initWithName:%@",_name);
     }
     return self;
 }
 
 - (void)backgroundInit
 {
+    NSLog(@"UMSCTPListener backgroundInit:%@",_name);
+
     ulib_set_thread_name(_name);
     NSLog(@"starting %@",_name);
 }
 
 - (void)backgroundExit
 {
+    NSLog(@"UMSCTPListener backgroundExit:%@",_name);
+
     NSString *s = [NSString stringWithFormat:@"%@ (terminating)",_name];
     ulib_set_thread_name(s);
     NSLog(@"terminating %@",s);
