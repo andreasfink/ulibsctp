@@ -936,6 +936,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     UMMUTEX_LOCK(_controlLock);
     sctp_assoc_t a = (sctp_assoc_t)assoc.unsignedLongValue;
     newsock = sctp_peeloff(_sock,a);
+    NSLog(@"sctp_peeloff(_sock=%d,_assoc=%d) returns %d",_sock,a,newsock);
     UMMUTEX_UNLOCK(_controlLock);
 
     if(newsock >=0)
