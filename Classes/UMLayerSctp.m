@@ -603,12 +603,7 @@
             {
                 break;
             }
-            if(uerr != UMSocketError_try_again)
-            {
-                failed=YES;
-                break;
-            }
-            if(uerr == UMSocketError_try_again)
+            else if(uerr == UMSocketError_try_again)
             {
                 /* we have EAGAIN */
                 /* lets try up to 50 times and wait 200ms every 10th time */
@@ -619,57 +614,60 @@
                 }
                 if(attempts < maxatt)
                 {
+                    uerr = UMSocketError_no_error;
                     continue;
                 }
-                
                 /* if we get here we have attempted 50 times and failed */
                 /* we can assume this connection dead */
                 NSString *s = @"tried to send 50 times and got UMSocketError_try_again every time";
                 [_layerHistory addLogEntry:s];
             }
-        }
-        if(attempts >= maxatt)
-        {
-            failed=YES;
-        }
+            else
+            {
+                failed=YES;
+                break;
+            }
+        } /* end of while */
 #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@" sent_packets: %ld",sent_packets]];
         }
 #endif
-        if(sent_packets>0)
+        else if(uerr==UMSocketError_no_error)
         {
-            [_outboundThroughputPackets increaseBy:1];
-            [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
-            NSArray *usrs = [_users arrayCopy];
-            for(UMLayerSctpUser *u in usrs)
+            if(sent_packets> 0)
             {
-                if([u.profile wantsMonitor])
+                [_outboundThroughputPackets increaseBy:1];
+                [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
+                NSArray *usrs = [_users arrayCopy];
+                for(UMLayerSctpUser *u in usrs)
                 {
-                    [u.user sctpMonitorIndication:self
-                                           userId:u.userId
-                                         streamId:(uint16_t)task.streamId.unsignedIntValue
-                                       protocolId:(uint32_t)task.protocolId.unsignedLongValue
-                                             data:task.data
-                                         incoming:NO];
+                    if([u.profile wantsMonitor])
+                    {
+                        [u.user sctpMonitorIndication:self
+                                               userId:u.userId
+                                             streamId:(uint16_t)task.streamId.unsignedIntValue
+                                           protocolId:(uint32_t)task.protocolId.unsignedLongValue
+                                                 data:task.data
+                                             incoming:NO];
+                    }
                 }
+                NSDictionary *ui = @{
+                                     @"protocolId" : task.protocolId,
+                                     @"streamId"   : task.streamId,
+                                     @"data"       : task.data
+                                     };
+                NSMutableDictionary *report = [task.ackRequest mutableCopy];
+                [report setObject:ui forKey:@"sctp_data"];
+                //report[@"backtrace"] = UMBacktrace(NULL,0);
+                [user sentAckConfirmFrom:self userInfo:report];
             }
-            NSDictionary *ui = @{
-                                 @"protocolId" : task.protocolId,
-                                 @"streamId"   : task.streamId,
-                                 @"data"       : task.data
-                                 };
-            NSMutableDictionary *report = [task.ackRequest mutableCopy];
-            [report setObject:ui forKey:@"sctp_data"];
-            //report[@"backtrace"] = UMBacktrace(NULL,0);
-            [user sentAckConfirmFrom:self userInfo:report];
         }
-        else if((failed) && (uerr!=UMSocketError_no_error))
+        else
         {
             NSString *s = [NSString stringWithFormat:@"Error %d %@",uerr,[UMSocket getSocketErrorString:uerr]];
             [_layerHistory addLogEntry:s];
-
             if(uerr==UMSocketError_is_already_connected)
             {
                 if(_logLevel <=UMLOG_MINOR)
