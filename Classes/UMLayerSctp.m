@@ -634,7 +634,7 @@
             [self logDebug:[NSString stringWithFormat:@" sent_packets: %ld",sent_packets]];
         }
 #endif
-        else if(uerr==UMSocketError_no_error)
+        if(uerr==UMSocketError_no_error)
         {
             if(sent_packets> 0)
             {
