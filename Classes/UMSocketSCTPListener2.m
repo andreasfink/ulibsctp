@@ -47,6 +47,9 @@
 
 - (void)backgroundInit
 {
+    NSLog(@"UMSocketSCTPListener2 backgroundInit:%@",_name);
+    ulib_set_thread_name(_name);
+    NSLog(@"starting %@",_name);
     NSLog(@"_localIpAddresses=%@ port=%d",_localIpAddresses,_port);
     _umsocket = [[UMSocketSCTP alloc]initWithType:UMSOCKET_TYPE_SCTP_SEQPACKET name:_name];
     _umsocket.requestedLocalAddresses = _localIpAddresses;
@@ -103,7 +106,6 @@
             LOG_MINOR_ERROR(err,@"setHeartbeat");
         }
     }
-    [super backgroundInit];
 }
 
 
@@ -113,8 +115,7 @@
     _umsocket = NULL;
     _isBound=NO;
     _isListening=NO;
-    [super backgroundExit];
-
+    NSLog(@"UMSocketSCTPListener2 backgroundExit:%@",_name);
 }
 
 - (void)logMinorError:(NSString *)s

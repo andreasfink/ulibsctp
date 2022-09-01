@@ -857,6 +857,7 @@
 
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx
 {
+    UMMUTEX_LOCK(_linkLock);
     @autoreleasepool
     {
         if(rx.err==UMSocketError_try_again)
@@ -936,7 +937,6 @@
                     [self startDirectSocketReceiver];
                 }
             }
-            
             if(rx.isNotification)
             {
                 [self handleEvent:rx.data
@@ -951,6 +951,7 @@
             }
         }
     }
+    UMMUTEX_UNLOCK(_linkLock);
 }
 
 -(void) handleEvent:(NSData *)event
