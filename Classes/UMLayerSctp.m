@@ -308,7 +308,6 @@
     @autoreleasepool
     {
         [self addToLayerHistoryLog:@"_openTask"];
-
         BOOL sendAbort = task.sendAbortFirst;
         UMMUTEX_LOCK(_linkLock);
         @try
@@ -332,7 +331,6 @@
             {
                 [self logMinorError:@"already in service"];
                 [self addToLayerHistoryLog:@"OpenTask: already in service"];
-                return;
             }
             else
             {
@@ -1019,6 +1017,7 @@
                  streamId:(NSNumber *)streamId
                protocolId:(NSNumber *)protocolId
 {
+    UMMUTEX_LOCK(_linkLock);
     const union sctp_notification *snp;
     snp = event.bytes;
     NSUInteger len = event.length;
@@ -1178,6 +1177,7 @@
         [_reconnectTimer stop];
         [_reconnectTimer start];
     }
+    UMMUTEX_UNLOCK(_linkLock);
 }
 
 -(void) handleLinkUpTcpEcnap
