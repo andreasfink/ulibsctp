@@ -585,7 +585,6 @@
                                                         error:&uerr];
                 _assocId = tmp_assocId ;
             }
-            
             else
             {
                 NSNumber *tmp_assocId = _assocId;
@@ -961,6 +960,7 @@
            streamId:(NSNumber *)streamId
          protocolId:(NSNumber *)protocolId
 {
+    UMMUTEX_LOCK(_linkLock);
     @autoreleasepool
     {
         const union sctp_notification *snp;
@@ -1010,6 +1010,7 @@
                 [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-DATA: %@",event.description]];
         }
     }
+    UMMUTEX_UNLOCK(_linkLock);
 }
 
 
