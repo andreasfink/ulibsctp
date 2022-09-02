@@ -1846,7 +1846,7 @@
         }
         else
         {
-            _usePeelOff = YES;
+             _usePeelOff = YES;
         }
         if (cfg[@"max-init-attempts"])
         {
