@@ -161,9 +161,7 @@
     [self addToLayerHistoryLog:[NSString stringWithFormat:@"closeFor(%@) reason=%@",caller.layerName,reason? reason: @"unspecified"]];
     UMSctpTask_Close *task = [[UMSctpTask_Close alloc]initWithReceiver:self sender:caller];
     task.reason = reason;
-
     [self queueFromUpper:task];
-   
 }
 
 /* public API for upper interface */
