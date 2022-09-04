@@ -565,36 +565,44 @@
         {
             attempts++;
             UMMUTEX_LOCK(_linkLock);
-            if(_directSocket)
+            @try
             {
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
-                if(self.logLevel <= UMLOG_DEBUG)
+                if(_directSocket)
                 {
-                    [self logDebug:[NSString stringWithFormat:@" Calling sctp_sendmsg on _directsocket (%@)",[_configured_remote_addresses componentsJoinedByString:@","]]];
+        #if defined(ULIBSCTP_CONFIG_DEBUG)
+                    if(self.logLevel <= UMLOG_DEBUG)
+                    {
+                        [self logDebug:[NSString stringWithFormat:@" Calling sctp_sendmsg on _directsocket (%@)",[_configured_remote_addresses componentsJoinedByString:@","]]];
+                    }
+        #endif
+                    NSNumber *tmp_assocId = _assocId;
+                    sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
+                                                             port:_configured_remote_port
+                                                         assocPtr:&tmp_assocId
+                                                             data:task.data
+                                                           stream:task.streamId
+                                                         protocol:task.protocolId
+                                                            error:&uerr];
+                    _assocId = tmp_assocId ;
                 }
-    #endif
-                NSNumber *tmp_assocId = _assocId;
-                sent_packets = [_directSocket sendToAddresses:_configured_remote_addresses
+                else
+                {
+                    NSNumber *tmp_assocId = _assocId;
+                    sent_packets = [_listener sendToAddresses:_configured_remote_addresses
                                                          port:_configured_remote_port
                                                      assocPtr:&tmp_assocId
                                                          data:task.data
                                                        stream:task.streamId
                                                      protocol:task.protocolId
-                                                        error:&uerr];
-                _assocId = tmp_assocId ;
+                                                        error:&uerr
+                                                        layer:self];
+                    _assocId = tmp_assocId;
+                }
             }
-            else
+            @catch(NSException *e)
             {
-                NSNumber *tmp_assocId = _assocId;
-                sent_packets = [_listener sendToAddresses:_configured_remote_addresses
-                                                     port:_configured_remote_port
-                                                 assocPtr:&tmp_assocId
-                                                     data:task.data
-                                                   stream:task.streamId
-                                                 protocol:task.protocolId
-                                                    error:&uerr
-                                                    layer:self];
-                _assocId = tmp_assocId;
+                NSString *estr = [e description];
+                [self addToLayerHistoryLog:estr];
             }
             UMMUTEX_UNLOCK(_linkLock);
 
