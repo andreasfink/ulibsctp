@@ -909,7 +909,7 @@
         }
         else /* UMSocketError_no_error */
         {
-            if((_directSocket == NULL) && (rx.assocId))
+            if((_directSocket == NULL) && (rx.assocId!=NULL))
             {
                 UMSocketError err = UMSocketError_no_error;
                 _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
@@ -1069,6 +1069,7 @@
         if((_directSocket==NULL) && (ass>0))
         {
             UMSocketError err = UMSocketError_no_error;
+            _assocId = @(ass);
             _directSocket = [_listener peelOffAssoc:_assocId error:&err];
             NSString *s=[NSString stringWithFormat:@"processReceivedData: peeling off assoc %u into socket %p/%d err=%d/%@",ass,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err]];
             NSLog(@"%@",s);
@@ -1087,7 +1088,6 @@
             }
             else
             {
-                _assocId = @(ass);
                 [self startDirectSocketReceiver];
             }
         }
