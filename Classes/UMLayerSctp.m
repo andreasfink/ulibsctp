@@ -909,29 +909,30 @@
         }
         else /* UMSocketError_no_error */
         {
-            if(rx.assocId !=NULL)
-            {
-                _assocId = rx.assocId;
-            }
-            if((_usePeelOff) && (_directSocket == NULL) && (rx.assocId))
+            if((_directSocket == NULL) && (rx.assocId!=NULL))
             {
                 UMSocketError err = UMSocketError_no_error;
                 _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
-                [_layerHistory addLogEntry:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err]];
+                [_layerHistory addLogEntry:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d err=%d/%@",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err]]];
                 if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
                 {
                     [_directSocket close];
                     [_listener unregisterAssoc:_assocId forLayer:self];
-                    _assocId=NULL;
+                    _assocId = NULL;
                     _directSocket = NULL;
                     NSString *s = [NSString stringWithFormat:@"processReceivedData peeloff failed"];
                     [self logMinorError:s];
                     [self powerdownInReceiverThread:s];
                     [self reportStatusWithReason:s];
+                    _assocId = NULL;
                 }
                 else
                 {
                     [self startDirectSocketReceiver];
+                    if(rx.assocId !=NULL)
+                    {
+                        _assocId = rx.assocId;
+                    }
                 }
             }
             if(rx.isNotification)
@@ -1060,18 +1061,17 @@
     if((snp->sn_assoc_change.sac_state==SCTP_COMM_UP) && (snp->sn_assoc_change.sac_error== 0))
     {
         uint32_t ass = snp->sn_assoc_change.sac_assoc_id;
-        _assocId = @(ass);
-
         _listener.firstMessage=YES;
         NSString *s=[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS (assocID=%u)",ass];
         [self.logFeed infoText:s];
         [_layerHistory addLogEntry:s];
         [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP"];
-        if((_usePeelOff) && (_directSocket == NULL) && (_assocId!=NULL))
+        if((_directSocket==NULL) && (ass>0))
         {
             UMSocketError err = UMSocketError_no_error;
+            _assocId = @(ass);
             _directSocket = [_listener peelOffAssoc:_assocId error:&err];
-            NSString *s=[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d err=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err];
+            NSString *s=[NSString stringWithFormat:@"processReceivedData: peeling off assoc %u into socket %p/%d err=%d/%@",ass,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err]];
             NSLog(@"%@",s);
             [_layerHistory addLogEntry:s];
             if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
@@ -1091,25 +1091,6 @@
                 [self startDirectSocketReceiver];
             }
         }
-#if 0
-        if((_directSocket==NULL) && (snp->sn_assoc_change.sac_assoc_id > 0))
-        {
-            NSLog(@"peeloff2");
-            UMSocketError err = UMSocketError_no_error;
-            _directSocket = [_listener peelOffAssoc:snp->sn_assoc_change.sac_assoc_id error:&err];
-            NSLog(@"peeloff3");
-            [_layerHistory addLogEntry:[NSString stringWithFormat:@"peeling off assoc %u into socket %p/%d err=%d",ass,_directSocket,_directSocket.sock,err]];
-            NSLog(@"peeling off assoc %u into socket %p/%d err=%d",ass,_directSocket,_directSocket.sock,err);
-
-            if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress) && (err!=UMSocketError_not_a_socket))
-            {
-                [_listener unregisterAssoc:_assocId forLayer:self];
-                _directSocket = NULL;
-                _assocId=NULL;
-            }
-            [_registry registerIncomingLayer:self];
-        }
-#endif
         [_reconnectTimer stop];
         [self reportStatusWithReason:@"SCTP_COMM_UP"];
     }
@@ -2246,6 +2227,14 @@
 /* this starts a separate background task on the peeled off directSocket to receive packets */
 - (void)startDirectSocketReceiver
 {
+    if(_directSocket==NULL)
+    {
+        NSString *s = [NSString stringWithFormat:@"can not start receiver on socket NULL for assoc %@",_assocId];
+        [_layerHistory addLogEntry:s];
+        NSLog(@"%@",s);
+        return;
+    }
+
     NSString *name = [NSString stringWithFormat:@"RX:%@",_layerName];
     _directReceiver = [[UMSCTPListener alloc]initWithName:name
                                              socket:_directSocket
