@@ -1179,6 +1179,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 		NSLog(@"%@",s);
 	}
 #endif
+    UMMUTEX_LOCK(_dataLock);
     sp = sctp_sendmsg(_sock,
                       (const void *)data.bytes,
                       data.length,
@@ -1189,7 +1190,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                       streamId.unsignedIntValue,
                       timetolive, // timetolive,
                       context); // context);
-
+    UMMUTEX_UNLOCK(_dataLock);
     if(sp<0)
     {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
