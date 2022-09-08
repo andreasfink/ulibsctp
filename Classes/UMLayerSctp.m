@@ -493,7 +493,10 @@
                 NSLog(@"%@",e);
             }
         }
-        UMMUTEX_UNLOCK(_linkLock);
+        @finally
+        {
+            UMMUTEX_UNLOCK(_linkLock);
+        }
 #if defined(POWER_DEBUG)
         NSLog(@"%@ closeTask(end)",_layerName);
 #endif
@@ -686,15 +689,21 @@
         [self addToLayerHistoryLog:@"_foosTask" ];
 
         UMMUTEX_LOCK(_linkLock);
-        [self powerdown:@"_foosTask"];
-        [self setStatus:UMSOCKET_STATUS_FOOS reason:@"FOOS requested"];
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(self.logLevel <=UMLOG_DEBUG)
+        @try
         {
-            [self logDebug:@"FOOS"];
+            [self powerdown:@"_foosTask"];
+            [self setStatus:UMSOCKET_STATUS_FOOS reason:@"FOOS requested"];
+        #if defined(ULIBSCTP_CONFIG_DEBUG)
+            if(self.logLevel <=UMLOG_DEBUG)
+            {
+                [self logDebug:@"FOOS"];
+            }
+        #endif
         }
-    #endif
-        UMMUTEX_UNLOCK(_linkLock);
+        @finally
+        {
+            UMMUTEX_UNLOCK(_linkLock);
+        }
 #if defined(POWER_DEBUG)
         NSLog(@"%@ manual FOOS",_layerName);
 #endif
@@ -854,102 +863,109 @@
 
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx
 {
-    UMMUTEX_LOCK(_linkLock);
     @autoreleasepool
     {
-        if(rx.err==UMSocketError_try_again)
+        UMMUTEX_LOCK(_linkLock);
+        @try
         {
-            return;
-        }
-        if(rx.err==UMSocketError_invalid_file_descriptor)
-        {
-            if(_logLevel <=UMLOG_DEBUG)
-            {
-                NSLog(@"receiveData: UMSocketError_invalid_file_descriptor returned by receiveSCTP");
-            }
-            [self powerdownInReceiverThread:@"invalid_file_descriptor"];
-            [self reportStatusWithReason:@"processRedeivedData: invalid_file_descriptor"];
-        }
-        
-        else if(rx.err==UMSocketError_invalid_file_descriptor)
-        {
-            if(_logLevel <=UMLOG_DEBUG)
-            {
-                NSLog(@"receiveData: UMSocketError_invalid_file_descriptor returned by receiveSCTP");
-            }
-            [self powerdownInReceiverThread:@"invalid_file_descriptor"];
-            [self reportStatusWithReason:@"processRedeivedData: invalid_file_descriptor"];
-        }
-        else if(rx.err==UMSocketError_connection_reset)
-        {
-            [self logDebug:@"ECONNRESET"];
-            [self powerdownInReceiverThread:@"ECONNRESET"];
-            [self reportStatusWithReason:@"processRedeivedData ECONNRESET"];
-        }
-
-        else if(rx.err==UMSocketError_connection_aborted)
-        {
-            [self logDebug:@"ECONNABORTED"];
-            [self powerdownInReceiverThread:@"ECONNABORTED"];
-            [self reportStatusWithReason:@"processRedeivedData ECONNABORTED"];
-        }
-        else if(rx.err==UMSocketError_connection_refused)
-        {
-            [self logDebug:@"ECONNREFUSED"];
-            sleep(1);
-            [self powerdownInReceiverThread:@"ECONNREFUSED"];
-            [self reportStatusWithReason:@"processRedeivedData ECONNREFUSED"];
-        }
-        else if(rx.err != UMSocketError_no_error)
-        {
-            NSString *s = [NSString stringWithFormat:@"processReceivedData: Error %d %@ returned by receiveSCTP",rx.err,[UMSocket getSocketErrorString:rx.err]];
-            [self logMinorError:s];
-            [self powerdownInReceiverThread:s];
-            [self reportStatusWithReason:s];
-        }
-        else /* UMSocketError_no_error */
-        {
-            if((_directSocket == NULL) && (rx.assocId!=NULL))
-            {
-                UMSocketError err = UMSocketError_no_error;
-                _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
-                [_layerHistory addLogEntry:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d err=%d/%@",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err]]];
-                if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
+                
+                if(rx.err==UMSocketError_try_again)
                 {
-                    [_directSocket close];
-                    [_listener unregisterAssoc:_assocId forLayer:self];
-                    _assocId = NULL;
-                    _directSocket = NULL;
-                    NSString *s = [NSString stringWithFormat:@"processReceivedData peeloff failed"];
+                    return;
+                }
+                if(rx.err==UMSocketError_invalid_file_descriptor)
+                {
+                    if(_logLevel <=UMLOG_DEBUG)
+                    {
+                        NSLog(@"receiveData: UMSocketError_invalid_file_descriptor returned by receiveSCTP");
+                    }
+                    [self powerdownInReceiverThread:@"invalid_file_descriptor"];
+                    [self reportStatusWithReason:@"processRedeivedData: invalid_file_descriptor"];
+                }
+                
+                else if(rx.err==UMSocketError_invalid_file_descriptor)
+                {
+                    if(_logLevel <=UMLOG_DEBUG)
+                    {
+                        NSLog(@"receiveData: UMSocketError_invalid_file_descriptor returned by receiveSCTP");
+                    }
+                    [self powerdownInReceiverThread:@"invalid_file_descriptor"];
+                    [self reportStatusWithReason:@"processRedeivedData: invalid_file_descriptor"];
+                }
+                else if(rx.err==UMSocketError_connection_reset)
+                {
+                    [self logDebug:@"ECONNRESET"];
+                    [self powerdownInReceiverThread:@"ECONNRESET"];
+                    [self reportStatusWithReason:@"processRedeivedData ECONNRESET"];
+                }
+
+                else if(rx.err==UMSocketError_connection_aborted)
+                {
+                    [self logDebug:@"ECONNABORTED"];
+                    [self powerdownInReceiverThread:@"ECONNABORTED"];
+                    [self reportStatusWithReason:@"processRedeivedData ECONNABORTED"];
+                }
+                else if(rx.err==UMSocketError_connection_refused)
+                {
+                    [self logDebug:@"ECONNREFUSED"];
+                    sleep(1);
+                    [self powerdownInReceiverThread:@"ECONNREFUSED"];
+                    [self reportStatusWithReason:@"processRedeivedData ECONNREFUSED"];
+                }
+                else if(rx.err != UMSocketError_no_error)
+                {
+                    NSString *s = [NSString stringWithFormat:@"processReceivedData: Error %d %@ returned by receiveSCTP",rx.err,[UMSocket getSocketErrorString:rx.err]];
                     [self logMinorError:s];
                     [self powerdownInReceiverThread:s];
                     [self reportStatusWithReason:s];
-                    _assocId = NULL;
                 }
-                else
+                else /* UMSocketError_no_error */
                 {
-                    [self startDirectSocketReceiver];
-                    if(rx.assocId !=NULL)
+                    if((_directSocket == NULL) && (rx.assocId!=NULL))
                     {
-                        _assocId = rx.assocId;
+                        UMSocketError err = UMSocketError_no_error;
+                        _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
+                        [_layerHistory addLogEntry:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d err=%d/%@",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err]]];
+                        if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
+                        {
+                            [_directSocket close];
+                            [_listener unregisterAssoc:_assocId forLayer:self];
+                            _assocId = NULL;
+                            _directSocket = NULL;
+                            NSString *s = [NSString stringWithFormat:@"processReceivedData peeloff failed"];
+                            [self logMinorError:s];
+                            [self powerdownInReceiverThread:s];
+                            [self reportStatusWithReason:s];
+                            _assocId = NULL;
+                        }
+                        else
+                        {
+                            [self startDirectSocketReceiver];
+                            if(rx.assocId !=NULL)
+                            {
+                                _assocId = rx.assocId;
+                            }
+                        }
+                    }
+                    if(rx.isNotification)
+                    {
+                        [self handleEvent:rx.data
+                                 streamId:rx.streamId
+                               protocolId:rx.protocolId];
+                    }
+                    else
+                    {
+                        [self sctpReceivedData:rx.data
+                                      streamId:rx.streamId
+                                    protocolId:rx.protocolId];
                     }
                 }
-            }
-            if(rx.isNotification)
-            {
-                [self handleEvent:rx.data
-                         streamId:rx.streamId
-                       protocolId:rx.protocolId];
-            }
-            else
-            {
-                [self sctpReceivedData:rx.data
-                              streamId:rx.streamId
-                            protocolId:rx.protocolId];
-            }
+        }
+        @finally
+        {
+            UMMUTEX_UNLOCK(_linkLock);
         }
     }
-    UMMUTEX_UNLOCK(_linkLock);
 }
 
 -(void) handleEvent:(NSData *)event
@@ -959,54 +975,61 @@
     UMMUTEX_LOCK(_linkLock);
     @autoreleasepool
     {
-        const union sctp_notification *snp;
-        snp = event.bytes;
-        switch(snp->sn_header.sn_type)
+        @try
         {
-            case SCTP_ASSOC_CHANGE:
-                [self handleAssocChange:event streamId:streamId protocolId:protocolId];
-                break;
-            case SCTP_PEER_ADDR_CHANGE:
-                [self handlePeerAddrChange:event streamId:streamId protocolId:protocolId];
-                break;
-            case SCTP_SEND_FAILED:
-                [self handleSendFailed:event streamId:streamId protocolId:protocolId];
-                break;
-            case SCTP_REMOTE_ERROR:
-                [self handleRemoteError:event streamId:streamId protocolId:protocolId];
-                break;
-            case SCTP_SHUTDOWN_EVENT:
-                [self handleShutdownEvent:event streamId:streamId protocolId:protocolId];
-                break;
-            case SCTP_PARTIAL_DELIVERY_EVENT:
-                [self handleAdaptionIndication:event streamId:streamId protocolId:protocolId];
-                break;
-            case SCTP_ADAPTATION_INDICATION:
-                [self handleAdaptionIndication:event streamId:streamId protocolId:protocolId];
-                break;
-    #if defined SCTP_AUTHENTICATION_EVENT
-            case SCTP_AUTHENTICATION_EVENT:
-                [self handleAuthenticationEvent:event streamId:streamId protocolId:protocolId];
-                break;
-    #endif
-            case SCTP_SENDER_DRY_EVENT:
-                [self handleSenderDryEvent:event streamId:streamId protocolId:protocolId];
-                break;
+            
+            const union sctp_notification *snp;
+            snp = event.bytes;
+            switch(snp->sn_header.sn_type)
+            {
+                case SCTP_ASSOC_CHANGE:
+                    [self handleAssocChange:event streamId:streamId protocolId:protocolId];
+                    break;
+                case SCTP_PEER_ADDR_CHANGE:
+                    [self handlePeerAddrChange:event streamId:streamId protocolId:protocolId];
+                    break;
+                case SCTP_SEND_FAILED:
+                    [self handleSendFailed:event streamId:streamId protocolId:protocolId];
+                    break;
+                case SCTP_REMOTE_ERROR:
+                    [self handleRemoteError:event streamId:streamId protocolId:protocolId];
+                    break;
+                case SCTP_SHUTDOWN_EVENT:
+                    [self handleShutdownEvent:event streamId:streamId protocolId:protocolId];
+                    break;
+                case SCTP_PARTIAL_DELIVERY_EVENT:
+                    [self handleAdaptionIndication:event streamId:streamId protocolId:protocolId];
+                    break;
+                case SCTP_ADAPTATION_INDICATION:
+                    [self handleAdaptionIndication:event streamId:streamId protocolId:protocolId];
+                    break;
+        #if defined SCTP_AUTHENTICATION_EVENT
+                case SCTP_AUTHENTICATION_EVENT:
+                    [self handleAuthenticationEvent:event streamId:streamId protocolId:protocolId];
+                    break;
+        #endif
+                case SCTP_SENDER_DRY_EVENT:
+                    [self handleSenderDryEvent:event streamId:streamId protocolId:protocolId];
+                    break;
 
-    #if defined SCTP_STREAM_RESET_EVENT
-            case  SCTP_STREAM_RESET_EVENT:
-                [self handleStreamResetEvent:event streamId:streamId protocolId:protocolId];
-                break;
-    #endif
+        #if defined SCTP_STREAM_RESET_EVENT
+                case  SCTP_STREAM_RESET_EVENT:
+                    [self handleStreamResetEvent:event streamId:streamId protocolId:protocolId];
+                    break;
+        #endif
 
-            default:
-                [self.logFeed majorErrorText:[NSString stringWithFormat:@"SCTP unknown event type: %hu", snp->sn_header.sn_type]];
-                [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-STREAM: %lu",streamId.unsignedLongValue]];
-                [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-PROTO: %lu", protocolId.unsignedLongValue]];
-                [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-DATA: %@",event.description]];
+                default:
+                    [self.logFeed majorErrorText:[NSString stringWithFormat:@"SCTP unknown event type: %hu", snp->sn_header.sn_type]];
+                    [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-STREAM: %lu",streamId.unsignedLongValue]];
+                    [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-PROTO: %lu", protocolId.unsignedLongValue]];
+                    [self.logFeed majorErrorText:[NSString stringWithFormat:@" RX-DATA: %@",event.description]];
+            }
+        }
+        @finally
+        {
+            UMMUTEX_UNLOCK(_linkLock);
         }
     }
-    UMMUTEX_UNLOCK(_linkLock);
 }
 
 
@@ -1015,146 +1038,152 @@
                protocolId:(NSNumber *)protocolId
 {
     UMMUTEX_LOCK(_linkLock);
-    const union sctp_notification *snp;
-    snp = event.bytes;
-    NSUInteger len = event.length;
+    @try
+    {
+        const union sctp_notification *snp;
+        snp = event.bytes;
+        NSUInteger len = event.length;
 
-    if(len < sizeof (struct sctp_assoc_change))
-    {
-        [self.logFeed majorErrorText:@" Size Mismatch in SCTP_ASSOC_CHANGE"];
-    }
-    
-    NSString *state = @"(UNKNOWN)";
-    switch(snp->sn_assoc_change.sac_state)
-    {
-        case SCTP_COMM_UP:
-            state =@"SCTP_COMM_UP";
-            break;
-        case SCTP_COMM_LOST:
-            state =@"SCTP_COMM_LOST";
-            break;
-        case SCTP_RESTART:
-            state =@"SCTP_RESTART";
-            break;
-        case SCTP_SHUTDOWN_COMP:
-            state =@"SCTP_SHUTDOWN_COMP";
-            break;
-        case SCTP_CANT_STR_ASSOC:
-            state =@"SCTP_CANT_STR_ASSOC";
-            break;
-    }
-    [self addToLayerHistoryLog:state];
-    
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-    if(self.logLevel <= UMLOG_DEBUG)
-    {
-        [self logDebug:[NSString stringWithFormat:@"  sac_type: %d",             (int)snp->sn_assoc_change.sac_type]];
-        [self logDebug:[NSString stringWithFormat:@"  sac_flags: %d",            (int)snp->sn_assoc_change.sac_flags]];
-        [self logDebug:[NSString stringWithFormat:@"  sac_length: %d",           (int)snp->sn_assoc_change.sac_length]];
-        [self logDebug:[NSString stringWithFormat:@"  sac_state: %d %@",            (int)snp->sn_assoc_change.sac_state, state]];
-        [self logDebug:[NSString stringWithFormat:@"  sac_error: %d",            (int)snp->sn_assoc_change.sac_error]];
-        [self logDebug:[NSString stringWithFormat:@"  sac_outbound_streams: %d", (int)snp->sn_assoc_change.sac_outbound_streams]];
-        [self logDebug:[NSString stringWithFormat:@"  sac_inbound_streams: %d",  (int)snp->sn_assoc_change.sac_inbound_streams]];
-        [self logDebug:[NSString stringWithFormat:@"  sac_assoc_id: %d",         (int)snp->sn_assoc_change.sac_assoc_id]];
-    }
-#endif
-    if((snp->sn_assoc_change.sac_state==SCTP_COMM_UP) && (snp->sn_assoc_change.sac_error== 0))
-    {
-        uint32_t ass = snp->sn_assoc_change.sac_assoc_id;
-        _listener.firstMessage=YES;
-        NSString *s=[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS (assocID=%u)",ass];
-        [self.logFeed infoText:s];
-        [_layerHistory addLogEntry:s];
-        [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP"];
-        if((_directSocket==NULL) && (ass>0))
+        if(len < sizeof (struct sctp_assoc_change))
         {
-            UMSocketError err = UMSocketError_no_error;
-            _assocId = @(ass);
-            _directSocket = [_listener peelOffAssoc:_assocId error:&err];
-            NSString *s=[NSString stringWithFormat:@"processReceivedData: peeling off assoc %u into socket %p/%d err=%d/%@",ass,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err]];
-            NSLog(@"%@",s);
+            [self.logFeed majorErrorText:@" Size Mismatch in SCTP_ASSOC_CHANGE"];
+        }
+        
+        NSString *state = @"(UNKNOWN)";
+        switch(snp->sn_assoc_change.sac_state)
+        {
+            case SCTP_COMM_UP:
+                state =@"SCTP_COMM_UP";
+                break;
+            case SCTP_COMM_LOST:
+                state =@"SCTP_COMM_LOST";
+                break;
+            case SCTP_RESTART:
+                state =@"SCTP_RESTART";
+                break;
+            case SCTP_SHUTDOWN_COMP:
+                state =@"SCTP_SHUTDOWN_COMP";
+                break;
+            case SCTP_CANT_STR_ASSOC:
+                state =@"SCTP_CANT_STR_ASSOC";
+                break;
+        }
+        [self addToLayerHistoryLog:state];
+        
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+        if(self.logLevel <= UMLOG_DEBUG)
+        {
+            [self logDebug:[NSString stringWithFormat:@"  sac_type: %d",             (int)snp->sn_assoc_change.sac_type]];
+            [self logDebug:[NSString stringWithFormat:@"  sac_flags: %d",            (int)snp->sn_assoc_change.sac_flags]];
+            [self logDebug:[NSString stringWithFormat:@"  sac_length: %d",           (int)snp->sn_assoc_change.sac_length]];
+            [self logDebug:[NSString stringWithFormat:@"  sac_state: %d %@",            (int)snp->sn_assoc_change.sac_state, state]];
+            [self logDebug:[NSString stringWithFormat:@"  sac_error: %d",            (int)snp->sn_assoc_change.sac_error]];
+            [self logDebug:[NSString stringWithFormat:@"  sac_outbound_streams: %d", (int)snp->sn_assoc_change.sac_outbound_streams]];
+            [self logDebug:[NSString stringWithFormat:@"  sac_inbound_streams: %d",  (int)snp->sn_assoc_change.sac_inbound_streams]];
+            [self logDebug:[NSString stringWithFormat:@"  sac_assoc_id: %d",         (int)snp->sn_assoc_change.sac_assoc_id]];
+        }
+    #endif
+        if((snp->sn_assoc_change.sac_state==SCTP_COMM_UP) && (snp->sn_assoc_change.sac_error== 0))
+        {
+            uint32_t ass = snp->sn_assoc_change.sac_assoc_id;
+            _listener.firstMessage=YES;
+            NSString *s=[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS (assocID=%u)",ass];
+            [self.logFeed infoText:s];
             [_layerHistory addLogEntry:s];
-            if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
+            [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP"];
+            if((_directSocket==NULL) && (ass>0))
             {
-                [_directSocket close];
-                [_listener unregisterAssoc:_assocId forLayer:self];
-                _assocId=NULL;
-                _directSocket = NULL;
-                NSString *s = [NSString stringWithFormat:@"processReceivedData peeloff failed"];
-                [self logMinorError:s];
-                [self powerdownInReceiverThread:s];
-                [self reportStatusWithReason:s];
+                UMSocketError err = UMSocketError_no_error;
+                _assocId = @(ass);
+                _directSocket = [_listener peelOffAssoc:_assocId error:&err];
+                NSString *s=[NSString stringWithFormat:@"processReceivedData: peeling off assoc %u into socket %p/%d err=%d/%@",ass,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err]];
                 NSLog(@"%@",s);
+                [_layerHistory addLogEntry:s];
+                if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
+                {
+                    [_directSocket close];
+                    [_listener unregisterAssoc:_assocId forLayer:self];
+                    _assocId=NULL;
+                    _directSocket = NULL;
+                    NSString *s = [NSString stringWithFormat:@"processReceivedData peeloff failed"];
+                    [self logMinorError:s];
+                    [self powerdownInReceiverThread:s];
+                    [self reportStatusWithReason:s];
+                    NSLog(@"%@",s);
+                }
+                else
+                {
+                    [self startDirectSocketReceiver];
+                }
             }
-            else
+            [_reconnectTimer stop];
+            [self reportStatusWithReason:@"SCTP_COMM_UP"];
+        }
+        else if(snp->sn_assoc_change.sac_state==SCTP_COMM_LOST)
+        {
+            uint32_t ass = snp->sn_assoc_change.sac_assoc_id;
+            _assocId = @(ass);
+            if(_directSocket)
             {
-                [self startDirectSocketReceiver];
+                _directSocket.isConnected=NO;
             }
+            [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF (assocID=%u)",ass]];
+    #if defined(POWER_DEBUG)
+            NSLog(@"%@ SCTP_COMM_LOST",_layerName);
+    #endif
+            [self powerdownInReceiverThread:@"SCTP_COMM_LOST"];
+            [self reportStatusWithReason:@"SCTP_COMM_LOST"];
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+            if(self.logLevel <= UMLOG_DEBUG)
+            {
+                [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",_reconnectTimer.seconds]];
+            }
+    #endif
+            [_reconnectTimer stop];
+            [_reconnectTimer start];
         }
-        [_reconnectTimer stop];
-        [self reportStatusWithReason:@"SCTP_COMM_UP"];
+        else if(snp->sn_assoc_change.sac_state==SCTP_CANT_STR_ASSOC)
+        {
+            if(_directSocket)
+            {
+                _directSocket.isConnected=NO;
+            }
+            [self.logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_CANT_STR_ASSOC"];
+    #if defined(POWER_DEBUG)
+            NSLog(@"%@ SCTP_CANT_STR_ASSOC",_layerName);
+    #endif
+            [self powerdownInReceiverThread:@"SCTP_CANT_STR_ASSOC"];
+            [self reportStatusWithReason:@"SCTP_CANT_STR_ASSOC"];
+    #if defined(ULIBSCTP_CONFIG_DEBUG)
+            if(self.logLevel <= UMLOG_DEBUG)
+            {
+                [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",_reconnectTimer.seconds]];
+            }
+    #endif
+            [_reconnectTimer stop];
+            [_reconnectTimer start];
+        }
+        else if(snp->sn_assoc_change.sac_error!=0)
+        {
+            if(_directSocket)
+            {
+                _directSocket.isConnected=NO;
+            }
+            [self.logFeed majorError:snp->sn_assoc_change.sac_error withText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)->OFF"];
+    #if defined(POWER_DEBUG)
+            NSLog(@"%@ SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)",_layerName,snp->sn_assoc_change.sac_error );
+    #endif
+            NSString *s = [NSString stringWithFormat:@"SCTP_COMM_ERROR(%d)",snp->sn_assoc_change.sac_error];
+            [self powerdownInReceiverThread:s];
+            [self reportStatusWithReason:s];
+            [_reconnectTimer stop];
+            [_reconnectTimer start];
+        }
     }
-    else if(snp->sn_assoc_change.sac_state==SCTP_COMM_LOST)
+    @finally
     {
-        uint32_t ass = snp->sn_assoc_change.sac_assoc_id;
-        _assocId = @(ass);
-        if(_directSocket)
-        {
-            _directSocket.isConnected=NO;
-        }
-        [self.logFeed infoText:[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_LOST->OFF (assocID=%u)",ass]];
-#if defined(POWER_DEBUG)
-        NSLog(@"%@ SCTP_COMM_LOST",_layerName);
-#endif
-        [self powerdownInReceiverThread:@"SCTP_COMM_LOST"];
-        [self reportStatusWithReason:@"SCTP_COMM_LOST"];
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(self.logLevel <= UMLOG_DEBUG)
-        {
-            [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",_reconnectTimer.seconds]];
-        }
-#endif
-        [_reconnectTimer stop];
-        [_reconnectTimer start];
+        UMMUTEX_UNLOCK(_linkLock);
     }
-    else if(snp->sn_assoc_change.sac_state==SCTP_CANT_STR_ASSOC)
-    {
-        if(_directSocket)
-        {
-            _directSocket.isConnected=NO;
-        }
-        [self.logFeed infoText:@" SCTP_ASSOC_CHANGE: SCTP_CANT_STR_ASSOC"];
-#if defined(POWER_DEBUG)
-        NSLog(@"%@ SCTP_CANT_STR_ASSOC",_layerName);
-#endif
-        [self powerdownInReceiverThread:@"SCTP_CANT_STR_ASSOC"];
-        [self reportStatusWithReason:@"SCTP_CANT_STR_ASSOC"];
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(self.logLevel <= UMLOG_DEBUG)
-        {
-            [self logDebug:[NSString stringWithFormat:@"starting reconnectTimer %8.3lfs",_reconnectTimer.seconds]];
-        }
-#endif
-        [_reconnectTimer stop];
-        [_reconnectTimer start];
-    }
-    else if(snp->sn_assoc_change.sac_error!=0)
-    {
-        if(_directSocket)
-        {
-            _directSocket.isConnected=NO;
-        }
-        [self.logFeed majorError:snp->sn_assoc_change.sac_error withText:@" SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)->OFF"];
-#if defined(POWER_DEBUG)
-        NSLog(@"%@ SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)",_layerName,snp->sn_assoc_change.sac_error );
-#endif
-        NSString *s = [NSString stringWithFormat:@"SCTP_COMM_ERROR(%d)",snp->sn_assoc_change.sac_error];
-        [self powerdownInReceiverThread:s];
-        [self reportStatusWithReason:s];
-        [_reconnectTimer stop];
-        [_reconnectTimer start];
-    }
-    UMMUTEX_UNLOCK(_linkLock);
 }
 
 -(void) handleLinkUpTcpEcnap
