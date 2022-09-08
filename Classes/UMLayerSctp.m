@@ -890,7 +890,7 @@
         else if(rx.err==UMSocketError_connection_aborted)
         {
             [self logDebug:@"ECONNABORTED"];
-            [self powerdownInReceiverThread];
+            [self powerdownInReceiverThread:@"ECONNABORTED"];
             [self reportStatusWithReason:@"processRedeivedData ECONNABORTED"];
         }
         else if(rx.err==UMSocketError_connection_refused)
