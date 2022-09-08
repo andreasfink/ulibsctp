@@ -768,7 +768,6 @@
         //[_receiverThread shutdownBackgroundTask];
         [self setStatus:UMSOCKET_STATUS_OOS reason:@"powerdown"];
         [self setStatus:UMSOCKET_STATUS_OFF reason:@"powerdown"];
-
        
         if(_assocId!=NULL)
         {
