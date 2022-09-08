@@ -53,40 +53,20 @@
     NSLog(@"terminating %@",s);
 }
 
-- (void)backgroundTask
+- (int)work
 {
-   BOOL mustQuit = NO;
-   if(self.runningStatus != UMBackgrounder_startingUp)
-   {
-       return;
-   }
-   if(self.workSleeper==NULL)
-   {
-       self.workSleeper = [[UMSleeper alloc]initFromFile:__FILE__ line:__LINE__ function:__func__];
-       [self.workSleeper prepare];
-   }
-   self.runningStatus = UMBackgrounder_running;
-   [self.control_sleeper wakeUp:UMSleeper_StartupCompletedSignal];
-   
-   [self backgroundInit];
-
-   while((UMBackgrounder_running == self.runningStatus) && (mustQuit==NO))
-   {
-       UMSocketError err = [self waitAndHandleData];
-       if(err==UMSocketError_not_a_socket)
-       {
-           mustQuit=YES;
-           [_eventDelegate processHangup];
-       }
-       if(err==UMSocketError_has_data_and_hup)
-       {
-           mustQuit = YES; /* it has already sent the processHangup event */
-       }
-   }
-   [self backgroundExit];
-   self.runningStatus = UMBackgrounder_notRunning;
-   self.workSleeper = NULL;
-   [self.control_sleeper wakeUp:UMSleeper_ShutdownCompletedSignal];
+    int ret = 1;
+    UMSocketError err = [self waitAndHandleData];
+    if(err==UMSocketError_not_a_socket)
+    {
+        ret=-1;
+        [_eventDelegate processHangup];
+    }
+    if(err==UMSocketError_has_data_and_hup)
+    {
+        ret = -1; /* it has already sent the processHangup event */
+    }
+    return ret;
 }
 
 - (UMSocketError) waitAndHandleData
