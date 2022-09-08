@@ -43,7 +43,7 @@
     NSMutableDictionary     *_outgoingLayersByIpsAndPorts;
     NSMutableDictionary     *_outgoingLayersByAssoc;
     
-    UMMutex                 *_lock;
+    UMMutex                 *_registryLock;
     BOOL                    _sendAborts;
     UMLogLevel              _logLevel;
     NSMutableDictionary     *_layersBySessionKey;

@@ -32,7 +32,7 @@
     {
         _logLevel = UMLOG_MINOR;
         _name = name;
-        _lock = [[UMMutex alloc]initWithName:_name];
+        _listenerLock = [[UMMutex alloc]initWithName:_name];
         _isInvalid=NO;
         _port = localPort;
         _localIpAddresses = addresses;
@@ -304,26 +304,26 @@
 
 - (void)startListeningFor:(UMLayerSctp *)layer
 {
-    [_lock lock];
+    [_listenerLock lock];
     if(_layers.count==0)
     {
         [self startBackgroundTask];
         [_registry addListener:self];
     }
     _layers[layer.layerName] = layer;
-    [_lock unlock];
+    [_listenerLock unlock];
 }
 
 - (void)stopListeningFor:(UMLayerSctp *)layer
 {
-    [_lock lock];
+    [_listenerLock lock];
     [_layers removeObjectForKey:layer.layerName];
     if(_layers.count==0)
     {
         [_registry removeListener:layer.listener];
         [self shutdownBackgroundTask];
     }
-    [_lock unlock];
+    [_listenerLock unlock];
 }
 
 - (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer

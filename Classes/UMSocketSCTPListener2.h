@@ -19,7 +19,7 @@
     NSArray *                   _localIpAddresses;
     BOOL                        _isBound;
     BOOL                        _isListening;
-    UMMutex                     *_lock;
+    UMMutex                     *_listenerLock;
     UMSocketSCTPRegistry        *_registry;
     UMSynchronizedDictionary    *_layers;
     NSNumber                    *_configuredMtu;
