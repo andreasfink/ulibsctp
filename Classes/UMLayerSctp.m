@@ -473,7 +473,10 @@
             }
 #endif
             [self powerdown:@"_closeTask"];
+            [_directReceiver shutdownBackgroundTask];
             _directReceiver = NULL;
+            [_directSocket close];
+            _directSocket = NULL;
             if(_listenerStarted==YES)
             {
 #ifdef USE_LISTENER1
