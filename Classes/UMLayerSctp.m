@@ -768,7 +768,7 @@
         //[_receiverThread shutdownBackgroundTask];
         [self setStatus:UMSOCKET_STATUS_OOS reason:@"powerdown"];
         [self setStatus:UMSOCKET_STATUS_OFF reason:@"powerdown"];
-       
+
         if(_assocId!=NULL)
         {
             [_listener unregisterAssoc:_assocId forLayer:self];
@@ -792,7 +792,7 @@
             }
             if(_directReceiver)
             {
-                [_directReceiver shutdownBackgroundTask];
+                [_directReceiver shutdownBackgroundTaskFromWithin];
             }
             if(_directTcpEncapsulatedSocket)
             {
