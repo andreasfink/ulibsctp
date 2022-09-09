@@ -570,7 +570,7 @@
         while((attempts < maxatt) && (self.status==UMSOCKET_STATUS_IS) && (sent_packets<1))
         {
             attempts++;
-            if(self.directSocket)
+            if((self.directSocket)  && (self.directSocket.isConnected==YES))
             {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
                 if(self.logLevel <= UMLOG_DEBUG)
@@ -590,6 +590,8 @@
             }
             else
             {
+                [self.directSocket close];
+                self.directSocket = NULL;
                 NSNumber *tmp_assocId = _assocId;
                 sent_packets = [self.listener sendToAddresses:_configured_remote_addresses
                                                      port:_configured_remote_port
