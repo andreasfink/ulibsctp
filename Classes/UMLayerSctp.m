@@ -2011,6 +2011,12 @@
                 if(xassocId != NULL)
                 {
                     _assocId = xassocId;
+                    UMSocketError e = UMSocketError_no_error;
+                    UMSocketSCTP *direct = [_listener peelOffAssoc:_assocId error:&e];
+                    if((e==UMSocketError_no_error) && (direct))
+                    {
+                        _directSocket = direct;
+                    }
                 }
                 [_listener registerAssoc:_assocId forLayer:self];
             }

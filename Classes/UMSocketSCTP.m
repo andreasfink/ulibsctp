@@ -917,7 +917,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 {
     if(assoc==NULL)
     {
-        NSLog(@"peelOffAssoc: called with assoc=NULL");
         if(errptr)
         {
             *errptr = UMSocketError_not_existing;
@@ -926,7 +925,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
     if(assoc.unsignedLongValue == 0)
     {
-        NSLog(@"Warning: assoc.unsignedLongValue == 0");
         if(errptr)
         {
             *errptr = UMSocketError_not_a_socket;
