@@ -22,6 +22,7 @@
 @property (readwrite,strong)        NSNumber        *streamId;
 @property (readwrite,strong)        NSNumber        *protocolId;
 @property (readwrite,strong)        NSDictionary    *ackRequest;
+@property (readwrite,strong)        NSNumber        *socketNumber;
 
 - (UMSctpTask_Data *)initWithReceiver:(UMLayerSctp *)rx
                                sender:(id<UMLayerSctpUserProtocol>)tx

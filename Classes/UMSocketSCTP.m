@@ -1294,12 +1294,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     memset(remote_address_ptr,0x00,sizeof(remote_address_len));
 
     UMSocketSCTPReceivedPacket *rx = [[UMSocketSCTPReceivedPacket alloc]init];
-
-
-
     struct sctp_sndrcvinfo sinfo;
     memset(&sinfo,0x00,sizeof(sinfo));
-    
     bytes_read = sctp_recvmsg(_sock,
                          &buffer,
                          SCTP_RXBUF,

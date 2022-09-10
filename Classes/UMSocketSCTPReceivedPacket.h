@@ -24,7 +24,6 @@
     int         _flags;
     int         _tcp_flags;
     BOOL        _isNotification;
-
     UMMicroSec  _poll_time;
     UMMicroSec  _rx_time;
     UMMicroSec  _process_time;

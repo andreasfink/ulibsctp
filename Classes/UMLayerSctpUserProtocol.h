@@ -26,14 +26,17 @@
                      userId:(id)uid
                    streamId:(uint16_t)sid
                  protocolId:(uint32_t)pid
-                       data:(NSData *)d;
+                       data:(NSData *)d
+                     socket:(NSNumber *)socket;
 
 - (void) sctpMonitorIndication:(UMLayer *)caller
                         userId:(id)uid
                       streamId:(uint16_t)sid
                     protocolId:(uint32_t)pid
                           data:(NSData *)d
-                      incoming:(BOOL)in;
+                      incoming:(BOOL)in
+                        socket:(NSNumber *)socket;
+
 
 - (void) adminAttachConfirm:(UMLayer *)attachedLayer
                      userId:(id)uid;

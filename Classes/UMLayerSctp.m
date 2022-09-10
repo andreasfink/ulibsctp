@@ -655,7 +655,8 @@
                                              streamId:(uint16_t)task.streamId.unsignedIntValue
                                            protocolId:(uint32_t)task.protocolId.unsignedLongValue
                                                  data:task.data
-                                             incoming:NO];
+                                             incoming:NO
+                                               socket:task.socketNumber];
                     }
                 }
                 NSDictionary *ui = @{
@@ -961,7 +962,8 @@
                     {
                         [self sctpReceivedData:rx.data
                                       streamId:rx.streamId
-                                    protocolId:rx.protocolId];
+                                    protocolId:rx.protocolId
+                                  socketNumber:rx.socket];
                     }
                 }
         }
@@ -1649,6 +1651,7 @@
 - (UMSocketError) sctpReceivedData:(NSData *)data
                           streamId:(NSNumber *)streamId
                         protocolId:(NSNumber *)protocolId
+                      socketNumber:(NSNumber *)socketNumber
 {
     @autoreleasepool
     {
@@ -1708,7 +1711,8 @@
                                     userId:u.userId
                                   streamId:streamId.unsignedShortValue
                                 protocolId:protocolId.unsignedIntValue
-                                      data:data];
+                                      data:data
+                                    socket:socketNumber];
             }
             if([u.profile wantsMonitor])
             {
@@ -1717,7 +1721,8 @@
                                      streamId:streamId.unsignedShortValue
                                    protocolId:protocolId.unsignedIntValue
                                          data:data
-                                     incoming:YES];
+                                     incoming:YES
+                                       socket:socketNumber];
             }
         }
         return UMSocketError_no_error;
