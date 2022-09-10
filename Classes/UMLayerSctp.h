@@ -175,7 +175,8 @@
 - (void) powerdown;
 - (void) powerdown:(NSString *)reason;
 - (void) powerdownInReceiverThread;
-- (void)reportStatusWithReason:(NSString *)reason;
+- (void) reportStatusWithReason:(NSString *)reason;
+- (void) reportStatusWithReason:(NSString *)reason socketNumber:(NSNumber *)socketNumber;
 #pragma mark -
 #pragma mark Config Handling
 - (void)setConfig:(NSDictionary *)cfg applicationContext:(id<UMLayerSctpApplicationContextProtocol>)appContext;
@@ -186,7 +187,8 @@
 
 -(void) handleEvent:(NSData *)event
            streamId:(NSNumber *)streamId
-         protocolId:(NSNumber *)protocolId;
+         protocolId:(NSNumber *)protocolId
+             socket:(NSNumber *)socketNumber;
 
 - (void)processReceivedData:(UMSocketSCTPReceivedPacket *)rx;
 - (void)processError:(UMSocketError)err socket:(UMSocket *)s inArea:(NSString *)area;

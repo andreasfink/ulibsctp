@@ -20,7 +20,8 @@
 - (void) sctpStatusIndication:(UMLayer *)caller
                        userId:(id)uid
                        status:(UMSocketStatus)s
-                       reason:(NSString *)reason;
+                       reason:(NSString *)reason
+                       socket:(NSNumber *)socket;
 
 - (void) sctpDataIndication:(UMLayer *)caller
                      userId:(id)uid

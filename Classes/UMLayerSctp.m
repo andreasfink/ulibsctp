@@ -461,6 +461,7 @@
 {
     @autoreleasepool
     {
+        NSNumber *socketNumber = NULL;
         [self addToLayerHistoryLog:@"_closeTask"];
         UMMUTEX_LOCK(_linkLock);
         @try
@@ -475,7 +476,15 @@
             [self powerdown:@"_closeTask"];
             [_directReceiver shutdownBackgroundTask];
             _directReceiver = NULL;
-            [_directSocket close];
+            if(_directSocket)
+            {
+                socketNumber = @(_directSocket.sock);
+                [_directSocket close];
+            }
+            else if(_listener)
+            {
+                socketNumber = @(- _listener.umsocket.sock);
+            }
             _directSocket = NULL;
             if(_listenerStarted==YES)
             {
@@ -503,7 +512,7 @@
 #if defined(POWER_DEBUG)
         NSLog(@"%@ closeTask(end)",_layerName);
 #endif
-        [self reportStatusWithReason:@"closeTask completed"];
+        [self reportStatusWithReason:@"closeTask completed" socketNumber:socketNumber];
     }
 }
 
@@ -843,10 +852,26 @@
 
 - (void)reportStatus
 {
-    [self reportStatusWithReason:NULL];
+    [self reportStatusWithReason:NULL socketNumber:NULL];
 }
 
 - (void)reportStatusWithReason:(NSString *)reason
+{
+    if(_directSocket)
+    {
+        [self reportStatusWithReason:reason socketNumber:@(_directSocket.sock)];
+    }
+    else if(_listener)
+    {
+        [self reportStatusWithReason:reason socketNumber:@(_listener.umsocket.sock)];
+    }
+    else
+    {
+        [self reportStatusWithReason:reason socketNumber:NULL];
+    }
+}
+
+- (void)reportStatusWithReason:(NSString *)reason socketNumber:(NSNumber *)socketNumber
 {
     
     @autoreleasepool
@@ -859,7 +884,8 @@
                 [u.user sctpStatusIndication:self
                                       userId:u.userId
                                       status:self.status
-                                      reason:reason];
+                                      reason:reason
+                                      socket:socketNumber];
             }
         }
     }
@@ -885,7 +911,7 @@
                         NSLog(@"receiveData: UMSocketError_invalid_file_descriptor returned by receiveSCTP");
                     }
                     [self powerdownInReceiverThread:@"invalid_file_descriptor"];
-                    [self reportStatusWithReason:@"processRedeivedData: invalid_file_descriptor"];
+                    [self reportStatusWithReason:@"processRedeivedData: invalid_file_descriptor" socketNumber:rx.socket];
                 }
                 
                 else if(rx.err==UMSocketError_invalid_file_descriptor)
@@ -895,20 +921,20 @@
                         NSLog(@"receiveData: UMSocketError_invalid_file_descriptor returned by receiveSCTP");
                     }
                     [self powerdownInReceiverThread:@"invalid_file_descriptor"];
-                    [self reportStatusWithReason:@"processRedeivedData: invalid_file_descriptor"];
+                    [self reportStatusWithReason:@"processRedeivedData: invalid_file_descriptor" socketNumber:rx.socket];
                 }
                 else if(rx.err==UMSocketError_connection_reset)
                 {
                     [self logDebug:@"ECONNRESET"];
                     [self powerdownInReceiverThread:@"ECONNRESET"];
-                    [self reportStatusWithReason:@"processRedeivedData ECONNRESET"];
+                    [self reportStatusWithReason:@"processRedeivedData ECONNRESET" socketNumber:rx.socket];
                 }
 
                 else if(rx.err==UMSocketError_connection_aborted)
                 {
                     [self logDebug:@"ECONNABORTED"];
                     [self powerdownInReceiverThread:@"ECONNABORTED"];
-                    [self reportStatusWithReason:@"processRedeivedData ECONNABORTED"];
+                    [self reportStatusWithReason:@"processRedeivedData ECONNABORTED" socketNumber:rx.socket];
                 }
                 else if(rx.err==UMSocketError_connection_refused)
                 {
@@ -922,7 +948,7 @@
                     NSString *s = [NSString stringWithFormat:@"processReceivedData: Error %d %@ returned by receiveSCTP",rx.err,[UMSocket getSocketErrorString:rx.err]];
                     [self logMinorError:s];
                     [self powerdownInReceiverThread:s];
-                    [self reportStatusWithReason:s];
+                    [self reportStatusWithReason:s socketNumber:rx.socket];
                 }
                 else /* UMSocketError_no_error */
                 {
@@ -940,7 +966,7 @@
                             NSString *s = [NSString stringWithFormat:@"processReceivedData peeloff failed"];
                             [self logMinorError:s];
                             [self powerdownInReceiverThread:s];
-                            [self reportStatusWithReason:s];
+                            [self reportStatusWithReason:s socketNumber:rx.socket];
                             _assocId = NULL;
                         }
                         else
@@ -956,14 +982,15 @@
                     {
                         [self handleEvent:rx.data
                                  streamId:rx.streamId
-                               protocolId:rx.protocolId];
+                               protocolId:rx.protocolId
+                                   socket:rx.socket];
                     }
                     else
                     {
                         [self sctpReceivedData:rx.data
                                       streamId:rx.streamId
                                     protocolId:rx.protocolId
-                                  socketNumber:rx.socket];
+                                        socket:rx.socket];
                     }
                 }
         }
@@ -977,6 +1004,7 @@
 -(void) handleEvent:(NSData *)event
            streamId:(NSNumber *)streamId
          protocolId:(NSNumber *)protocolId
+             socket:(NSNumber *)socketNumber
 {
     UMMUTEX_LOCK(_linkLock);
     @autoreleasepool
@@ -989,38 +1017,38 @@
             switch(snp->sn_header.sn_type)
             {
                 case SCTP_ASSOC_CHANGE:
-                    [self handleAssocChange:event streamId:streamId protocolId:protocolId];
+                    [self handleAssocChange:event streamId:streamId protocolId:protocolId socket:socketNumber];
                     break;
                 case SCTP_PEER_ADDR_CHANGE:
-                    [self handlePeerAddrChange:event streamId:streamId protocolId:protocolId];
+                    [self handlePeerAddrChange:event streamId:streamId protocolId:protocolId socket:socketNumber];
                     break;
                 case SCTP_SEND_FAILED:
-                    [self handleSendFailed:event streamId:streamId protocolId:protocolId];
+                    [self handleSendFailed:event streamId:streamId protocolId:protocolId socket:socketNumber];
                     break;
                 case SCTP_REMOTE_ERROR:
-                    [self handleRemoteError:event streamId:streamId protocolId:protocolId];
+                    [self handleRemoteError:event streamId:streamId protocolId:protocolId socket:socketNumber];
                     break;
                 case SCTP_SHUTDOWN_EVENT:
-                    [self handleShutdownEvent:event streamId:streamId protocolId:protocolId];
+                    [self handleShutdownEvent:event streamId:streamId protocolId:protocolId socket:socketNumber];
                     break;
                 case SCTP_PARTIAL_DELIVERY_EVENT:
-                    [self handleAdaptionIndication:event streamId:streamId protocolId:protocolId];
+                    [self handleAdaptionIndication:event streamId:streamId protocolId:protocolId socket:socketNumber];
                     break;
                 case SCTP_ADAPTATION_INDICATION:
-                    [self handleAdaptionIndication:event streamId:streamId protocolId:protocolId];
+                    [self handleAdaptionIndication:event streamId:streamId protocolId:protocolId socket:socketNumber];
                     break;
         #if defined SCTP_AUTHENTICATION_EVENT
                 case SCTP_AUTHENTICATION_EVENT:
-                    [self handleAuthenticationEvent:event streamId:streamId protocolId:protocolId];
+                    [self handleAuthenticationEvent:event streamId:streamId protocolId:protocolId socket:socketNumber];
                     break;
         #endif
                 case SCTP_SENDER_DRY_EVENT:
-                    [self handleSenderDryEvent:event streamId:streamId protocolId:protocolId];
+                    [self handleSenderDryEvent:event streamId:streamId protocolId:protocolId socket:socketNumber];
                     break;
 
         #if defined SCTP_STREAM_RESET_EVENT
                 case  SCTP_STREAM_RESET_EVENT:
-                    [self handleStreamResetEvent:event streamId:streamId protocolId:protocolId];
+                    [self handleStreamResetEvent:event streamId:streamId protocolId:protocolId socket:socketNumber];
                     break;
         #endif
 
@@ -1042,6 +1070,7 @@
 -(void) handleAssocChange:(NSData *)event
                  streamId:(NSNumber *)streamId
                protocolId:(NSNumber *)protocolId
+                   socket:(NSNumber *)socketNumber
 {
     UMMUTEX_LOCK(_linkLock);
     @try
@@ -1114,7 +1143,7 @@
                     NSString *s = [NSString stringWithFormat:@"processReceivedData peeloff failed"];
                     [self logMinorError:s];
                     [self powerdownInReceiverThread:s];
-                    [self reportStatusWithReason:s];
+                    [self reportStatusWithReason:s socketNumber:socketNumber];
                     NSLog(@"%@",s);
                 }
                 else
@@ -1123,7 +1152,7 @@
                 }
             }
             [_reconnectTimer stop];
-            [self reportStatusWithReason:@"SCTP_COMM_UP"];
+            [self reportStatusWithReason:@"SCTP_COMM_UP" socketNumber:socketNumber];
         }
         else if(snp->sn_assoc_change.sac_state==SCTP_COMM_LOST)
         {
@@ -1138,7 +1167,7 @@
             NSLog(@"%@ SCTP_COMM_LOST",_layerName);
     #endif
             [self powerdownInReceiverThread:@"SCTP_COMM_LOST"];
-            [self reportStatusWithReason:@"SCTP_COMM_LOST"];
+            [self reportStatusWithReason:@"SCTP_COMM_LOST" socketNumber:socketNumber];
     #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <= UMLOG_DEBUG)
             {
@@ -1159,7 +1188,7 @@
             NSLog(@"%@ SCTP_CANT_STR_ASSOC",_layerName);
     #endif
             [self powerdownInReceiverThread:@"SCTP_CANT_STR_ASSOC"];
-            [self reportStatusWithReason:@"SCTP_CANT_STR_ASSOC"];
+            [self reportStatusWithReason:@"SCTP_CANT_STR_ASSOC" socketNumber:socketNumber];
     #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <= UMLOG_DEBUG)
             {
@@ -1181,7 +1210,7 @@
     #endif
             NSString *s = [NSString stringWithFormat:@"SCTP_COMM_ERROR(%d)",snp->sn_assoc_change.sac_error];
             [self powerdownInReceiverThread:s];
-            [self reportStatusWithReason:s];
+            [self reportStatusWithReason:s socketNumber:socketNumber];
             [_reconnectTimer stop];
             [_reconnectTimer start];
         }
@@ -1221,6 +1250,7 @@
 -(void) handlePeerAddrChange:(NSData *)event
                     streamId:(NSNumber *)streamId
                   protocolId:(NSNumber *)protocolId
+                      socket:(NSNumber *)socketNumber
 {
     const union sctp_notification *snp;
 
@@ -1289,6 +1319,8 @@
 -(void) handleRemoteError:(NSData *)event
                  streamId:(NSNumber *)streamId
                protocolId:(NSNumber *)protocolId
+                   socket:(NSNumber *)socketNumber
+
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     const union sctp_notification *snp;
@@ -1328,6 +1360,7 @@
 -(int) handleSendFailed:(NSData *)event
                streamId:(NSNumber *)streamId
              protocolId:(NSNumber *)protocolId
+                 socket:(NSNumber *)socketNumber
 {
     const union sctp_notification *snp;
     snp = event.bytes;
@@ -1384,6 +1417,7 @@
 -(int) handleShutdownEvent:(NSData *)event
                   streamId:(NSNumber *)streamId
                 protocolId:(NSNumber *)protocolId
+                    socket:(NSNumber *)socketNumber
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     const union sctp_notification *snp;
@@ -1430,6 +1464,7 @@
 -(int) handleAdaptionIndication:(NSData *)event
                        streamId:(NSNumber *)streamId
                      protocolId:(NSNumber *)protocolId
+                         socket:(NSNumber *)socketNumber
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     const union sctp_notification *snp;
@@ -1469,6 +1504,7 @@
 -(int) handlePartialDeliveryEvent:(NSData *)event
                          streamId:(uint32_t)streamId
                        protocolId:(uint16_t)protocolId
+                           socket:(NSNumber *)socketNumber
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     const union sctp_notification *snp;
@@ -1513,6 +1549,7 @@
 -(int) handleAuthenticationEvent:(NSData *)event
                         streamId:(NSNumber *)streamId
                       protocolId:(NSNumber *)protocolId
+                          socket:(NSNumber *)socketNumber
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     const union sctp_notification *snp;
@@ -1567,6 +1604,7 @@
 -(int) handleStreamResetEvent:(NSData *)event
                      streamId:(NSNumber *)streamId
                    protocolId:(NSNumber *)protocolId
+                       socket:(NSNumber *)socketNumber
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     const union sctp_notification *snp;
@@ -1612,6 +1650,7 @@
 -(int) handleSenderDryEvent:(NSData *)event
                    streamId:(NSNumber *)streamId
                  protocolId:(NSNumber *)protocolId
+                     socket:(NSNumber *)socketNumber
 {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     const union sctp_notification *snp;
@@ -1651,7 +1690,7 @@
 - (UMSocketError) sctpReceivedData:(NSData *)data
                           streamId:(NSNumber *)streamId
                         protocolId:(NSNumber *)protocolId
-                      socketNumber:(NSNumber *)socketNumber
+                            socket:(NSNumber *)socketNumber
 {
     @autoreleasepool
     {

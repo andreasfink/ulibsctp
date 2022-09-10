@@ -35,7 +35,7 @@ typedef enum SCTP_SocketType_enum
 - (UMSocketError) sctpReceivedData:(NSData *)data
                           streamId:(NSNumber *)streamId
                         protocolId:(NSNumber *)protocolId
-                      socketNumber:(NSNumber *)socketNumber;
+                            socket:(NSNumber *)socketNumber;
 @end
 
 
