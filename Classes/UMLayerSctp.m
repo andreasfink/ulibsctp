@@ -956,7 +956,7 @@
                     {
                         UMSocketError err = UMSocketError_no_error;
                         _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
-                        [_layerHistory addLogEntry:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d err=%d/%@",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err]]];
+                        [self addToLayerHistoryLog:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d err=%d/%@",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err]]];
                         if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
                         {
                             [_directSocket close];
@@ -999,6 +999,7 @@
             UMMUTEX_UNLOCK(_linkLock);
         }
     }
+    [self socketReport];
 }
 
 -(void) handleEvent:(NSData *)event
@@ -1064,6 +1065,7 @@
             UMMUTEX_UNLOCK(_linkLock);
         }
     }
+    [self socketReport];
 }
 
 
@@ -1126,14 +1128,19 @@
             [self.logFeed infoText:s];
             [_layerHistory addLogEntry:s];
             [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP"];
+            s = [NSString stringWithFormat:@"directSocket=%@",_directSocket ? @(_directSocket.sock): @"NULL"];
+            [_layerHistory addLogEntry:s];
+            s = [NSString stringWithFormat:@"listenerSocket=%@",_listener.umsocket ? @(_listener.umsocket.sock): @"NULL"];
+            [_layerHistory addLogEntry:s];
             if((_directSocket==NULL) && (ass>0))
             {
+                [_layerHistory addLogEntry:@"doing peeloff"];
                 UMSocketError err = UMSocketError_no_error;
                 _assocId = @(ass);
                 _directSocket = [_listener peelOffAssoc:_assocId error:&err];
                 NSString *s=[NSString stringWithFormat:@"processReceivedData: peeling off assoc %u into socket %p/%d err=%d/%@",ass,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err]];
                 NSLog(@"%@",s);
-                [_layerHistory addLogEntry:s];
+                [self addToLayerHistoryLog:s];
                 if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
                 {
                     [_directSocket close];
@@ -1151,6 +1158,10 @@
                     [self startDirectSocketReceiver];
                 }
             }
+            else
+            {
+                [_layerHistory addLogEntry:@"skipping peeloff"];
+            }
             [_reconnectTimer stop];
             [self reportStatusWithReason:@"SCTP_COMM_UP" socketNumber:socketNumber];
         }
@@ -1166,7 +1177,7 @@
     #if defined(POWER_DEBUG)
             NSLog(@"%@ SCTP_COMM_LOST",_layerName);
     #endif
-            [self powerdownInReceiverThread:@"SCTP_COMM_LOST"];
+            [self powerdownInReceiverThread:@"SCTP_COMM_LOST (closing direct socket)"];
             [self reportStatusWithReason:@"SCTP_COMM_LOST" socketNumber:socketNumber];
     #if defined(ULIBSCTP_CONFIG_DEBUG)
             if(self.logLevel <= UMLOG_DEBUG)
@@ -1208,7 +1219,7 @@
     #if defined(POWER_DEBUG)
             NSLog(@"%@ SCTP_ASSOC_CHANGE: SCTP_COMM_ERROR(%d)",_layerName,snp->sn_assoc_change.sac_error );
     #endif
-            NSString *s = [NSString stringWithFormat:@"SCTP_COMM_ERROR(%d)",snp->sn_assoc_change.sac_error];
+            NSString *s = [NSString stringWithFormat:@"SCTP_COMM_ERROR(%d) closing direct socket",snp->sn_assoc_change.sac_error];
             [self powerdownInReceiverThread:s];
             [self reportStatusWithReason:s socketNumber:socketNumber];
             [_reconnectTimer stop];
@@ -2339,6 +2350,18 @@
 - (void)processError:(UMSocketError)err
 {
     return [self processError:err socket:_directSocket inArea:@"directSocketReceiver"];
+}
+
+
+- (void)socketReport
+{
+    NSString *s;
+    s = [NSString stringWithFormat:@"Socket L=%@ %@ D=%@ %@",
+         _listener.umsocket ? @(_listener.umsocket.sock) : @"NULL",
+         _listener.umsocket.isConnected ? @"connected" : @"disconnected",
+         _directSocket ? @(_directSocket.sock) : @"NULL",
+         _directSocket.isConnected ? @"connected" : @"disconnected" ];
+    [self addToLayerHistoryLog:s];
 }
 
 @end
