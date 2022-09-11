@@ -1158,12 +1158,17 @@
             if((_directSocket==NULL) && (ass>0))
             {
                 [_layerHistory addLogEntry:@"doing peeloff"];
-                UMSocketError err = UMSocketError_no_error;
+                UMSocketError err = UMSocketError_not_known;
                 _assocId = @(ass);
                 _directSocket = [_listener peelOffAssoc:_assocId error:&err];
                 NSString *s=[NSString stringWithFormat:@"handleAssocChange: peeling off assoc %u into socket %p/%d err=%d/%@",ass,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err]];
                 [self addToLayerHistoryLog:s];
-                if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
+                if(_directSocket==NULL)
+                {
+                    NSString *s = [NSString stringWithFormat:@"handleAssocChange peeloff failed"];
+                    [self addToLayerHistoryLog:s];
+                }
+                else if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
                 {
                     [_directSocket close];
                     [_listener unregisterAssoc:_assocId forLayer:self];
