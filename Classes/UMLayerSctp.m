@@ -551,6 +551,8 @@
     UMSleeper *sleeper = [[UMSleeper alloc]initFromFile:__FILE__ line:__LINE__ function:__func__];
     @autoreleasepool
     {
+        UMMUTEX_LOCK(_linkLock);
+
         id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
 
     #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -598,7 +600,6 @@
                 NSNumber *tmp_assocId = _assocId;
                 uerr = UMSocketError_no_error;
 
-                UMMUTEX_LOCK(_linkLock);
                 sent_packets = [self.directSocket sendToAddresses:_configured_remote_addresses
                                                              port:_configured_remote_port
                                                          assocPtr:&tmp_assocId
@@ -606,7 +607,6 @@
                                                            stream:task.streamId
                                                          protocol:task.protocolId
                                                             error:&uerr];
-                UMMUTEX_UNLOCK(_linkLock):
                 if(uerr !=UMSocketError_no_error)
                 {
                     NSString *s = [NSString stringWithFormat:@"sendToAddresses:%@ port:%d assoc:%@ returns error:%d %@",
@@ -637,12 +637,15 @@
             }
             else if(uerr == UMSocketError_try_again)
             {
+
                 /* we have EAGAIN */
                 /* lets try up to 50 times and wait 200ms every 10th time */
                 /* if thats still not succeeding, we declare this connection dead */
                 if(attempts % 10==0)
                 {
+                    UMMUTEX_UNLOCK(_linkLock);
                     [sleeper sleepSeconds:0.2];
+                    UMMUTEX_LOCK(_linkLock);
                 }
                 if(attempts < maxatt)
                 {
@@ -712,6 +715,7 @@
             [self powerdown:@"error in _dataTask"];
             [self reportStatusWithReason:@"powerdown due to error in dataTask"];
         }
+        UMMUTEX_UNLOCK(_linkLock);
     }
 }
 
