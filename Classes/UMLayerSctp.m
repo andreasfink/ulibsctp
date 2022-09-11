@@ -578,17 +578,17 @@
         int attempts=0;
         /* we try to send as long as no ASSOC down has been received or at least once (as we might not have a direct socket yet */
         int maxatt = 50;
+        /*
         NSString *s = [NSString stringWithFormat:@"SocketTX L=%@ %@ D=%@ %@",
              _listener.umsocket ? @(_listener.umsocket.sock) : @"NULL",
              _listener.umsocket.isConnected ? @"connected" : @"disconnected",
              _directSocket ? @(_directSocket.sock) : @"NULL",
              _directSocket.isConnected ? @"connected" : @"disconnected" ];
         [self addToLayerHistoryLog:s];
-
+         */
         while((attempts < maxatt) && (self.status==UMSOCKET_STATUS_IS) && (sent_packets<1))
         {
             attempts++;
-            [self socketReport];
             if((self.directSocket)  && (self.directSocket.isConnected==YES))
             {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1021,7 +1021,6 @@
             UMMUTEX_UNLOCK(_linkLock);
         }
     }
-    [self socketReport];
 }
 
 -(void) handleEvent:(NSData *)event
@@ -1029,7 +1028,6 @@
          protocolId:(NSNumber *)protocolId
              socket:(NSNumber *)socketNumber
 {
-    [self socketReport];
     UMMUTEX_LOCK(_linkLock);
     @autoreleasepool
     {
@@ -1088,7 +1086,6 @@
             UMMUTEX_UNLOCK(_linkLock);
         }
     }
-    [self socketReport];
 }
 
 
@@ -2379,18 +2376,6 @@
 - (void)processError:(UMSocketError)err
 {
     return [self processError:err socket:_directSocket inArea:@"directSocketReceiver"];
-}
-
-
-- (void)socketReport
-{
-    NSString *s;
-    s = [NSString stringWithFormat:@"Socket L=%@ %@ D=%@ %@",
-         _listener.umsocket ? @(_listener.umsocket.sock) : @"NULL",
-         _listener.umsocket.isConnected ? @"connected" : @"disconnected",
-         _directSocket ? @(_directSocket.sock) : @"NULL",
-         _directSocket.isConnected ? @"connected" : @"disconnected" ];
-    [self addToLayerHistoryLog:s];
 }
 
 @end
