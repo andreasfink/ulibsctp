@@ -607,7 +607,7 @@
                                                             error:&uerr];
                 if(uerr !=UMSocketError_no_error)
                 {
-                    NSString *s = [NSString stringWithFormat:@"sendToAddresses:%@ port:%@ assoc:%@ returns error:%d %@",
+                    NSString *s = [NSString stringWithFormat:@"sendToAddresses:%@ port:%d assoc:%@ returns error:%d %@",
                      _configured_remote_addresses,_configured_remote_port,_assocId,uerr,[UMSocket getSocketErrorString:uerr]];
                     [self addToLayerHistoryLog:s];
                 }
