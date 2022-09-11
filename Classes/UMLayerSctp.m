@@ -1139,8 +1139,7 @@
                 UMSocketError err = UMSocketError_no_error;
                 _assocId = @(ass);
                 _directSocket = [_listener peelOffAssoc:_assocId error:&err];
-                NSString *s=[NSString stringWithFormat:@"processReceivedData: peeling off assoc %u into socket %p/%d err=%d/%@",ass,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err]];
-                NSLog(@"%@",s);
+                NSString *s=[NSString stringWithFormat:@"handleAssocChange: peeling off assoc %u into socket %p/%d err=%d/%@",ass,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err]];
                 [self addToLayerHistoryLog:s];
                 if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
                 {
@@ -1148,7 +1147,7 @@
                     [_listener unregisterAssoc:_assocId forLayer:self];
                     _assocId=NULL;
                     _directSocket = NULL;
-                    NSString *s = [NSString stringWithFormat:@"processReceivedData peeloff failed"];
+                    NSString *s = [NSString stringWithFormat:@"handleAssocChange peeloff failed"];
                     [self logMinorError:s];
                     [self powerdownInReceiverThread:s];
                     [self reportStatusWithReason:s socketNumber:socketNumber];
@@ -1156,6 +1155,8 @@
                 }
                 else
                 {
+                    NSString *s = [NSString stringWithFormat:@"handleAssocChange peeloff succeeded"];
+                    [self addToLayerHistoryLog:s];
                     [self startDirectSocketReceiver];
                 }
             }
