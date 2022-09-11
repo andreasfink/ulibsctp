@@ -1007,6 +1007,7 @@
          protocolId:(NSNumber *)protocolId
              socket:(NSNumber *)socketNumber
 {
+    [self socketReport];
     UMMUTEX_LOCK(_linkLock);
     @autoreleasepool
     {
