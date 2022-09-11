@@ -598,6 +598,7 @@
                 NSNumber *tmp_assocId = _assocId;
                 uerr = UMSocketError_no_error;
 
+                UMMUTEX_LOCK(_linkLock);
                 sent_packets = [self.directSocket sendToAddresses:_configured_remote_addresses
                                                              port:_configured_remote_port
                                                          assocPtr:&tmp_assocId
@@ -605,6 +606,7 @@
                                                            stream:task.streamId
                                                          protocol:task.protocolId
                                                             error:&uerr];
+                UMMUTEX_UNLOCK(_linkLock):
                 if(uerr !=UMSocketError_no_error)
                 {
                     NSString *s = [NSString stringWithFormat:@"sendToAddresses:%@ port:%d assoc:%@ returns error:%d %@",
