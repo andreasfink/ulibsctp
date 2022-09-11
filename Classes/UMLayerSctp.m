@@ -576,9 +576,17 @@
         int attempts=0;
         /* we try to send as long as no ASSOC down has been received or at least once (as we might not have a direct socket yet */
         int maxatt = 50;
+        NSString *s = [NSString stringWithFormat:@"SocketTX L=%@ %@ D=%@ %@",
+             _listener.umsocket ? @(_listener.umsocket.sock) : @"NULL",
+             _listener.umsocket.isConnected ? @"connected" : @"disconnected",
+             _directSocket ? @(_directSocket.sock) : @"NULL",
+             _directSocket.isConnected ? @"connected" : @"disconnected" ];
+        [self addToLayerHistoryLog:s];
+
         while((attempts < maxatt) && (self.status==UMSOCKET_STATUS_IS) && (sent_packets<1))
         {
             attempts++;
+            [self socketReport];
             if((self.directSocket)  && (self.directSocket.isConnected==YES))
             {
     #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -588,6 +596,8 @@
                 }
     #endif
                 NSNumber *tmp_assocId = _assocId;
+                uerr = UMSocketError_no_error;
+
                 sent_packets = [self.directSocket sendToAddresses:_configured_remote_addresses
                                                              port:_configured_remote_port
                                                          assocPtr:&tmp_assocId
@@ -595,6 +605,12 @@
                                                            stream:task.streamId
                                                          protocol:task.protocolId
                                                             error:&uerr];
+                if(uerr !=UMSocketError_no_error)
+                {
+                    NSString *s = [NSString stringWithFormat:@"sendToAddresses:%@ port:%@ assoc:%@ returns error:%d %@",
+                     _configured_remote_addresses,_configured_remote_port,_assocId,uerr,[UMSocket getSocketErrorString:uerr]];
+                    [self addToLayerHistoryLog:s];
+                }
                 _assocId = tmp_assocId ;
             }
             else
