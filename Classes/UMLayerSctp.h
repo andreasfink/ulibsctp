@@ -28,7 +28,6 @@
 @interface UMLayerSctp : UMLayer<UMSCTPListenerProcessEventsDelegate,UMSCTPListenerReadPacketDelegate,UMSCTPListenerProcessDataDelegate>
 {
     UMSynchronizedArray *_users;
-    //UMBackgrounder      *_receiverThread;
     UMMutex             *_linkLock;
     UMThroughputCounter *_inboundThroughputPackets;
     UMThroughputCounter *_outboundThroughputPackets;
