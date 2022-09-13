@@ -148,7 +148,7 @@ typedef enum SCTP_SocketType_enum
 
 - (int) currentMtu;
 - (BOOL) isPathMtuDiscoveryEnabled;
-- (void)setPathMtuDiscovery:(BOOL)enable;
+- (UMSocketError)setPathMtuDiscovery:(BOOL)enable;
 
 
 @end

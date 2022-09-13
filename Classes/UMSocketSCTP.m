@@ -229,6 +229,11 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
     _msg_notification_mask = _global_msg_notification_mask;
     _status = UMSOCKET_STATUS_FOOS;
+	[self switchToNonBlocking];
+	[self setIPDualStack];
+	[self setLinger];
+	[self setReuseAddr];
+	[self setPathMtuDiscovery:YES];
 }
 
 - (void)prepareLocalAddresses
@@ -423,7 +428,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
 }
 
-- (void)setPathMtuDiscovery:(BOOL)enable
+- (UMSocketError)setPathMtuDiscovery:(BOOL)enable
 {
     [_historyLog addLogEntry:[NSString stringWithFormat:@"setPathMtuDiscovery:%@",enable ? @"YES" : @"NO"]];
     struct sctp_paddrparams params;
@@ -446,6 +451,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             _pathMtuDiscovery = enable;
         }
     }
+    return [super setPathMtuDiscovery:enable];
 }
 
 - (BOOL) isPathMtuDiscoveryEnabled
@@ -896,6 +902,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         [newcon setSock: newsock];
         [newcon switchToNonBlocking];
         [newcon doInitReceiveBuffer];
+        [newcon setPathMtuDiscovery:YES];
         newcon.connectedRemoteAddress = remoteAddress;
         newcon.connectedRemotePort = remotePort;
         newcon.useSSL = _useSSL;
@@ -1022,6 +1029,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         newcon.cryptoStream = [[UMCrypto alloc]initWithRelatedSocket:newcon];
         [newcon switchToNonBlocking];
         [newcon doInitReceiveBuffer];
+        [newcon setPathMtuDiscovery:YES];
         newcon.useSSL = _useSSL;
         [newcon updateMtu:_mtu];
         [newcon updateName];
