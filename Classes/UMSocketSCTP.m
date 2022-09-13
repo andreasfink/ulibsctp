@@ -423,7 +423,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
 }
 
-- (void)setPathMtuDiscovery:(BOOL)enable
+- (UMSocketError)setPathMtuDiscovery:(BOOL)enable
 {
     [_historyLog addLogEntry:[NSString stringWithFormat:@"setPathMtuDiscovery:%@",enable ? @"YES" : @"NO"]];
     struct sctp_paddrparams params;
