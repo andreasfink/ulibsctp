@@ -82,11 +82,8 @@
     err = [_umsocket setReuseAddr];
     LOG_MINOR_ERROR(err,@"setReuseAddr");
 
-    if(_umsocket.socketType != SOCK_SEQPACKET)
-    {
-        err = [_umsocket setReusePort];
-        LOG_MINOR_ERROR(err,@"setReusePort");
-    }
+    err = [_umsocket setPathMtuDiscovery:YES];
+    LOG_MINOR_ERROR(err,@"setPathMtuDiscovery");
 
     err = [_umsocket enableEvents];
     LOG_MAYOR_ERROR(err,@"enableEvents");

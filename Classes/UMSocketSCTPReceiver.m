@@ -729,6 +729,7 @@
                 [rs setIPDualStack];
                 [rs setLinger];
                 [rs setReuseAddr];
+		        [rs setPathMtuDiscovery:YES];
                 UMSocketError err = UMSocketError_not_known;
                 rx = [self receiveEncapsulatedPacket:rs error:&err timeout:2.0];/* potential DDOS / busyloop */
                 BOOL success = NO;
