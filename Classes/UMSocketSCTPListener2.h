@@ -75,7 +75,8 @@
                             assocPtr:(NSNumber **)assoc
                                layer:(UMLayerSctp *)layer;
 - (UMSocketSCTP *) peelOffAssoc:(NSNumber *)assoc
-                          error:(UMSocketError *)errptr;
+                          error:(UMSocketError *)errptr
+                    errorNumber:(int *)e;
 
 - (ssize_t) sendToAddresses:(NSArray *)addrs
                        port:(int)remotePort

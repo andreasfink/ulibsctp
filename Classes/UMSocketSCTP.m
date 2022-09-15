@@ -921,6 +921,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (UMSocketSCTP *) peelOffAssoc:(NSNumber *)assoc
                           error:(UMSocketError *)errptr
+                    errorNumber:(int *)e
 {
     if(assoc==NULL)
     {
@@ -1059,7 +1060,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 				}
 			}
 		}
-
         newcon.direction =  _direction;
         newcon.status=_status;
         newcon.localHost = self.localHost;
@@ -1097,10 +1097,15 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         return newcon;
     }
     /* sctp_peeloff returned error */
-    UMSocketError e = [UMSocket umerrFromErrno:errno];
+    int e2 = errno;
+    if(e)
+    {
+        *e = e2;
+    }
+    UMSocketError ee = [UMSocket umerrFromErrno:e2];
     if(errptr)
     {
-        *errptr = e;
+        *errptr = ee;
     }
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)

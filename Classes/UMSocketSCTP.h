@@ -93,7 +93,8 @@ typedef enum SCTP_SocketType_enum
 
 - (UMSocketSCTP *) acceptSCTP:(UMSocketError *)ret;
 - (UMSocketSCTP *) peelOffAssoc:(NSNumber *)assoc
-						  error:(UMSocketError *)errptr;
+						  error:(UMSocketError *)errptr
+                    errorNumber:(int *)e;
 
 - (UMSocketError) connect;
 - (UMSocketError) connectAssocPtr:(NSNumber **)assoc;
