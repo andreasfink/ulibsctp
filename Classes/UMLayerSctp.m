@@ -177,7 +177,7 @@
          streamId:sid
        protocolId:pid
        ackRequest:ack
-      synchronous:YES];
+      synchronous:NO];
 }
 
 /* public API for upper interface */
@@ -187,6 +187,7 @@
      protocolId:(uint32_t)pid
      ackRequest:(NSDictionary *)ack
     synchronous:(BOOL)sync
+
 {
     @autoreleasepool
     {
