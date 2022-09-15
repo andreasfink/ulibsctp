@@ -1074,7 +1074,6 @@
     }
 }
 
-
 -(void) handleAssocChange:(NSData *)event
                  streamId:(NSNumber *)streamId
                protocolId:(NSNumber *)protocolId
@@ -1126,7 +1125,7 @@
             [self logDebug:[NSString stringWithFormat:@"  sac_assoc_id: %d",         (int)snp->sn_assoc_change.sac_assoc_id]];
         }
     #endif
-        if((snp->sn_assoc_change.sac_state==SCTP_COMM_UP) && (snp->sn_assoc_change.sac_error== 0))
+        if(snp->sn_assoc_change.sac_state==SCTP_COMM_UP)
         {
             uint32_t ass = snp->sn_assoc_change.sac_assoc_id;
             _listener.firstMessage=YES;
