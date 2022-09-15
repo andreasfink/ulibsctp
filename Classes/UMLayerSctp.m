@@ -87,7 +87,8 @@
         _outboundThroughputPackets  = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
         _outboundThroughputBytes    = [[UMThroughputCounter alloc]initWithResolutionInSeconds: 1.0 maxDuration: 1260.0];
         _reconnectTimerValue = 6.0;
-        _reconnectTimer = [[UMTimer alloc]initWithTarget:self selector:@selector(reconnectTimerFires) object:NULL seconds:_reconnectTimerValue name:@"reconnect-timer" repeats:NO runInForeground:YES];
+        _reconnectTimer = NULL; /* upper layers should take care of that */
+        //_reconnectTimer = [[UMTimer alloc]initWithTarget:self selector:@selector(reconnectTimerFires) object:NULL seconds:_reconnectTimerValue name:@"reconnect-timer" repeats:NO runInForeground:YES];
         NSString *lockName = [NSString stringWithFormat:@"sctp-layer-link-lock(%@)",name];
         _linkLock = [[UMMutex alloc]initWithName:lockName];
         [self addToLayerHistoryLog:@"initWithTaskQueueMulti"];
@@ -2063,8 +2064,13 @@
 
 - (void)reconnectTimerFires
 {
+    
     @autoreleasepool
     {
+        [self addToLayerHistoryLog:@"reconnectTimerFires"];
+        [self openFor:NULL sendAbortFirst:NO reason:@"reconnect-timer-fires"];
+        
+#if 0
     #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
@@ -2101,6 +2107,7 @@
             }
         }
     }
+#endif
 }
 
 - (void)processError:(UMSocketError)err socket:(UMSocket *)socket inArea:(NSString *)area
