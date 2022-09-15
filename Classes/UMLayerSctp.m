@@ -1143,8 +1143,16 @@
                 UMSocketError err = UMSocketError_not_known;
                 _assocId = @(ass);
                 _directSocket = [_listener peelOffAssoc:_assocId error:&err];
-                NSString *s=[NSString stringWithFormat:@"handleAssocChange: peeling off assoc %u into socket %p/%d err=%d/%@",ass,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err]];
-                [self addToLayerHistoryLog:s];
+                if(err==UMSocketError_not_known)
+                {
+                    NSString *s=[NSString stringWithFormat:@"handleAssocChange: peeling off assoc %u into socket %p/%d err=%d/%@ errno=%d",ass,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err],errno];
+                    [self addToLayerHistoryLog:s];
+                }
+                else
+                {
+                    NSString *s=[NSString stringWithFormat:@"handleAssocChange: peeling off assoc %u into socket %p/%d err=%d/%@",ass,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err]];
+                    [self addToLayerHistoryLog:s];
+                }
                 if(_directSocket==NULL)
                 {
                     NSString *s = [NSString stringWithFormat:@"handleAssocChange peeloff failed"];
