@@ -2106,8 +2106,8 @@
                 [_listener registerAssoc:_assocId forLayer:self];
             }
         }
-    }
 #endif
+    }
 }
 
 - (void)processError:(UMSocketError)err socket:(UMSocket *)socket inArea:(NSString *)area
