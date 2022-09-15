@@ -177,7 +177,7 @@
          streamId:sid
        protocolId:pid
        ackRequest:ack
-      synchronous:YES];
+      synchronous:NO];
 }
 
 /* public API for upper interface */
@@ -187,6 +187,7 @@
      protocolId:(uint32_t)pid
      ackRequest:(NSDictionary *)ack
     synchronous:(BOOL)sync
+
 {
     @autoreleasepool
     {
@@ -802,24 +803,12 @@
         {
             [self addToLayerHistoryLog:@"powerdown"];
         }
-        //[_receiverThread shutdownBackgroundTask];
         [self setStatus:UMSOCKET_STATUS_OOS reason:@"powerdown"];
         [self setStatus:UMSOCKET_STATUS_OFF reason:@"powerdown"];
-
         if(_assocId!=NULL)
         {
             [_listener unregisterAssoc:_assocId forLayer:self];
             _assocId = NULL;
-            /*
-            for(NSString *addr in _configured_remote_addresses)
-            {
-                [_listener.umsocket abortToAddress:addr
-                                              port:(_active_remote_port>0 ? _active_remote_port :  _configured_remote_port)
-                                             assoc:_assocId
-                                            stream:0
-                                          protocol:0];
-            }
-            */
             if(_directSocket)
             {
                 [_directSocket close];
@@ -831,16 +820,7 @@
             {
                 [_directReceiver shutdownBackgroundTaskFromWithin];
             }
-            if(_directTcpEncapsulatedSocket)
-            {
-                [_directTcpEncapsulatedSocket close];
-                if(_isPassive)
-                {
-                    [_registry unregisterIncomingTcpLayer:self];
-                }
-            }
             _directSocket = NULL;
-            _directTcpEncapsulatedSocket = NULL;
         }
     }
 }
