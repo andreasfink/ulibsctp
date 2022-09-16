@@ -386,6 +386,7 @@
                             }
                         }
                         [_directSocket close];
+                        _directSocket = NULL;
                         [self setStatus:UMSOCKET_STATUS_OFF reason:@"closing old direct socket in openTask"];
                     }
                     NSNumber *tmp_assocId = NULL;
@@ -482,6 +483,7 @@
             {
                 socketNumber = @(_directSocket.sock);
                 [_directSocket close];
+                _directSocket = NULL;
             }
             else if(_listener)
             {
@@ -813,6 +815,7 @@
             if(_directSocket)
             {
                 [_directSocket close];
+                _directSocket = NULL;
                 [_listener unregisterAssoc:_assocId forLayer:self];
                 _assocId=NULL;
                 [_registry unregisterLayer:self];
@@ -973,9 +976,9 @@
                         else if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
                         {
                             [_directSocket close];
+                            _directSocket = NULL;
                             [_listener unregisterAssoc:_assocId forLayer:self];
                             _assocId = NULL;
-                            _directSocket = NULL;
                             NSString *s = [NSString stringWithFormat:@"processReceivedData peeloff failed"];
                             [self logMinorError:s];
                             [self powerdownInReceiverThread:s];
@@ -1159,9 +1162,9 @@
                 else if((err != UMSocketError_no_error) && (err !=UMSocketError_in_progress))
                 {
                     [_directSocket close];
+                    _directSocket = NULL;
                     [_listener unregisterAssoc:_assocId forLayer:self];
                     _assocId=NULL;
-                    _directSocket = NULL;
                     NSString *s = [NSString stringWithFormat:@"handleAssocChange peeloff failed"];
                     [self logMinorError:s];
                     [self powerdownInReceiverThread:s];
