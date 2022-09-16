@@ -367,8 +367,9 @@
 
 - (UMSocketSCTP *) peelOffAssoc:(NSNumber *)assoc
                           error:(UMSocketError *)errptr
+                    errorNumber:(int *)e
 {
-    return [_umsocket peelOffAssoc:assoc error:errptr];
+    return [_umsocket peelOffAssoc:assoc error:errptr errorNumber:e];
 }
 
 @end
