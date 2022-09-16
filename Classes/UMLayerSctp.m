@@ -958,7 +958,7 @@
                     {
                         UMSocketError err = UMSocketError_no_error;
                         _directSocket = [_listener peelOffAssoc:rx.assocId error:&err];
-                        [self addToLayerHistoryLog:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d err=%d/%@",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err]]];
+                        [self addToLayerHistoryLog:[NSString stringWithFormat:@"processReceivedData: peeling off assoc %lu into socket %p/%d err=%d/%@ errno=%d",(unsigned long)_assocId.unsignedLongValue,_directSocket,_directSocket.sock,err,[UMSocket getSocketErrorString:err],errno]];
                         if(_directSocket==NULL)
                         {
                             NSString *s = [NSString stringWithFormat:@"processReceivedData peeloff failed"];
