@@ -148,7 +148,7 @@
     UMSctpTask_Open *task = [[UMSctpTask_Open alloc]initWithReceiver:self sender:caller];
     task.sendAbortFirst = abortFirst;
     task.reason = reason;
-    [self addToLayerHistoryLog:[NSString stringWithFormat:@"openFor(%@) sendAbortFirst=YES reason=%@",caller.layerName, (reason ? reason : @"unspecified")]];
+    [self addToLayerHistoryLog:[NSString stringWithFormat:@"openFor(%@) sendAbortFirst=%@ reason=%@",caller.layerName,(abortFirst ? @"YES":@"NO"), (reason ? reason : @"unspecified")]];
     [self queueFromUpper:task];
 }
 
