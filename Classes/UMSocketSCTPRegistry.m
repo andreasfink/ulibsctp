@@ -8,12 +8,7 @@
 
 #import "UMSocketSCTPRegistry.h"
 
-#ifdef USE_LISTENER1
-#import "UMSocketSCTPListener.h"
-#import "UMSocketSCTPReceiver.h"
-#else
 #import "UMSocketSCTPListener2.h"
-#endif
 
 #import "UMLayerSctp.h"
 
@@ -26,9 +21,6 @@
     {
         _entries = [[NSMutableDictionary alloc]init];
         _registryLock = [[UMMutex alloc]initWithName:@"umsocket-sctp-registry"];
-#if USE_LISTENER1
-        _receiver = [[UMSocketSCTPReceiver alloc]initWithRegistry:self];
-#endif
         _outgoingLayers = [[NSMutableArray alloc]init];
         _incomingLayers = [[NSMutableArray alloc]init];
         _outgoingTcpLayers = [[NSMutableArray alloc]init];
@@ -143,20 +135,12 @@
 {
     UMMUTEX_LOCK(_registryLock);
     NSString *key =[UMSocketSCTPRegistry keyForPort:port ip:ip];
-#ifdef USE_LISTENER1
-    UMSocketSCTPListener *e = _entries[key];
-#else
     UMSocketSCTPListener2 *e = _entries[key];
-#endif
     UMMUTEX_UNLOCK(_registryLock);
     return e;
 }
 
-#ifdef USE_LISTENER1
-- (void)addListener:(UMSocketSCTPListener *)listener
-#else
 - (void)addListener:(UMSocketSCTPListener2 *)listener
-#endif
 {
     for(NSString *ip in listener.localIpAddresses)
     {
@@ -168,11 +152,7 @@
 }
 
 
-#ifdef USE_LISTENER1
-- (void)addListener:(UMSocketSCTPListener *)listener forPort:(int)port localIp:(NSString *)ip
-#else
 - (void)addListener:(UMSocketSCTPListener2 *)listener forPort:(int)port localIp:(NSString *)ip
-#endif
 {
     if(listener.tcpEncapsulated)
     {
@@ -190,11 +170,7 @@
 }
 
 
-#ifdef USE_LISTENER1
-- (void)removeListener:(UMSocketSCTPListener *)listener
-#else
 - (void)removeListener:(UMSocketSCTPListener2 *)listener
-#endif
 {
     for(NSString *ip in listener.localIpAddresses)
     {
@@ -205,11 +181,7 @@
     [self removeListener:listener forPort:listener.port localIp:s];
 }
 
-#ifdef USE_LISTENER1
-- (void)removeListener:(UMSocketSCTPListener *)listener forPort:(int)port localIp:(NSString *)ip
-#else
 - (void)removeListener:(UMSocketSCTPListener2 *)listener forPort:(int)port localIp:(NSString *)ip
-#endif
 {
     UMMUTEX_LOCK(_registryLock);
     listener.registry = NULL;
@@ -220,28 +192,16 @@
 }
 
 
-#ifdef USE_LISTENER1
-- (UMSocketSCTPListener *)getOrAddTcpListenerForPort:(int)port
-#else
 - (UMSocketSCTPListener2 *)getOrAddTcpListenerForPort:(int)port
-#endif
 {
-#ifdef USE_LISTENER1
-    UMSocketSCTPListener *listener  = NULL;
-#else
     UMSocketSCTPListener2 *listener  = NULL;
-#endif
     UMMUTEX_LOCK(_registryLock);
     @try
     {
         listener = [self getTcpListenerForPort:port];
         if(listener == NULL)
         {
-#ifdef USE_LISTENER1
-            listener = [[UMSocketSCTPListener alloc]initWithPort:port localIpAddresses:NULL];
-#else
             listener = [[UMSocketSCTPListener2 alloc]initWithPort:port localIpAddresses:NULL];
-#endif
             [self addTcpListener:listener];
         }
     }
@@ -256,28 +216,15 @@
     return listener;
 }
 
-#ifdef  USE_LISTENER1
-- (UMSocketSCTPListener *)getTcpListenerForPort:(int)port
-#else
 - (UMSocketSCTPListener2 *)getTcpListenerForPort:(int)port
-#endif
 {
     UMMUTEX_LOCK(_registryLock);
-#ifdef  USE_LISTENER1
-    UMSocketSCTPListener *e =  _incomingTcpListeners[@(port)];
-#else
     UMSocketSCTPListener2 *e =  _incomingTcpListeners[@(port)];
-
-#endif
     UMMUTEX_UNLOCK(_registryLock);
     return e;
 }
 
-#ifdef  USE_LISTENER1
-- (void)addTcpListener:(UMSocketSCTPListener *)listener
-#else
 - (void)addTcpListener:(UMSocketSCTPListener2 *)listener
-#endif
 {
     UMMUTEX_LOCK(_registryLock);
     listener.registry = self;
@@ -285,11 +232,7 @@
     UMMUTEX_UNLOCK(_registryLock);
 }
 
-#ifdef USE_LISTENER1
-- (void)removeTcpListener:(UMSocketSCTPListener *)listener
-#else
 - (void)removeTcpListener:(UMSocketSCTPListener2 *)listener
-#endif
 {
     UMMUTEX_LOCK(_registryLock);
     listener.registry = NULL;
@@ -325,11 +268,7 @@
 
     
     a1 = [[NSMutableArray alloc]init];
-#ifdef USE_LISTENER1
-    for(UMSocketSCTPListener *listener in _incomingListeners)
-#else
     for(UMSocketSCTPListener2 *listener in _incomingListeners)
-#endif
     {
         [a1 addObject:listener.name];
     }
@@ -372,11 +311,7 @@
     }
 
     [s appendFormat:@".incomingListeners: %d entries]\n",(int)_incomingListeners.count];
-#ifdef USE_LISTENER1
-    for(UMSocketSCTPListener *listener in _incomingListeners)
-#else
     for(UMSocketSCTPListener2 *listener in _incomingListeners)
-#endif
     {
         [s appendFormat:@"  [%@]\n",listener.name];
     }
@@ -617,43 +552,6 @@
     }
 }
 
-#ifdef USE_LISTENER1
-
-- (void)startReceiver
-{
-    if(_logLevel <= UMLOG_DEBUG)
-    {
-        [_logFeed debugText:@"[UMSocketSCTPegistry startReceiver]"];
-    }
-    if(_receiverStarted==YES)
-    {
-        return;
-    }
-    UMMUTEX_LOCK(_lock);
-    if(_receiverStarted==NO)
-    {
-        [_receiver startBackgroundTask];
-        _receiverStarted = YES;
-    }
-    UMMUTEX_UNLOCK(_lock);
-}
-
-- (void)stopReceiver
-{
-    if(_logLevel <= UMLOG_DEBUG)
-    {
-        [_logFeed debugText:@"[UMSocketSCTPegistry stopReceiver]"];
-    }
-
-    UMMUTEX_LOCK(_lock);
-    if(_receiverStarted==YES)
-    {
-        [_receiver shutdownBackgroundTask];
-        _receiverStarted=NO;
-    }
-    UMMUTEX_UNLOCK(_lock);
-}
-#endif /* USE_LISTENER1 */
 
 - (NSString *)webStat
 {

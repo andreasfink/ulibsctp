@@ -9,14 +9,7 @@
 #import <ulib/ulib.h>
 
 
-#ifdef USE_LISTENER1
-@class UMSocketSCTPListener;
-@class UMSocketSCTPReceiver;
-
-#else
 @class UMSocketSCTPListener2;
-#endif
-
 @class UMLayerSctp;
 
 
@@ -25,16 +18,8 @@
     NSMutableDictionary     *_entries;
 
     NSMutableArray                                           *_outgoingLayers;
-#ifdef USE_LISTENER1
-    NSMutableArray<UMSocketSCTPListener *>                   *_incomingListeners;
-    NSMutableDictionary<NSNumber *,UMSocketSCTPListener *>   *_incomingTcpListeners; /* key is @(port) */
-    UMSocketSCTPReceiver    *_receiver;
-    BOOL                    _receiverStarted;
-#else
     NSMutableArray<UMSocketSCTPListener2 *>                   *_incomingListeners;
     NSMutableDictionary<NSNumber *,UMSocketSCTPListener2 *>   *_incomingTcpListeners; /* key is @(port) */
-#endif
-    
     NSMutableArray          *_incomingLayers; /* once peeled of the listener */
     
     NSMutableArray          *_outgoingTcpLayers;
@@ -59,20 +44,6 @@
 
 
 
-#ifdef USE_LISTENER1
-- (UMSocketSCTPListener *)getOrAddListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips;
-- (UMSocketSCTPListener *)getListenerForPort:(int)port localIp:(NSString *)ip;
-- (UMSocketSCTPListener *)getListenerForPort:(int)port localIps:(NSArray *)ips;
-- (void)addListener:(UMSocketSCTPListener *)listener;
-- (void)addListener:(UMSocketSCTPListener *)listener forPort:(int)port localIp:(NSString *)ip;
-- (void)removeListener:(UMSocketSCTPListener *)listener;
-- (void)removeListener:(UMSocketSCTPListener *)listener forPort:(int)port localIp:(NSString *)ips;
-- (UMSocketSCTPListener *)getOrAddTcpListenerForPort:(int)port;
-- (UMSocketSCTPListener *)getTcpListenerForPort:(int)port;
-- (void)addTcpListener:(UMSocketSCTPListener *)listener;
-- (void)removeTcpListener:(UMSocketSCTPListener *)listener;
-
-#else
 - (UMSocketSCTPListener2 *)getOrAddListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips;
 - (UMSocketSCTPListener2 *)getListenerForPort:(int)port localIp:(NSString *)ip;
 - (UMSocketSCTPListener2 *)getListenerForPort:(int)port localIps:(NSArray *)ips;
@@ -84,7 +55,6 @@
 - (UMSocketSCTPListener2 *)getTcpListenerForPort:(int)port;
 - (void)addTcpListener:(UMSocketSCTPListener2 *)listener;
 - (void)removeTcpListener:(UMSocketSCTPListener2 *)listener;
-#endif
 
 
 
@@ -117,11 +87,6 @@
 
 - (NSArray *)allOutboundTcpLayers;
 - (NSArray *)allInboundTcpLayers;
-
-#ifdef USE_LISTENER1
-- (void)startReceiver;
-- (void)stopReceiver;
-#endif
 
 + (NSString *)registryKeyForLocalAddr:(NSString *)lo
                             localPort:(int)lp

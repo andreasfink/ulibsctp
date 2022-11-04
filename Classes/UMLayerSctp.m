@@ -159,7 +159,7 @@
 
 - (void)closeFor:(id<UMLayerSctpUserProtocol>)caller reason:(NSString *)reason
 {
-    [self addToLayerHistoryLog:[NSString stringWithFormat:@"closeFor(%@) reason=%@",caller.layerName,reason? reason: @"unspecified"]];
+    [self addToLayerHistoryLog:[NSString stringWithFormat:@"queuing closeFor(%@) reason=%@",caller.layerName,reason? reason: @"unspecified"]];
     UMSctpTask_Close *task = [[UMSctpTask_Close alloc]initWithReceiver:self sender:caller];
     task.reason = reason;
     [self queueFromUpper:task];
@@ -492,13 +492,9 @@
             _directSocket = NULL;
             if(_listenerStarted==YES)
             {
-#ifdef USE_LISTENER1
-                [_listener stopListeningFor:self];
-#else
                 /* FIXME: we leave the listener open for now
                    We should terminate the listener if we are the last one using it (but only then)
                  */
-#endif
             }
             _listener = NULL;
         }
