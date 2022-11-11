@@ -11,6 +11,7 @@
 
 @class UMLayerSctp;
 @class UMSocketSCTPReceivedPacket;
+@class UMSocketSCTP;
 
 @protocol UMSCTPListenerProcessEventsDelegate
 
@@ -36,6 +37,7 @@
 @interface UMSCTPListener : UMBackgrounder
 {
     UMLayerSctp                                 *_layer;
+    UMLogLevel                                  _logLevel;
     UMSocketSCTP                                *_umsocket;
     id<UMSCTPListenerProcessEventsDelegate>     _eventDelegate;
     id<UMSCTPListenerReadPacketDelegate>        _readDelegate;
@@ -45,6 +47,7 @@
 }
 
 @property(readwrite,strong,atomic)  UMLayer                                    *layer;
+@property(readwrite,assign,atomic) UMLogLevel logLevel;
 @property(readwrite,strong,atomic)  UMSocketSCTP                               *umsocket;
 @property(readwrite,strong,atomic)  id<UMSCTPListenerProcessEventsDelegate>    eventDelegate;
 @property(readwrite,strong,atomic)  id<UMSCTPListenerReadPacketDelegate>       readDelegate;

@@ -73,8 +73,10 @@
 {
     UMSocketError returnValue = UMSocketError_no_error;
     
+
     if(_umsocket==NULL)
     {
+        NSLog(@"calling waitAndHandleData returns because _umsocket is NULL");
         return UMSocketError_not_a_socket;
     }
     struct pollfd   pollfds[2];
@@ -86,6 +88,11 @@
     {
         _timeoutInMs = 100;
     }
+    if(_timeoutInMs > 10000)
+    {
+        _timeoutInMs = 10000);
+    }
+    NSLog(@"  waitAndHandleData(_timeoutInMs=%d)",_timeoutInMs);
     int ret1 = poll(pollfds, 1, _timeoutInMs);
     if (ret1 < 0)
     {

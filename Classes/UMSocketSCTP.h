@@ -11,6 +11,8 @@
 #import "UMLayerSctpApplicationContextProtocol.h"
 #import "UMSocketSCTPReceivedPacket.h"
 
+@class UMSocketSCTPListener2;
+
 struct sctp_sndrcvinfo;
 
 
@@ -23,8 +25,6 @@ typedef enum SCTP_SocketType_enum
     SCTP_SOCKET_TYPE_OUTBOUND_TCP   = 4,
     SCTP_SOCKET_TYPE_INBOUND_TCP    = 5,
 } SCTP_SocketType_enum;
-
-@class UMSocketSCTPListener;
 
 @protocol UMSocketSCTP_notificationDelegate
 - (UMSocketError) handleEvent:(NSData *)data
@@ -50,7 +50,7 @@ typedef enum SCTP_SocketType_enum
     int             _msg_notification_mask;
     double          _heartbeatSeconds;
     NSTimeInterval  _connectionRepeatTimer;
-    UMSocketSCTPListener *_listener;
+    UMSocketSCTPListener2 *_listener;
     BOOL            _continuousConnectionAttempts;
     BOOL            _connectx_pending;
     NSData          *_localAddressesSockaddr;

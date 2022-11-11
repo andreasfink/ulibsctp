@@ -2363,6 +2363,9 @@
                                       eventDelegate:self
                                        readDelegate:self
                                     processDelegate:self];
+    _directReceiver.logFeed = self.logFeed;
+    _directReceiver.logLevel = self.logLevel;
+
     NSString *s = [NSString stringWithFormat:@"starting receiver on socket %p/%d assoc %@",_directSocket,_directSocket.sock,_assocId];
     [_layerHistory addLogEntry:s];
     NSLog(@"%@",s);
