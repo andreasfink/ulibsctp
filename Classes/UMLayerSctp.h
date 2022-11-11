@@ -108,7 +108,7 @@
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputPackets;
 @property(readwrite,strong,atomic)      UMThroughputCounter *outboundThroughputBytes;
 @property(readwrite,strong,atomic)      UMSocketSCTPRegistry *registry;
-@property(readwrite,strong) UMSocketSCTPListener2 *listener;
+@property(readwrite,strong,atomic)      UMSocketSCTPListener2 *listener;
 
 @property(readwrite,strong) NSNumber    *assocId;
 @property(readwrite,assign) int         mtu;

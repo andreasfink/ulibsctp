@@ -302,7 +302,7 @@
 - (void)startListeningFor:(UMLayerSctp *)layer
 {
     [_listenerLock lock];
-    if(_layers.count==0)
+    if(_layers.count==0) /* the first layer is being added */
     {
         [self startBackgroundTask];
         [_registry addListener:self];
@@ -317,6 +317,7 @@
     [_layers removeObjectForKey:layer.layerName];
     if(_layers.count==0)
     {
+        /* last one to be remoived */
         [_registry removeListener:layer.listener];
         [self shutdownBackgroundTask];
     }

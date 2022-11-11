@@ -342,9 +342,13 @@
                     NSString *addrs = [_configured_local_addresses componentsJoinedByString:@","];
                     [self logDebug:[NSString stringWithFormat:@"getting listener on %@ on port %d",addrs,_configured_local_port]];
                 }
-                _listener =  [_registry getOrAddListenerForPort:_configured_local_port localIps:_configured_local_addresses];
-                _listener.mtu = _mtu;
-                _listener.dscp = _dscp;
+                self.listener =  [_registry getOrAddListenerForPort:_configured_local_port localIps:_configured_local_addresses];
+                if(self.listener == NULL)
+                {
+                    [self logDebug:@"OOPS, _listener is NULL"];
+                }
+                self.listener.mtu = _mtu;
+                self.listener.dscp = _dscp;
                 if(_minReceiveBufferSize > _listener.minReceiveBufferSize)
                 {
                     _listener.minReceiveBufferSize = _minReceiveBufferSize;
@@ -353,6 +357,7 @@
                 {
                     _listener.minSendBufferSize = _minSendBufferSize;
                 }
+                usleep(100000); /* lets give the system a chance to set isListening etc */
                 [_listener startListeningFor:self];
                 usleep(150000); /* lets give the system a chance to set isListening etc */
                 _listenerStarted = _listener.isListening;
@@ -492,13 +497,7 @@
                 socketNumber = @(- _listener.umsocket.sock);
             }
             _directSocket = NULL;
-            if(_listenerStarted==YES)
-            {
-                /* FIXME: we leave the listener open for now
-                   We should terminate the listener if we are the last one using it (but only then)
-                 */
-            }
-            _listener = NULL;
+            [_listener stopListeningFor:self];
         }
         @catch(NSException *e)
         {
