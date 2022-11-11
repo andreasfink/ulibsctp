@@ -555,7 +555,7 @@
     {
         id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
 
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
+//    #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"DATA: %@",task.data]];
@@ -563,7 +563,7 @@
             [self logDebug:[NSString stringWithFormat:@" protocolId: %@",task.protocolId]];
             [self logDebug:[NSString stringWithFormat:@" ackRequest: %@",(task.ackRequest ? task.ackRequest.description  : @"(not present)")]];
         }
-    #endif
+//    #endif
         
         if(task.data == NULL)
         {
