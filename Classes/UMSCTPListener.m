@@ -90,7 +90,7 @@
     }
     if(_timeoutInMs > 10000)
     {
-        _timeoutInMs = 10000);
+        _timeoutInMs = 10000;
     }
     NSLog(@"  waitAndHandleData(_timeoutInMs=%d)",_timeoutInMs);
     int ret1 = poll(pollfds, 1, _timeoutInMs);
