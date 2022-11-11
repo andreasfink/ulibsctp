@@ -553,8 +553,6 @@
     UMSleeper *sleeper = [[UMSleeper alloc]initFromFile:__FILE__ line:__LINE__ function:__func__];
     @autoreleasepool
     {
-        UMMUTEX_LOCK(_linkLock);
-
         id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
 
     #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -572,7 +570,9 @@
             /* nothing to be done */
             return;
         }
-        
+
+        UMMUTEX_LOCK(_linkLock);
+
         BOOL failed = NO;
         UMSocketError uerr = UMSocketError_no_error;
 
