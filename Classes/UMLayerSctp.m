@@ -1136,7 +1136,6 @@
             NSString *s=[NSString stringWithFormat:@" SCTP_ASSOC_CHANGE: SCTP_COMM_UP->IS (assocID=%u)",ass];
             [self.logFeed infoText:s];
             [_layerHistory addLogEntry:s];
-            [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP"];
             s = [NSString stringWithFormat:@"directSocket=%@",_directSocket ? @(_directSocket.sock): @"NULL"];
             [_layerHistory addLogEntry:s];
             s = [NSString stringWithFormat:@"listenerSocket=%@",_listener.umsocket ? @(_listener.umsocket.sock): @"NULL"];
@@ -1179,7 +1178,7 @@
                 [_layerHistory addLogEntry:@"skipping peeloff"];
             }
             [_reconnectTimer stop];
-            [self reportStatusWithReason:@"SCTP_COMM_UP" socketNumber:socketNumber];
+            [self setStatus:UMSOCKET_STATUS_IS reason:@"COM_UP"];
         }
         else if(snp->sn_assoc_change.sac_state==SCTP_COMM_LOST)
         {
