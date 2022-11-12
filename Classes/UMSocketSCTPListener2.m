@@ -318,8 +318,9 @@
     if(_layers.count==0)
     {
         /* last one to be remoived */
-        [_registry removeListener:layer.listener];
-        [self shutdownBackgroundTask];
+        /* FIXME */
+        //[_registry removeListener:layer.listener];
+        //[self shutdownBackgroundTask];
     }
     [_listenerLock unlock];
 }

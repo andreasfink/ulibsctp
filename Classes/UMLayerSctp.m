@@ -342,7 +342,7 @@
                     NSString *addrs = [_configured_local_addresses componentsJoinedByString:@","];
                     [self logDebug:[NSString stringWithFormat:@"getting listener on %@ on port %d",addrs,_configured_local_port]];
                 }
-                self.listener =  [_registry getOrAddListenerForPort:_configured_local_port localIps:_configured_local_addresses];
+                _listener =  [_registry getOrAddListenerForPort:_configured_local_port localIps:_configured_local_addresses];
                 if(self.listener == NULL)
                 {
                     [self logDebug:@"OOPS, _listener is NULL"];
