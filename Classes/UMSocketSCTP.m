@@ -615,6 +615,10 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         {
             NSString *address = [theAddrs objectAtIndex:i];
             NSString *address2 = [UMSocket deunifyIp:address];
+            if([address2 isEqualToString:@"localost"])
+            {
+                address2 = @"127.0.0.1";
+            }
             if(address2.length>0)
             {
                 address = address2;

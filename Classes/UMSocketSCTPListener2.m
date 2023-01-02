@@ -164,7 +164,7 @@
             /* lets find it by source / destination IP */
             for(NSString *ip in _localIpAddresses)
             {
-                NSLog(@"layerForLocalIp:%@ localPort:%d remoteIp:%@ remotePort:%d",ip,_port,rx.remoteAddress,rx.remotePort);
+                //NSLog(@"layerForLocalIp:%@ localPort:%d remoteIp:%@ remotePort:%d",ip,_port,rx.remoteAddress,rx.remotePort);
                 UMLayerSctp *layer = [_registry layerForLocalIp:ip
                                                       localPort:_port
                                                        remoteIp:rx.remoteAddress
