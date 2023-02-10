@@ -1309,25 +1309,31 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
     memset(&buffer[0],0xFA,sizeof(buffer));
     memset(remote_address_ptr,0x00,sizeof(remote_address_len));
-
+    int rxerr;
     UMSocketSCTPReceivedPacket *rx = [[UMSocketSCTPReceivedPacket alloc]init];
     struct sctp_sndrcvinfo sinfo;
-    memset(&sinfo,0x00,sizeof(sinfo));
-    bytes_read = sctp_recvmsg(_sock,
-                         &buffer,
-                         SCTP_RXBUF,
-                         remote_address_ptr,
-                         &remote_address_len,
-                         &sinfo,
-                         &flags);
-    if(bytes_read <= 0)
+    do
     {
+        rxerr = 0;
+        memset(&sinfo,0x00,sizeof(sinfo));
+        bytes_read = sctp_recvmsg(_sock,
+                                  &buffer,
+                                  SCTP_RXBUF,
+                                  remote_address_ptr,
+                                  &remote_address_len,
+                                  &sinfo,
+                                  &flags);
+        if(bytes_read <= 0)
+        {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
-        NSLog(@"errno %d %s",errno,strerror(errno));
+            NSLog(@"errno %d %s",errno,strerror(errno));
 #endif
-        rx.err = [UMSocket umerrFromErrno:errno];
-    }
-    else
+            rxerr = errno;
+            rx.err = [UMSocket umerrFromErrno:rxerr];
+        }
+    } while(rxerr==EAGAIN);
+    
+    if(bytes_read > 0)
     {
         rx.remoteAddress = [UMSocket addressOfSockAddr:remote_address_ptr];
         rx.remotePort = [UMSocket portOfSockAddr:remote_address_ptr];
