@@ -408,7 +408,6 @@
 				TargetAttributes = {
 					A6C78D0C1A29271D006C66A2 = {
 						CreatedOnToolsVersion = 6.1.1;
-						DevelopmentTeam = 38L827M334;
 						ProvisioningStyle = Automatic;
 					};
 					A6C78D171A29271D006C66A2 = {
@@ -669,7 +668,7 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 38L827M334;
+				DEVELOPMENT_TEAM = 2GSNWPNR77;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				FRAMEWORK_SEARCH_PATHS = (
