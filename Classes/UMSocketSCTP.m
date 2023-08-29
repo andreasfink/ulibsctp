@@ -395,6 +395,12 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 
 - (void)setMtu:(int)newMtu
 {
+    [self configureMtu:newMtu];
+}
+
+- (UMSocketError)configureMtu:(int)newMtu
+{
+    UMSocketError err = UMSocketError_no_error;
     [_historyLog addLogEntry:[NSString stringWithFormat:@"setMtu:%d",newMtu]];
     _mtu = newMtu;
     struct sctp_paddrparams params;
@@ -424,8 +430,17 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                     _mtu = 0;
                 }
             }
+            else
+            {
+                err = [UMSocket umerrFromErrno:errno];
+            }
+        }
+        else
+        {
+            err = [UMSocket umerrFromErrno:errno];
         }
     }
+    return err;
 }
 
 - (UMSocketError)setPathMtuDiscovery:(BOOL)enable
@@ -434,24 +449,31 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     struct sctp_paddrparams params;
     socklen_t len = sizeof(params);
     memset((void *)&params,0x00, sizeof(struct sctp_paddrparams));
+    
+    UMSocketError err = [super setPathMtuDiscovery:enable];
     if(getsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, &len) == 0)
     {
         if(enable)
         {
-            params.spp_flags |= SPP_PMTUD_ENABLE;
             params.spp_flags &= ~SPP_PMTUD_DISABLE;
+            params.spp_flags |= SPP_PMTUD_ENABLE;
         }
         else
         {
-            params.spp_flags |= SPP_PMTUD_DISABLE;
             params.spp_flags &= ~SPP_PMTUD_ENABLE;
+            params.spp_flags |= SPP_PMTUD_DISABLE;
         }
         if(setsockopt(_sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, len) == 0)
         {
             _pathMtuDiscovery = enable;
+            err = UMSocketError_no_error;
+        }
+        else
+        {
+            err = [UMSocket umerrFromErrno:errno];
         }
     }
-    return [super setPathMtuDiscovery:enable];
+    return err;
 }
 
 - (BOOL) isPathMtuDiscoveryEnabled
@@ -555,21 +577,23 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     _maxSeg = newMaxSeg;
 }
 
-- (void)updateMtu:(int)newMtu
+- (UMSocketError)updateMtu:(int)newMtu
 {
 /* to mitigate kernel panic in some versions
      https://www.spinics.net/lists/netdev/msg534371.html
 */
+    UMSocketError err = UMSocketError_no_error;
     if(newMtu==0)
     {
-        [self setMtu:1500];
-        [self setMtu:0];
+        [self configureMtu:1500];
+        err = [self configureMtu:0];
     }
     else
     {
-        [self setMtu:0];
-        [self setMtu:newMtu];
+        [self configureMtu:0];
+        err = [self configureMtu:newMtu];
     }
+    return err;
 }
 
 - (UMSocketError) enableFutureAssoc

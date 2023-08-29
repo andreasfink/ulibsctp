@@ -142,7 +142,9 @@ typedef enum SCTP_SocketType_enum
 - (UMSocketError) setNoDelay;
 - (UMSocketError) setInitParams;
 
-- (void)updateMtu:(int)newMtu;
+- (void)setMtu:(int)newMtu;
+- (UMSocketError)configureMtu:(int)newMtu;
+- (UMSocketError)updateMtu:(int)newMtu;
 - (UMSocketError)setHeartbeat:(BOOL)enable;
 - (NSArray *)getRemoteIpAddressesForAssoc:(uint32_t)assoc;
 - (int)bindx:(struct sockaddr *)localAddress;
