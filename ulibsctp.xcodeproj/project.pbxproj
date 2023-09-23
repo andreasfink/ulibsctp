@@ -408,7 +408,6 @@
 				TargetAttributes = {
 					A6C78D0C1A29271D006C66A2 = {
 						CreatedOnToolsVersion = 6.1.1;
-						DevelopmentTeam = 38L827M334;
 						ProvisioningStyle = Automatic;
 					};
 					A6C78D171A29271D006C66A2 = {
@@ -663,7 +662,6 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
-				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 38L827M334;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -689,7 +687,6 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
-				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 38L827M334;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
