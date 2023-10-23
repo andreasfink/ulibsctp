@@ -189,7 +189,7 @@
 				A6F6942A1B4E85FA0090FC94 /* Makefile.linux.in */,
 				A6F6942B1B4E85FA0090FC94 /* Makefile.osx.in */,
 				A6F6942C1B4E85FA0090FC94 /* ulibsctp.pc.in */,
-				A6C78D0F1A29271D006C66A2 /* Classes */,
+				A6C78D0F1A29271D006C66A2 /* ulibsctp */,
 				A6C78D101A29271D006C66A2 /* SupportingFiles */,
 				A6C78D1C1A29271D006C66A2 /* ulibsctpTests */,
 				A6F1C620247BEA0800FE7402 /* testcase-sctp-1 */,
@@ -209,7 +209,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		A6C78D0F1A29271D006C66A2 /* Classes */ = {
+		A6C78D0F1A29271D006C66A2 /* ulibsctp */ = {
 			isa = PBXGroup;
 			children = (
 				A6C78D121A29271D006C66A2 /* ulibsctp.h */,
@@ -253,7 +253,7 @@
 				A6C78DC51A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.h */,
 				A6C78DC61A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m */,
 			);
-			path = Classes;
+			path = ulibsctp;
 			sourceTree = "<group>";
 		};
 		A6C78D101A29271D006C66A2 /* SupportingFiles */ = {
