@@ -2214,7 +2214,6 @@
     return _directSocket.currentMtu;
 }
 
-
 - (UMSynchronizedSortedDictionary *)sctpStatusDict
 {
     UMSynchronizedSortedDictionary *dict = [[UMSynchronizedSortedDictionary alloc]init];
