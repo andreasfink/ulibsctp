@@ -7,8 +7,8 @@
 //
 
 #import <ulib/ulib.h>
-#import "UMSCTPListener.h"
-#import "UMSocketSCTP.h"
+#import <ulibsctp/UMSCTPListener.h>
+#import <ulibsctp/UMSocketSCTP.h>
 
 @class UMSocketSCTPRegistry;
 @class UMLayerSctp;

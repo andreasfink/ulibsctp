@@ -10,7 +10,7 @@
 @class UMLayerSctp;
 @class UMLayerSctpUserProfile;
 
-#import "UMLayerSctpUserProtocol.h"
+#import <ulibsctp/UMLayerSctpUserProtocol.h>
 
 
 @interface UMSctpTask_AdminAttach : UMLayerTask

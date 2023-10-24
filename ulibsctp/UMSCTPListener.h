@@ -7,7 +7,7 @@
 //
 
 #import <ulib/ulib.h>
-#import "UMSocketSCTP.h"
+#import <ulibsctp/UMSocketSCTP.h>
 
 @class UMLayerSctp;
 @class UMSocketSCTPReceivedPacket;

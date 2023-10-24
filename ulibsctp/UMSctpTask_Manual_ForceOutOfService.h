@@ -7,8 +7,8 @@
 //
 
 #import <ulib/ulib.h>
-#import "UMLayerSctp.h"
-#import "UMLayerSctpUserProtocol.h"
+#import <ulibsctp/UMLayerSctp.h>
+#import <ulibsctp/UMLayerSctpUserProtocol.h>
 
 @interface UMSctpTask_Manual_ForceOutOfService : UMLayerTask
 {

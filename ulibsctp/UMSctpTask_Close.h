@@ -7,7 +7,8 @@
 //
 
 #import <ulib/ulib.h>
-#import "UMLayerSctpUserProtocol.h"
+#import <ulibsctp/UMLayerSctpUserProtocol.h>
+
 @class UMLayerSctp;
 
 @interface UMSctpTask_Close : UMLayerTask
