@@ -9,7 +9,7 @@
 #import <ulib/ulib.h>
 
 #import <ulibsctp/UMLayerSctp.h>
-#import <ulibsctp/UMLayerSctpUserProtocol.h<ulibsctp/
+#import <ulibsctp/UMLayerSctpUserProtocol.h>
 
 @interface UMSctpTask_Manual_InService : UMLayerTask
 {
