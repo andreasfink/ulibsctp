@@ -13,7 +13,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-#include "ulibsctp_config.h"
+#import "ulibsctp_config.h"
 
 #ifdef HAVE_SCTP_SCTP_H
 #import <sctp/sctp.h>

@@ -8,7 +8,7 @@
 
 #define ULIBSCTP_INTERNAL 1
 //#define POWER_DEBUG         1
-#include "ulibsctp_config.h"
+#import "ulibsctp_config.h"
 
 #include <netinet/in.h>
 #ifdef HAVE_SCTP_SCTP_H

@@ -2362,7 +2362,7 @@ VERSION=`head -n 1 VERSION`
 MAJORVER=`echo $VERSION | cut -f1 -d.`
 MINORVER=`echo $VERSION | cut -f2 -d.`
 REVISION=`echo $VERSION | cut -f3 -d.`
-CONFIG_HEADER=Classes/ulibsctp_config.h
+CONFIG_HEADER=${PROJECT_NAME}/ulibsctp_config.h
 DEPENDENT_PKGCONFIGS="ulib"
 PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
 export PKG_CONFIG_PATH

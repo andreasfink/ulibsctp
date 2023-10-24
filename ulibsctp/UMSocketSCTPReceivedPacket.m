@@ -25,7 +25,7 @@
 #include <netinet/tcp.h>
 #include <netdb.h>
 
-#include "ulibsctp_config.h"
+#import "ulibsctp_config.h"
 
 #ifdef HAVE_SCTP_SCTP_H
 #include <sctp/sctp.h>
