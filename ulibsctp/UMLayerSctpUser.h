@@ -7,7 +7,7 @@
 //
 
 #import <ulib/ulib.h>
-#import "UMLayerSctpUserProtocol.h"
+#import <ulibsctp/UMLayerSctpUserProtocol.h>
 
 @class UMLayerSctpUserProfile;
 

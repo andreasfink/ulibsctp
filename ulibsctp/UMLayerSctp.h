@@ -7,10 +7,10 @@
 //
 
 #import <ulib/ulib.h>
-#import "UMLayerSctpUserProtocol.h"
-#import "UMLayerSctpApplicationContextProtocol.h"
-#import "UMSocketSCTP.h"
-#import "UMSCTPListener.h"
+#import <ulibsctp/UMLayerSctpUserProtocol.h>
+#import <ulibsctp/UMLayerSctpApplicationContextProtocol.h>
+#import <ulibsctp/UMSocketSCTP.h>
+#import <ulibsctp/UMSCTPListener.h>
 @class UMSctpTask_AdminInit;
 @class UMSctpTask_AdminSetConfig;
 @class UMSctpTask_AdminAttach;

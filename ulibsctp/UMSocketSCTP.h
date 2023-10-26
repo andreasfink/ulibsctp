@@ -7,9 +7,9 @@
 //
 
 #import <ulib/ulib.h>
-#import "UMLayerSctpUserProtocol.h"
-#import "UMLayerSctpApplicationContextProtocol.h"
-#import "UMSocketSCTPReceivedPacket.h"
+#import <ulibsctp/UMLayerSctpUserProtocol.h>
+#import <ulibsctp/UMLayerSctpApplicationContextProtocol.h>
+#import <ulibsctp/UMSocketSCTPReceivedPacket.h>
 
 @class UMSocketSCTPListener2;
 
