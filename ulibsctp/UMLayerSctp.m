@@ -1972,7 +1972,6 @@
         config[@"passive"] = _isPassive ? @YES : @ NO;
         config[@"heartbeat"] = @(_heartbeatSeconds);
         config[@"reconnect-timer"] = @(_reconnectTimerValue);
-        config[@"heartbeat"] = @(_heartbeatSeconds);
         config[@"mtu"] = @(_mtu);
         if(_dscp)
         {
