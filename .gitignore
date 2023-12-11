@@ -12,11 +12,12 @@ config.log
 config.status
 stamp-h1
 autom4te.cache
-Classes/ulib_config.h
+ulibsctp/ulibsctp_config.h
 BUILDNR
 make_buildnr.sh
 buildnumber.c
 buildnumber.h
+ulibsctp.pc
 
 
 
