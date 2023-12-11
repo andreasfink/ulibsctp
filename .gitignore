@@ -18,6 +18,8 @@ make_buildnr.sh
 buildnumber.c
 buildnumber.h
 ulibsctp.pc
+*.m.d
+version.h
 
 
 
