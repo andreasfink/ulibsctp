@@ -1,0 +1,16 @@
+#ulib pkg-config source file
+
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Cflags: -I${includedir}
+Libs: -lsctp -L${libdir} -l:libulibsctp.dylib.2.0
+
+Name: ulibsctp
+Description: universal sctp library
+Version: 2.0.0
+Requires: ulib
+
+
