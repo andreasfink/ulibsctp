@@ -19,6 +19,8 @@
 		A634B49A1A2E9AF700854472 /* UMLayerSctpUserProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */; };
 		A634B49B1A2E9AF700854472 /* UMLayerSctpUserProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */; };
 		A648DF4F247C370000F25226 /* ulibsctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6C78D0D1A29271D006C66A2 /* ulibsctp.framework */; };
+		A68012612B288D0500C34D40 /* ulibsctp_config.h.in in Resources */ = {isa = PBXBuildFile; fileRef = A680125F2B288D0500C34D40 /* ulibsctp_config.h.in */; };
+		A68012622B288D0500C34D40 /* ulibsctp_config.h in Headers */ = {isa = PBXBuildFile; fileRef = A68012602B288D0500C34D40 /* ulibsctp_config.h */; };
 		A6827E121E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = A6827E101E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A68974271A2D1EF800854472 /* UMSctpTask_AdminSetConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = A68974251A2D1EF800854472 /* UMSctpTask_AdminSetConfig.h */; };
 		A68974281A2D1EF800854472 /* UMSctpTask_AdminSetConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = A68974261A2D1EF800854472 /* UMSctpTask_AdminSetConfig.m */; };
@@ -101,6 +103,8 @@
 		A61F7D501A2C9D380090FC94 /* UMLayerSctpUserProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpUserProtocol.h; sourceTree = "<group>"; };
 		A634B4971A2E9AF700854472 /* UMLayerSctpUserProfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpUserProfile.h; sourceTree = "<group>"; };
 		A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMLayerSctpUserProfile.m; sourceTree = "<group>"; };
+		A680125F2B288D0500C34D40 /* ulibsctp_config.h.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ulibsctp_config.h.in; sourceTree = "<group>"; };
+		A68012602B288D0500C34D40 /* ulibsctp_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ulibsctp_config.h; sourceTree = "<group>"; };
 		A6827E101E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpApplicationContextProtocol.h; sourceTree = "<group>"; };
 		A68974251A2D1EF800854472 /* UMSctpTask_AdminSetConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMSctpTask_AdminSetConfig.h; sourceTree = "<group>"; };
 		A68974261A2D1EF800854472 /* UMSctpTask_AdminSetConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMSctpTask_AdminSetConfig.m; sourceTree = "<group>"; };
@@ -213,6 +217,8 @@
 			isa = PBXGroup;
 			children = (
 				A6C78D121A29271D006C66A2 /* ulibsctp.h */,
+				A68012602B288D0500C34D40 /* ulibsctp_config.h */,
+				A680125F2B288D0500C34D40 /* ulibsctp_config.h.in */,
 				A6827E101E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h */,
 				A61F7D501A2C9D380090FC94 /* UMLayerSctpUserProtocol.h */,
 				A68974771A2D440F00854472 /* UMLayerSctpUser.h */,
@@ -324,6 +330,7 @@
 				A6B8BE5020A9B102004D4004 /* UMSocketSCTP.h in Headers */,
 				A6F0C65B28B7630C00AE05BB /* UMSocketSCTPListener2.h in Headers */,
 				A6F0C65F28B780B500AE05BB /* UMSCTPListener.h in Headers */,
+				A68012622B288D0500C34D40 /* ulibsctp_config.h in Headers */,
 				A6C78DA41A2945C5006C66A2 /* UMSctpTask_AdminInit.h in Headers */,
 				A6C78DB31A294607006C66A2 /* UMSctpTask_Close.h in Headers */,
 				A6C78DA91A2945D9006C66A2 /* UMSctpTask_AdminAttach.h in Headers */,
@@ -446,6 +453,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A68012612B288D0500C34D40 /* ulibsctp_config.h.in in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

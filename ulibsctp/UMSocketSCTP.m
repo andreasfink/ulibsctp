@@ -8,7 +8,7 @@
 
 #define ULIBSCTP_INTERNAL   1
 
-#import "ulibsctp_config.h"
+#import <ulibsctp/ulibsctp_config.h>
 
 #import "UMSocketSCTP.h"
 
@@ -40,7 +40,7 @@
 #endif
 
 #ifdef HAVE_NETINET_SCTP_H
-#include "netinet/sctp.h"
+#include <netinet/sctp.h>
 #endif
 
 #if defined(__APPLE__)
