@@ -29,10 +29,10 @@
 
 
 /* Define if you have sctp/sctp.h. */
-/* #undef HAVE_SCTP_SCTP_H */
+#define HAVE_SCTP_SCTP_H 1
 
 /* Define if you have netinet/sctp.h. */
-#define HAVE_NETINET_SCTP_H 1
+/* #undef HAVE_NETINET_SCTP_H */
 
 /* Define if you have getopt.h. */
 /* #undef HAVE_GETOPT_H */

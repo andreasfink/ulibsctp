@@ -39,7 +39,7 @@
 #include <sctp/sctp_uio.h>
 #endif
 
-#ifdef HAVE_NETINET_SCTP_H
+#if defined(HAVE_NETINET_SCTP_H)
 #include <netinet/sctp.h>
 #endif
 
