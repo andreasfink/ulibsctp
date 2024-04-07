@@ -6,37 +6,24 @@
 //  Copyright © 2017 Andreas Fink (andreas@fink.org). All rights reserved.
 //
 
-#define ULIBSCTP_INTERNAL 1
-//#define POWER_DEBUG         1
-#import "ulibsctp_config.h"
+#import <ulibsctp/ulibsctp_config.h>
 
 #include <netinet/in.h>
 #ifdef HAVE_SCTP_SCTP_H
-#import <sctp/sctp.h>
+#include <sctp/sctp.h>
 #endif
 
 #ifdef HAVE_NETINET_SCTP_H
 #include <netinet/sctp.h>
 #endif
 
-#import "UMLayerSctp.h"
+#import <ulibsctp/ulibsctp.h>
 
-#import "UMSctpTask_AdminInit.h"
-#import "UMSctpTask_AdminAttach.h"
-#import "UMSctpTask_AdminDetach.h"
-#import "UMSctpTask_AdminSetConfig.h"
-#import "UMSctpTask_Open.h"
-#import "UMSctpTask_Close.h"
-#import "UMSctpTask_Data.h"
-#import "UMSctpTask_Manual_InService.h"
-#import "UMSctpTask_Manual_ForceOutOfService.h"
-#import "UMLayerSctpUser.h"
-#import "UMLayerSctpUserProfile.h"
-#import "UMLayerSctpApplicationContextProtocol.h"
+#define ULIBSCTP_INTERNAL 1
+//#define POWER_DEBUG         1
+#import <ulibsctp/ulibsctp_config.h>
 
-#import "UMSocketSCTPListener2.h"
 
-#import "UMSocketSCTPRegistry.h"
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/types.h>

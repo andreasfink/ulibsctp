@@ -6,8 +6,7 @@
 //  Copyright © 2017 Andreas Fink (andreas@fink.org). All rights reserved.
 //
 
-#import "UMSctpTask_AdminInit.h"
-#import "UMLayerSctp.h"
+#import <ulibsctp/ulibsctp.h>
 
 @implementation UMSctpTask_AdminInit
 

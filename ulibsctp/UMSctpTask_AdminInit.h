@@ -7,7 +7,7 @@
 //
 
 #import <ulib/ulib.h>
-#import <ulibsctp/UMLayerSctpUserProtocol.h>
+#import <ulibsctp/ulibsctp.h>
 
 @class UMLayerSctp;
 @interface UMSctpTask_AdminInit : UMLayerTask

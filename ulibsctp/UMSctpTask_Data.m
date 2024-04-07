@@ -6,9 +6,10 @@
 //  Copyright © 2017 Andreas Fink (andreas@fink.org). All rights reserved.
 //
 
-#import "UMSctpTask_Data.h"
-#import "UMLayerSctp.h"
-#include "ulibsctp_config.h"
+
+#import <ulibsctp/ulibsctp.h>
+
+#include <ulibsctp/ulibsctp_config.h>
 #ifdef HAVE_SCTP_SCTP_H
 #import <sctp/sctp.h>
 #endif

@@ -6,9 +6,7 @@
 //  Copyright © 2017 Andreas Fink (andreas@fink.org). All rights reserved.
 //
 
-#import "UMSctpTask_Manual_InService.h"
-#import "UMLayerSctp.h"
-#import "UMLayerSctpUserProtocol.h"
+#import <ulibsctp/ulibsctp.h>
 
 @implementation UMSctpTask_Manual_InService
 

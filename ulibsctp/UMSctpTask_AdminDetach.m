@@ -6,9 +6,7 @@
 //  Copyright © 2017 Andreas Fink (andreas@fink.org). All rights reserved.
 //
 
-#import "UMSctpTask_AdminDetach.h"
-#import "UMLayerSctp.h"
-#import "UMLayerSctpUserProtocol.h"
+#import <ulibsctp/ulibsctp.h>
 
 @implementation UMSctpTask_AdminDetach
 @synthesize userId;

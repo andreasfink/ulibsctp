@@ -9,8 +9,9 @@
 
 #import <ulibsctp/UMLayerSctp.h>
 #import <ulibsctp/UMLayerSctpUserProtocol.h>
-#import <ulibsctp/UMLayerSctpReceiverThread.h>
 #import <ulibsctp/UMSctpTask_AdminAttach.h>
+#import <ulibsctp/UMSctpTask_AdminDetach.h>
+#import <ulibsctp/UMSctpTask_AdminSetConfig.h>
 #import <ulibsctp/UMSctpTask_AdminInit.h>
 #import <ulibsctp/UMSctpTask_Close.h>
 #import <ulibsctp/UMSctpTask_Data.h>
@@ -22,3 +23,4 @@
 #import <ulibsctp/UMLayerSctpApplicationContextProtocol.h>
 #import <ulibsctp/UMSocketSCTPRegistry.h>
 #import <ulibsctp/UMSocketSCTPListener2.h>
+

@@ -32,6 +32,7 @@
     NSString                    *_dscp;
 }
 
+
 @property(readwrite,assign) int port;
 @property(readwrite,strong) NSArray *localIpAddresses;
 @property(readwrite,strong) UMSocket *umsocketEncapsulated;
@@ -47,9 +48,6 @@
 @property(readwrite,strong) NSString *dscp;
 
 - (UMSocketSCTPListener2 *)initWithPort:(int)localPort localIpAddresses:(NSArray *)addresses;
-
-
-
 - (void) processError:(UMSocketError)err;
 - (void) processHangup;
 - (void) processReceivedData:(UMSocketSCTPReceivedPacket *)rx;
@@ -67,11 +65,12 @@
 - (void)stopListeningFor:(UMLayerSctp *)layer;
 
 
-#if defined(ULIBSCTP_INTERNAL)
+//#if defined(ULIBSCTP_INTERNAL)
 - (UMSocketError) connectToAddresses:(NSArray *)addrs
                                 port:(int)port
                             assocPtr:(NSNumber **)assoc
                                layer:(UMLayerSctp *)layer;
+
 - (UMSocketSCTP *) peelOffAssoc:(NSNumber *)assoc
                           error:(UMSocketError *)errptr
                     errorNumber:(int *)e;
@@ -84,7 +83,7 @@
                    protocol:(NSNumber *)protocolId
                       error:(UMSocketError *)err2
                       layer:(UMLayerSctp *)layer;
-#endif
+//#endif
 
 - (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer;
 - (void)unregisterAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer;

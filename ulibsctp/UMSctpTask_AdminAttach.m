@@ -6,10 +6,10 @@
 //  Copyright © 2017 Andreas Fink (andreas@fink.org). All rights reserved.
 //
 
-#import "UMSctpTask_AdminAttach.h"
-#import "UMLayerSctp.h"
-#import "UMLayerSctpUserProtocol.h"
-#import "UMLayerSctpUserProfile.h"
+#import <ulibsctp/UMSctpTask_AdminAttach.h>
+#import <ulibsctp/UMLayerSctp.h>
+#import <ulibsctp/UMLayerSctpUserProtocol.h>
+#import <ulibsctp/UMLayerSctpUserProfile.h>
 
 @implementation UMSctpTask_AdminAttach
 @synthesize profile;
