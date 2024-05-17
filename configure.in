@@ -242,6 +242,7 @@ AC_CONFIG_FILES([Makefile.freebsd])
 AC_CONFIG_FILES([ulibsctp.pc])
 AC_CONFIG_FILES([make_buildnr.sh])
 AC_OUTPUT
+echo SHARED_LIBRARY_EXTENSION=$SHARED_LIBRARY_EXTENSION
 
 chmod 755 make_buildnr.sh
 
