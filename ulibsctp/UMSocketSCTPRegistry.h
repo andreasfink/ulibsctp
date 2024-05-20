@@ -21,13 +21,10 @@
     NSMutableArray<UMSocketSCTPListener2 *>                   *_incomingListeners;
     NSMutableDictionary<NSNumber *,UMSocketSCTPListener2 *>   *_incomingTcpListeners; /* key is @(port) */
     NSMutableArray          *_incomingLayers; /* once peeled of the listener */
-    
     NSMutableArray          *_outgoingTcpLayers;
     NSMutableArray          *_incomingTcpLayers;
-
     NSMutableDictionary     *_outgoingLayersByIpsAndPorts;
     NSMutableDictionary     *_outgoingLayersByAssoc;
-    
     UMMutex                 *_registryLock;
     BOOL                    _sendAborts;
     UMLogLevel              _logLevel;
