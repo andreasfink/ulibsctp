@@ -89,7 +89,7 @@ case "$host" in
 	SHARED_LIBRARY_EXTENSION=dylib
     ;;
 
-*-linux-*)
+  *-linux-*)
 	CFLAGS="$CFLAGS -fPIC -DLINUX -D_XOPEN_SOURCE=700 -D_POSIX_SOURCE"
 	DEBIAN_VERSION=`cat /etc/debian_version | cut -f1 -d.`
 	if [[ "$DEBIAN_VERSION" == "8" ]]
