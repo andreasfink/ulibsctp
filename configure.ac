@@ -1,15 +1,21 @@
 dnl /* ==================================================================== 
 dnl  * Project "ulibsctp"
-dnl  * Copyright © 2017 Andreas Fink (andreas@fink.org). All rights reserved.
+dnl  * Copyright © 2024 Andreas Fink (andreas@fink.org). All rights reserved.
 dnl  * ==================================================================== 
 dnl  */ 
 
+dnl
+dnl configure.ac -- main autoconf macro definition file
+dnl
+dnl Process this file with autoconf to produce a configure script.
+dnl
 dnl initialization
 
 AC_PREREQ([2.69])
-AC_INIT([ulibsctp],[1.0],[afink])
+AC_INIT([ulibsctp],[2.0],[afink])
 dnl generic parameters
-COPYRIGHT="Copyright 2016 Andreas Fink"
+
+COPYRIGHT="Copyright 2024 Andreas Fink"
 PROJECT_NAME="ulibsctp"
 AUTHOR="Andreas Fink <andreas@fink.org>"
 CONFIG_DEFINE="ULIBSCTP_CONFIG"
@@ -83,8 +89,8 @@ case "$host" in
 	SHARED_LIBRARY_EXTENSION=dylib
     ;;
 
-  *-linux-*)
-	CFLAGS="$CFLAGS -std=c99 -fPIC -DLINUX -D_XOPEN_SOURCE=700 -D_POSIX_SOURCE"
+*-linux-*)
+	CFLAGS="$CFLAGS -fPIC -DLINUX -D_XOPEN_SOURCE=700 -D_POSIX_SOURCE"
 	DEBIAN_VERSION=`cat /etc/debian_version | cut -f1 -d.`
 	if [[ "$DEBIAN_VERSION" == "8" ]]
 	then
@@ -92,15 +98,13 @@ case "$host" in
     else
         CFLAGS="$CFLAGS -D_DEFAULT_SOURCE"
 	fi
-	CFLAGS="${CFLAGS} -DSCTP_IN_KERNEL=1"
-	CFLAGS="${CFLAGS} -Wno-trigraphs  -Wno-missing-field-initializers -Wmissing-prototypes -Wno-implicit-atomic-properties"
-	CFLAGS="${CFLAGS} -Wno-arc-repeated-use-of-weak -Wduplicate-method-match -Wno-missing-braces -Wparentheses -Wswitch -Wunused-function -Wno-unused-label"
-	CFLAGS="${CFLAGS} -Wno-unused-parameter -Wunused-variable -Wunused-value -Wempty-body -Wuninitialized -Wno-unknown-pragmas -Wno-shadow"
-	CFLAGS="${CFLAGS} -Wno-four-char-constants -Wno-conversion -Wconstant-conversion -Wint-conversion -Wbool-conversion -Wenum-conversion"
-	CFLAGS="${CFLAGS} -Wpointer-sign -Wno-newline-eof -Wno-selector -Wno-strict-selector-match -Wundeclared-selector"
-	CFLAGS="${CFLAGS} -Wno-deprecated-implementations -Wprotocol -Wdeprecated-declarations -Wno-sign-conversion "
+	CFLAGS="$CFLAGS  -Wno-trigraphs  -Wno-missing-field-initializers -Wmissing-prototypes -Wno-implicit-atomic-properties"
+	CFLAGS="$CFLAGS -Wno-arc-repeated-use-of-weak -Wduplicate-method-match -Wno-missing-braces -Wparentheses -Wswitch -Wunused-function -Wno-unused-label"
+	CFLAGS="$CFLAGS -Wno-unused-parameter -Wunused-variable -Wunused-value -Wempty-body -Wuninitialized -Wno-unknown-pragmas -Wno-shadow"
+	CFLAGS="$CFLAGS -Wno-four-char-constants -Wno-conversion -Wconstant-conversion -Wint-conversion -Wbool-conversion -Wenum-conversion"
+	CFLAGS="$CFLAGS -Wshorten-64-to-32 -Wpointer-sign -Wno-newline-eof -Wno-selector -Wno-strict-selector-match -Wundeclared-selector"
+	CFLAGS="$CFLAGS -Wno-deprecated-implementations -Wprotocol -Wdeprecated-declarations -Wno-sign-conversion "
 	CFLAGS="${CFLAGS} -fobjc-arc"
-
 	if [[ -x /usr/GNUstep/System/Tools/gnustep-config ]]
 	then
 		GNUSTEP_CONFIG=/usr/GNUstep/System/Tools/gnustep-config
@@ -115,11 +119,13 @@ case "$host" in
 	fi
 	CFLAGS="$CFLAGS `${GNUSTEP_CONFIG}  --objc-flags`"
     LDFLAGS="$LDFLAGS `${GNUSTEP_CONFIG}  --base-libs --objc-libs`"
-    
+	LIBS="$LIBS -ldl"
+	LIBRARIES="-lsctp -lbsd -luuid"
 	CFLAGS="$CFLAGS `pkg-config  --cflags ${DEPENDENT_PKGCONFIGS}`"
 	LDFLAGS="$LDFLAGS `pkg-config --libs ${DEPENDENT_PKGCONFIGS}`"
-    SHARED_LIBRARY_EXTENSION=so
-    SHARED_FLAGS="-shared"
+    CFLAGS="$CFLAGS -DHAVE_OPENSSL=1"
+    AC_DEFINE(HAVE_OPENSSL)
+	SHARED_LIBRARY_EXTENSION="so"
     ;;
   *-freebsd*)
 	CFLAGS="$CFLAGS -std=c99 -fPIC -DFREEBSD"
@@ -242,6 +248,7 @@ AC_CONFIG_FILES([Makefile.freebsd])
 AC_CONFIG_FILES([ulibsctp.pc])
 AC_CONFIG_FILES([make_buildnr.sh])
 AC_OUTPUT
+echo SHARED_LIBRARY_EXTENSION=$SHARED_LIBRARY_EXTENSION
 
 chmod 755 make_buildnr.sh
 

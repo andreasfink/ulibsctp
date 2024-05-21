@@ -540,8 +540,6 @@
     @autoreleasepool
     {
         id<UMLayerSctpUserProtocol> user = (id<UMLayerSctpUserProtocol>)task.sender;
-
-//    #if defined(ULIBSCTP_CONFIG_DEBUG)
         if(self.logLevel <= UMLOG_DEBUG)
         {
             [self logDebug:[NSString stringWithFormat:@"DATA: %@",task.data]];
@@ -549,31 +547,18 @@
             [self logDebug:[NSString stringWithFormat:@" protocolId: %@",task.protocolId]];
             [self logDebug:[NSString stringWithFormat:@" ackRequest: %@",(task.ackRequest ? task.ackRequest.description  : @"(not present)")]];
         }
-//    #endif
-        
         if(task.data == NULL)
         {
             /* nothing to be done */
             return;
         }
-
         UMMUTEX_LOCK(_linkLock);
-
         BOOL failed = NO;
         UMSocketError uerr = UMSocketError_no_error;
-
         ssize_t sent_packets = 0;
         int attempts=0;
         /* we try to send as long as no ASSOC down has been received or at least once (as we might not have a direct socket yet */
         int maxatt = 50;
-        /*
-        NSString *s = [NSString stringWithFormat:@"SocketTX L=%@ %@ D=%@ %@",
-             _listener.umsocket ? @(_listener.umsocket.sock) : @"NULL",
-             _listener.umsocket.isConnected ? @"connected" : @"disconnected",
-             _directSocket ? @(_directSocket.sock) : @"NULL",
-             _directSocket.isConnected ? @"connected" : @"disconnected" ];
-        [self addToLayerHistoryLog:s];
-         */
         while((attempts < maxatt) && (self.status==UMSOCKET_STATUS_IS) && (sent_packets<1))
         {
             attempts++;
@@ -587,7 +572,6 @@
     #endif
                 NSNumber *tmp_assocId = _assocId;
                 uerr = UMSocketError_no_error;
-
                 sent_packets = [self.directSocket sendToAddresses:_configured_remote_addresses
                                                              port:_configured_remote_port
                                                          assocPtr:&tmp_assocId
