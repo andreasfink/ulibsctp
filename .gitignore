@@ -3,6 +3,11 @@
 # gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
 
 *.o
+*.d
+
+install
+libulibsctp.a
+libulibsctp.so
 Makefile
 Makefile.linux
 Makefile.osx
@@ -18,7 +23,6 @@ make_buildnr.sh
 buildnumber.c
 buildnumber.h
 ulibsctp.pc
-*.m.d
 version.h
 
 
