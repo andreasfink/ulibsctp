@@ -207,6 +207,7 @@
         UMSctpTask_Manual_ForceOutOfService *task =
         [[UMSctpTask_Manual_ForceOutOfService alloc]initWithReceiver:self sender:caller];
         [self queueFromLowerWithPriority:task];
+        self.stopButtonPressed = [NSDate date];
     }
 }
 
@@ -218,6 +219,7 @@
         UMSctpTask_Manual_InService *task =
         [[UMSctpTask_Manual_InService alloc]initWithReceiver:self sender:caller];
         [self queueFromLowerWithPriority:task];
+        self.startButtonPressed = [NSDate date];
     }
 }
 
