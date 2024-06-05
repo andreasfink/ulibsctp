@@ -452,7 +452,10 @@
                 [self powerdown:[NSString stringWithFormat:@"errno=%d exception:%@ %@",err,exception.name,exception.reason] ];
             }
         }
-        UMMUTEX_UNLOCK(_linkLock);
+        @finally
+        {
+            UMMUTEX_UNLOCK(_linkLock);
+        }
     }
  }
 
@@ -555,141 +558,148 @@
             return;
         }
         UMMUTEX_LOCK(_linkLock);
-        BOOL failed = NO;
-        UMSocketError uerr = UMSocketError_no_error;
-        ssize_t sent_packets = 0;
-        int attempts=0;
-        /* we try to send as long as no ASSOC down has been received or at least once (as we might not have a direct socket yet */
-        int maxatt = 50;
-        while((attempts < maxatt) && (self.status==UMSOCKET_STATUS_IS) && (sent_packets<1))
+        @try
         {
-            attempts++;
-            if((self.directSocket)  && (self.directSocket.isConnected==YES))
+            
+            BOOL failed = NO;
+            UMSocketError uerr = UMSocketError_no_error;
+            ssize_t sent_packets = 0;
+            int attempts=0;
+            /* we try to send as long as no ASSOC down has been received or at least once (as we might not have a direct socket yet */
+            int maxatt = 50;
+            while((attempts < maxatt) && (self.status==UMSOCKET_STATUS_IS) && (sent_packets<1))
             {
-    #if defined(ULIBSCTP_CONFIG_DEBUG)
-                if(self.logLevel <= UMLOG_DEBUG)
+                attempts++;
+                if((self.directSocket)  && (self.directSocket.isConnected==YES))
                 {
-                    [self logDebug:[NSString stringWithFormat:@" Calling sctp_sendmsg on _directsocket (%@)",[_configured_remote_addresses componentsJoinedByString:@","]]];
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+                    if(self.logLevel <= UMLOG_DEBUG)
+                    {
+                        [self logDebug:[NSString stringWithFormat:@" Calling sctp_sendmsg on _directsocket (%@)",[_configured_remote_addresses componentsJoinedByString:@","]]];
+                    }
+#endif
+                    NSNumber *tmp_assocId = _assocId;
+                    uerr = UMSocketError_no_error;
+                    sent_packets = [self.directSocket sendToAddresses:_configured_remote_addresses
+                                                                 port:_configured_remote_port
+                                                             assocPtr:&tmp_assocId
+                                                                 data:task.data
+                                                               stream:task.streamId
+                                                             protocol:task.protocolId
+                                                                error:&uerr];
+                    if(uerr !=UMSocketError_no_error)
+                    {
+                        NSString *s = [NSString stringWithFormat:@"sendToAddresses:%@ port:%d assoc:%@ returns error:%d %@",
+                                       _configured_remote_addresses,_configured_remote_port,_assocId,uerr,[UMSocket getSocketErrorString:uerr]];
+                        [self addToLayerHistoryLog:s];
+                    }
+                    _assocId = tmp_assocId ;
                 }
-    #endif
-                NSNumber *tmp_assocId = _assocId;
-                uerr = UMSocketError_no_error;
-                sent_packets = [self.directSocket sendToAddresses:_configured_remote_addresses
+                else
+                {
+                    [self.directSocket close];
+                    self.directSocket = NULL;
+                    NSNumber *tmp_assocId = _assocId;
+                    sent_packets = [self.listener sendToAddresses:_configured_remote_addresses
                                                              port:_configured_remote_port
                                                          assocPtr:&tmp_assocId
                                                              data:task.data
                                                            stream:task.streamId
                                                          protocol:task.protocolId
-                                                            error:&uerr];
-                if(uerr !=UMSocketError_no_error)
-                {
-                    NSString *s = [NSString stringWithFormat:@"sendToAddresses:%@ port:%d assoc:%@ returns error:%d %@",
-                     _configured_remote_addresses,_configured_remote_port,_assocId,uerr,[UMSocket getSocketErrorString:uerr]];
-                    [self addToLayerHistoryLog:s];
+                                                            error:&uerr
+                                                            layer:self];
+                    _assocId = tmp_assocId;
                 }
-                _assocId = tmp_assocId ;
-            }
-            else
-            {
-                [self.directSocket close];
-                self.directSocket = NULL;
-                NSNumber *tmp_assocId = _assocId;
-                sent_packets = [self.listener sendToAddresses:_configured_remote_addresses
-                                                     port:_configured_remote_port
-                                                 assocPtr:&tmp_assocId
-                                                     data:task.data
-                                                   stream:task.streamId
-                                                 protocol:task.protocolId
-                                                    error:&uerr
-                                                    layer:self];
-                _assocId = tmp_assocId;
-            }
-            /*  we loop until we get errno not EAGAIN or sent_packets returning > 0 */
-            if(sent_packets > 0)
-            {
-                break;
-            }
-            else if(uerr == UMSocketError_try_again)
-            {
-
-                /* we have EAGAIN */
-                /* lets try up to 50 times and wait 200ms every 10th time */
-                /* if thats still not succeeding, we declare this connection dead */
-                if(attempts % 10==0)
+                /*  we loop until we get errno not EAGAIN or sent_packets returning > 0 */
+                if(sent_packets > 0)
                 {
-                    UMMUTEX_UNLOCK(_linkLock);
-                    [sleeper sleepSeconds:0.2];
-                    UMMUTEX_LOCK(_linkLock);
+                    break;
                 }
-                if(attempts < maxatt)
+                else if(uerr == UMSocketError_try_again)
                 {
-                    uerr = UMSocketError_no_error;
-                    continue;
-                }
-                /* if we get here we have attempted 50 times and failed */
-                /* we can assume this connection dead */
-                NSString *s = @"tried to send 50 times and got UMSocketError_try_again every time";
-                [_layerHistory addLogEntry:s];
-            }
-            else
-            {
-                failed=YES;
-                break;
-            }
-        } /* end of while */
-#if defined(ULIBSCTP_CONFIG_DEBUG)
-        if(self.logLevel <= UMLOG_DEBUG)
-        {
-            [self logDebug:[NSString stringWithFormat:@" sent_packets: %ld",sent_packets]];
-        }
-#endif
-        if(uerr==UMSocketError_no_error)
-        {
-            if(sent_packets> 0)
-            {
-                [_outboundThroughputPackets increaseBy:1];
-                [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
-                NSArray *usrs = [_users arrayCopy];
-                for(UMLayerSctpUser *u in usrs)
-                {
-                    if([u.profile wantsMonitor])
+                    
+                    /* we have EAGAIN */
+                    /* lets try up to 50 times and wait 200ms every 10th time */
+                    /* if thats still not succeeding, we declare this connection dead */
+                    if(attempts % 10==0)
                     {
-                        [u.user sctpMonitorIndication:self
-                                               userId:u.userId
-                                             streamId:(uint16_t)task.streamId.unsignedIntValue
-                                           protocolId:(uint32_t)task.protocolId.unsignedLongValue
-                                                 data:task.data
-                                             incoming:NO
-                                               socket:task.socketNumber];
+                        UMMUTEX_UNLOCK(_linkLock);
+                        [sleeper sleepSeconds:0.2];
+                        UMMUTEX_LOCK(_linkLock);
+                    }
+                    if(attempts < maxatt)
+                    {
+                        uerr = UMSocketError_no_error;
+                        continue;
+                    }
+                    /* if we get here we have attempted 50 times and failed */
+                    /* we can assume this connection dead */
+                    NSString *s = @"tried to send 50 times and got UMSocketError_try_again every time";
+                    [_layerHistory addLogEntry:s];
+                }
+                else
+                {
+                    failed=YES;
+                    break;
+                }
+            } /* end of while */
+#if defined(ULIBSCTP_CONFIG_DEBUG)
+            if(self.logLevel <= UMLOG_DEBUG)
+            {
+                [self logDebug:[NSString stringWithFormat:@" sent_packets: %ld",sent_packets]];
+            }
+#endif
+            if(uerr==UMSocketError_no_error)
+            {
+                if(sent_packets> 0)
+                {
+                    [_outboundThroughputPackets increaseBy:1];
+                    [_outboundThroughputBytes increaseBy:(uint32_t)task.data.length];
+                    NSArray *usrs = [_users arrayCopy];
+                    for(UMLayerSctpUser *u in usrs)
+                    {
+                        if([u.profile wantsMonitor])
+                        {
+                            [u.user sctpMonitorIndication:self
+                                                   userId:u.userId
+                                                 streamId:(uint16_t)task.streamId.unsignedIntValue
+                                               protocolId:(uint32_t)task.protocolId.unsignedLongValue
+                                                     data:task.data
+                                                 incoming:NO
+                                                   socket:task.socketNumber];
+                        }
+                    }
+                    NSDictionary *ui = @{
+                        @"protocolId" : task.protocolId,
+                        @"streamId"   : task.streamId,
+                        @"data"       : task.data
+                    };
+                    NSMutableDictionary *report = [task.ackRequest mutableCopy];
+                    [report setObject:ui forKey:@"sctp_data"];
+                    //report[@"backtrace"] = UMBacktrace(NULL,0);
+                    [user sentAckConfirmFrom:self userInfo:report];
+                }
+            }
+            else
+            {
+                NSString *s = [NSString stringWithFormat:@"Error %d %@",uerr,[UMSocket getSocketErrorString:uerr]];
+                [_layerHistory addLogEntry:s];
+                if(uerr==UMSocketError_is_already_connected)
+                {
+                    if(_logLevel <=UMLOG_MINOR)
+                    {
+                        NSLog(@"already connected");
                     }
                 }
-                NSDictionary *ui = @{
-                                     @"protocolId" : task.protocolId,
-                                     @"streamId"   : task.streamId,
-                                     @"data"       : task.data
-                                     };
-                NSMutableDictionary *report = [task.ackRequest mutableCopy];
-                [report setObject:ui forKey:@"sctp_data"];
-                //report[@"backtrace"] = UMBacktrace(NULL,0);
-                [user sentAckConfirmFrom:self userInfo:report];
+                [self reportError:uerr taskData:task];
+                [self powerdown:@"error in _dataTask"];
+                [self reportStatusWithReason:@"powerdown due to error in dataTask"];
             }
         }
-        else
+        @finally
         {
-            NSString *s = [NSString stringWithFormat:@"Error %d %@",uerr,[UMSocket getSocketErrorString:uerr]];
-            [_layerHistory addLogEntry:s];
-            if(uerr==UMSocketError_is_already_connected)
-            {
-                if(_logLevel <=UMLOG_MINOR)
-                {
-                    NSLog(@"already connected");
-                }
-            }
-            [self reportError:uerr taskData:task];
-            [self powerdown:@"error in _dataTask"];
-            [self reportStatusWithReason:@"powerdown due to error in dataTask"];
+            UMMUTEX_UNLOCK(_linkLock);
         }
-        UMMUTEX_UNLOCK(_linkLock);
     }
 }
 
@@ -992,9 +1002,9 @@
          protocolId:(NSNumber *)protocolId
              socket:(NSNumber *)socketNumber
 {
-    UMMUTEX_LOCK(_linkLock);
     @autoreleasepool
     {
+        UMMUTEX_LOCK(_linkLock);
         @try
         {
             
