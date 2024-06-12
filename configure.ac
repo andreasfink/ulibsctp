@@ -58,7 +58,7 @@ RANLIB="ranlib"
 LIBS=""
 LIBRARY_NAME=$PROJECT_NAME
 BUILD_DIR=.
-FRAMEWORKS="-framework ulib -F/Library/Application\ Support/FinkTelecomServices/frameworks -framework sctp"
+FRAMEWORKS="-F/Library/Application\ Support/FinkTelecomServices/frameworks -framework sctp -framework ulib"
 
 dnl Apply system specific rules.
 dnl Executable extension for systems that need one, i.e. Cygwin
@@ -83,9 +83,8 @@ case "$host" in
 	ARCH="-arch x86_64"
 	OSX_DEVTOOL_DIR=`xcode-select -p`
 	CFLAGS="$CFLAGS -D_REENTRANT=1 -DDARWIN=1 ${ARCH}"
-	LDFLAGS=-framework IOKit -framework Security -F "/Library/Application\ Support/FinkTelecomServices/frameworks" ${FRAMEWORKS}
+    #LDFLAGS='-F/Library/Frameworks -framework Foundation -framework Security -framework IOKit -F"/Library/Application Support/FinkTelecomServices/frameworks" -framework sctp -framework ulib'
 	LIBTOOL="libtool -static -o"
-	LIBS="${LIBS} -F "/Library/Frameworks -F/Library/Application\ Support/FinkTelecomServices/frameworks" -framework sctp"
 	SHARED_LIBRARY_EXTENSION=dylib
     ;;
 
