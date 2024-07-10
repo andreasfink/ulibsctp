@@ -762,7 +762,6 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                                layer:(UMLayer *)layer
 {
 	UMAssert(assocptr!=NULL,@"assocptr can not be NULL");
-
     
     sctp_assoc_t tmp_assoc = -2;
 
