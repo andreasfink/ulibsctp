@@ -6,6 +6,7 @@
 //  Copyright © 2022 Andreas Fink (andreas@fink.org). All rights reserved.
 //
 
+#import <ulib/ulib.h>
 #import "UMSocketSCTPListener2.h"
 #import "UMSocketSCTPRegistry.h"
 #import "UMLayerSctp.h"
@@ -301,28 +302,40 @@
 
 - (void)startListeningFor:(UMLayerSctp *)layer
 {
-    [_listenerLock lock];
-    if(_layers.count==0) /* the first layer is being added */
+    UMMUTEX_LOCK(_listenerLock);
+    @try
     {
-        [self startBackgroundTask];
-        [_registry addListener:self];
+        if(_layers.count==0) /* the first layer is being added */
+        {
+            [self startBackgroundTask];
+            [_registry addListener:self];
+        }
+        _layers[layer.layerName] = layer;
     }
-    _layers[layer.layerName] = layer;
-    [_listenerLock unlock];
+    @finally
+    {
+        UMMUTEX_UNLOCK(_listenerLock);
+    }
 }
 
 - (void)stopListeningFor:(UMLayerSctp *)layer
 {
-    [_listenerLock lock];
-    [_layers removeObjectForKey:layer.layerName];
-    if(_layers.count==0)
+    UMMUTEX_LOCK(_listenerLock);
+    @try
     {
-        /* last one to be remoived */
-        /* FIXME */
-        //[_registry removeListener:layer.listener];
-        //[self shutdownBackgroundTask];
+        [_layers removeObjectForKey:layer.layerName];
+        if(_layers.count==0)
+        {
+            /* last one to be remoived */
+            /* FIXME */
+            //[_registry removeListener:layer.listener];
+            //[self shutdownBackgroundTask];
+        }
     }
-    [_listenerLock unlock];
+    @finally
+    {
+        UMMUTEX_UNLOCK(_listenerLock);
+    }
 }
 
 - (void)registerAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer
@@ -331,17 +344,25 @@
     {
         return;
     }
-
-    UMLayerSctp *old = _assocs[assocId];
-    if((old != layer) && (old !=NULL))
+    UMMUTEX_LOCK(_listenerLock);
+    @try
     {
-        NSString *s = [NSString stringWithFormat:@"Mismatch in Listener at RegisterAssoc. Layer in registry %@, layer asking to unregister %@, assoc=%@",old.layerName,layer.layerName,assocId];
-        [layer logMajorError:s];
-        [layer addToLayerHistoryLog:s];
-        [old logMajorError:s];
-        [old addToLayerHistoryLog:s];
+        
+        UMLayerSctp *old = _assocs[assocId];
+        if((old != layer) && (old !=NULL))
+        {
+            NSString *s = [NSString stringWithFormat:@"Mismatch in Listener at RegisterAssoc. Layer in registry %@, layer asking to unregister %@, assoc=%@",old.layerName,layer.layerName,assocId];
+            [layer logMajorError:s];
+            [layer addToLayerHistoryLog:s];
+            [old logMajorError:s];
+            [old addToLayerHistoryLog:s];
+        }
+        _assocs[assocId] = layer;
     }
-    _assocs[assocId] = layer;
+    @finally
+    {
+        UMMUTEX_UNLOCK(_listenerLock);
+    }
 }
 
 - (void)unregisterAssoc:(NSNumber *)assocId forLayer:(UMLayerSctp *)layer
@@ -350,16 +371,24 @@
     {
         return;
     }
-    UMLayerSctp *old = _assocs[assocId];
-    if((old != layer) && (old!=NULL))
+    UMMUTEX_LOCK(_listenerLock);
+    @try
     {
-        NSString *s = [NSString stringWithFormat:@"Mismatch in Listener registry. Layer in registry %@, layer asking to unregister %@, assoc=%@",old.layerName,layer.layerName,assocId];
-        [layer logMajorError:s];
-        [layer addToLayerHistoryLog:s];
-        [old logMajorError:s];
-        [old addToLayerHistoryLog:s];
+        UMLayerSctp *old = _assocs[assocId];
+        if((old != layer) && (old!=NULL))
+        {
+            NSString *s = [NSString stringWithFormat:@"Mismatch in Listener registry. Layer in registry %@, layer asking to unregister %@, assoc=%@",old.layerName,layer.layerName,assocId];
+            [layer logMajorError:s];
+            [layer addToLayerHistoryLog:s];
+            [old logMajorError:s];
+            [old addToLayerHistoryLog:s];
+        }
+        [_assocs removeObjectForKey:assocId];
     }
-    [_assocs removeObjectForKey:assocId];
+    @finally
+    {
+        UMMUTEX_UNLOCK(_listenerLock);
+    }
 }
 
 - (UMLayerSctp *)layerForAssoc:(NSNumber *)assocId
