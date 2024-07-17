@@ -300,7 +300,7 @@
     {
         [self addToLayerHistoryLog:@"_openTask"];
         BOOL sendAbort = task.sendAbortFirst;
-        UMMUTEX_LOCK(_linkLock);
+        ummutex_lock(_linkLock);
         @try
         {
             if(self.status == UMSOCKET_STATUS_FOOS)
@@ -454,7 +454,7 @@
         }
         @finally
         {
-            UMMUTEX_UNLOCK(_linkLock);
+            ummutex_unlock(_linkLock);
         }
     }
  }
@@ -465,7 +465,7 @@
     {
         NSNumber *socketNumber = NULL;
         [self addToLayerHistoryLog:@"_closeTask"];
-        UMMUTEX_LOCK(_linkLock);
+        ummutex_lock(_linkLock);
         @try
         {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -500,7 +500,7 @@
         }
         @finally
         {
-            UMMUTEX_UNLOCK(_linkLock);
+            ummutex_unlock(_linkLock);
         }
 #if defined(POWER_DEBUG)
         NSLog(@"%@ closeTask(end)",_layerName);
@@ -557,7 +557,7 @@
             /* nothing to be done */
             return;
         }
-        UMMUTEX_LOCK(_linkLock);
+        ummutex_lock(_linkLock);
         @try
         {
             
@@ -623,9 +623,9 @@
                     /* if thats still not succeeding, we declare this connection dead */
                     if(attempts % 10==0)
                     {
-                        UMMUTEX_UNLOCK(_linkLock);
+                        ummutex_unlock(_linkLock);
                         [sleeper sleepSeconds:0.2];
-                        UMMUTEX_LOCK(_linkLock);
+                        ummutex_lock(_linkLock);
                     }
                     if(attempts < maxatt)
                     {
@@ -698,7 +698,7 @@
         }
         @finally
         {
-            UMMUTEX_UNLOCK(_linkLock);
+            ummutex_unlock(_linkLock);
         }
     }
 }
@@ -709,7 +709,7 @@
     {
         [self addToLayerHistoryLog:@"_foosTask" ];
 
-        UMMUTEX_LOCK(_linkLock);
+        ummutex_lock(_linkLock);
         @try
         {
             [self powerdown:@"_foosTask"];
@@ -723,7 +723,7 @@
         }
         @finally
         {
-            UMMUTEX_UNLOCK(_linkLock);
+            ummutex_unlock(_linkLock);
         }
 #if defined(POWER_DEBUG)
         NSLog(@"%@ manual FOOS",_layerName);
@@ -882,7 +882,7 @@
 {
     @autoreleasepool
     {
-        UMMUTEX_LOCK(_linkLock);
+        ummutex_lock(_linkLock);
         @try
         {
                 if(rx.err==UMSocketError_try_again)
@@ -992,7 +992,7 @@
         }
         @finally
         {
-            UMMUTEX_UNLOCK(_linkLock);
+            ummutex_unlock(_linkLock);
         }
     }
 }
@@ -1004,7 +1004,7 @@
 {
     @autoreleasepool
     {
-        UMMUTEX_LOCK(_linkLock);
+        ummutex_lock(_linkLock);
         @try
         {
             
@@ -1057,7 +1057,7 @@
         }
         @finally
         {
-            UMMUTEX_UNLOCK(_linkLock);
+            ummutex_unlock(_linkLock);
         }
     }
 }
@@ -1067,7 +1067,7 @@
                protocolId:(NSNumber *)protocolId
                    socket:(NSNumber *)socketNumber
 {
-    UMMUTEX_LOCK(_linkLock);
+    ummutex_lock(_linkLock);
     @try
     {
         const union sctp_notification *snp;
@@ -1227,7 +1227,7 @@
     }
     @finally
     {
-        UMMUTEX_UNLOCK(_linkLock);
+        ummutex_unlock(_linkLock);
     }
 }
 

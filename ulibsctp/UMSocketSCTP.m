@@ -847,9 +847,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     {
         struct    sockaddr_in sa4;
         socklen_t slen4 = sizeof(sa4);
-        UMMUTEX_LOCK(_controlLock);
+        ummutex_lock(_controlLock);
         newsock = accept(_sock,(struct sockaddr *)&sa4,&slen4);
-        UMMUTEX_UNLOCK(_controlLock);
+        ummutex_unlock(_controlLock);
 
         if(newsock >=0)
         {
@@ -877,9 +877,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
         socklen_t slen6 = sizeof(sa6);
         memset(&sa6,0x00,slen6);
         sa6.sin6_port = htons(3868);
-        UMMUTEX_LOCK(_controlLock);
+        ummutex_lock(_controlLock);
         newsock = accept(_sock,(struct sockaddr *)&sa6,&slen6);
-        UMMUTEX_UNLOCK(_controlLock);
+        ummutex_unlock(_controlLock);
 
         if(newsock >= 0)
         {
@@ -974,11 +974,11 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     NSString *remoteAddress=@"";
     in_port_t remotePort=0;
     
-    UMMUTEX_LOCK(_controlLock);
+    ummutex_lock(_controlLock);
     sctp_assoc_t a = (sctp_assoc_t)assoc.unsignedLongValue;
     newsock = sctp_peeloff(_sock,a);
     NSLog(@"sctp_peeloff(_sock=%d,_assoc=%d) returns %d",_sock,a,newsock);
-    UMMUTEX_UNLOCK(_controlLock);
+    ummutex_unlock(_controlLock);
 
     if(newsock >=0)
     {
@@ -1217,7 +1217,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 		NSLog(@"%@",s);
 	}
 #endif
-    UMMUTEX_LOCK(_dataLock);
+    ummutex_lock(_dataLock);
     sp = sctp_sendmsg(_sock,
                       (const void *)data.bytes,
                       data.length,
@@ -1228,7 +1228,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
                       streamId.unsignedIntValue,
                       timetolive, // timetolive,
                       context); // context);
-    UMMUTEX_UNLOCK(_dataLock);
+    ummutex_unlock(_dataLock);
     if(sp<0)
     {
 #if defined(ULIBSCTP_CONFIG_DEBUG)
@@ -1410,9 +1410,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     NSLog(@"calling poll (timeout =%dms,socket=%d)",timeoutInMs,_sock);
 #endif
 
-    UMMUTEX_LOCK(_controlLock);
+    ummutex_lock(_controlLock);
     ret1 = poll(pollfds, 1, timeoutInMs);
-    UMMUTEX_UNLOCK(_controlLock);
+    ummutex_unlock(_controlLock);
 
 
     if (ret1 < 0)
@@ -1569,9 +1569,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     }
     self.isListening = 0;
     
-    UMMUTEX_LOCK(_controlLock);
+    ummutex_lock(_controlLock);
     err = listen(_sock,backlog);
-    UMMUTEX_UNLOCK(_controlLock);
+    ummutex_unlock(_controlLock);
 
     _direction = _direction | UMSOCKET_DIRECTION_INBOUND;
     if(err)
@@ -1582,9 +1582,9 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
     self.isListening = 1;
 #if defined(SCTP_LISTEN_FIX)
     int flag=1;
-    UMMUTEX_LOCK(_controlLock);
+    ummutex_lock(_controlLock);
     setsockopt(_sock,IPPROTO_SCTP,SCTP_LISTEN_FIX,&flag,sizeof(flag));
-    UMMUTEX_UNLOCK(_controlLock);
+    ummutex_unlock(_controlLock);
 #endif
     [self reportStatus:@"isListening=1"];
     return UMSocketError_no_error;

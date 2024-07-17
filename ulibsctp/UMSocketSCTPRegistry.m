@@ -38,55 +38,55 @@
 - (NSArray *)allListeners
 {
     NSArray *a = NULL;
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     a = [_incomingListeners copy];
-    UMMUTEX_UNLOCK(_registryLock);
+    ummutex_unlock(_registryLock);
     return a;
 }
 
 - (NSArray *)allTcpListeners
 {
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     NSMutableDictionary *dict =  [_incomingTcpListeners copy];
     NSMutableArray *a = [[NSMutableArray alloc]init];
     for(id k in dict.allKeys)
     {
         [a addObject:dict[k]];
     }
-    UMMUTEX_UNLOCK(_registryLock);
+    ummutex_unlock(_registryLock);
     return a;
 }
 
 
 - (NSArray *)allOutboundLayers
 {
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     NSArray *a = [_outgoingLayers copy];
-    UMMUTEX_UNLOCK(_registryLock);
+    ummutex_unlock(_registryLock);
     return a;
 }
 
 - (NSArray *)allInboundLayers
 {
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     NSArray *a = [_incomingLayers copy];
-    UMMUTEX_UNLOCK(_registryLock);
+    ummutex_unlock(_registryLock);
     return a;
 }
 
 - (NSArray *)allOutboundTcpLayers
 {
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     NSArray *a = [_outgoingTcpLayers copy];
-    UMMUTEX_UNLOCK(_registryLock);
+    ummutex_unlock(_registryLock);
     return a;
 }
 
 - (NSArray *)allInboundTcpLayers
 {
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     NSArray *a = [_incomingTcpLayers copy];
-    UMMUTEX_UNLOCK(_registryLock);
+    ummutex_unlock(_registryLock);
     return a;
 }
 
@@ -99,7 +99,7 @@
 - (UMSocketSCTPListener2 *)getOrAddListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips
 {
     UMSocketSCTPListener2 *listener = NULL;
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     @try
     {
         listener = [self getListenerForPort:port localIps:ips];
@@ -118,7 +118,7 @@
     }
     @finally
     {
-        UMMUTEX_UNLOCK(_registryLock);
+        ummutex_unlock(_registryLock);
     }
     return listener;
 }
@@ -133,10 +133,10 @@
 
 - (UMSocketSCTPListener2 *)getListenerForPort:(int)port localIp:(NSString *)ip
 {
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     NSString *key =[UMSocketSCTPRegistry keyForPort:port ip:ip];
     UMSocketSCTPListener2 *e = _entries[key];
-    UMMUTEX_UNLOCK(_registryLock);
+    ummutex_unlock(_registryLock);
     return e;
 }
 
@@ -160,13 +160,13 @@
         return;
     }
 
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     listener.registry = self;
     NSString *key =[UMSocketSCTPRegistry keyForPort:port ip:ip];
     _entries[key]=listener;
     [_incomingListeners removeObject:listener]; /* has to be added only once */
     [_incomingListeners addObject:listener];
-    UMMUTEX_UNLOCK(_registryLock);
+    ummutex_unlock(_registryLock);
 }
 
 
@@ -183,19 +183,19 @@
 
 - (void)removeListener:(UMSocketSCTPListener2 *)listener forPort:(int)port localIp:(NSString *)ip
 {
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     listener.registry = NULL;
     NSString *key =[UMSocketSCTPRegistry keyForPort:port ip:ip];
     [_entries removeObjectForKey:key];
     [_incomingListeners removeObject:listener];
-    UMMUTEX_UNLOCK(_registryLock);
+    ummutex_unlock(_registryLock);
 }
 
 
 - (UMSocketSCTPListener2 *)getOrAddTcpListenerForPort:(int)port
 {
     UMSocketSCTPListener2 *listener  = NULL;
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     @try
     {
         listener = [self getTcpListenerForPort:port];
@@ -211,33 +211,33 @@
     }
     @finally
     {
-        UMMUTEX_UNLOCK(_registryLock);
+        ummutex_unlock(_registryLock);
     }
     return listener;
 }
 
 - (UMSocketSCTPListener2 *)getTcpListenerForPort:(int)port
 {
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     UMSocketSCTPListener2 *e =  _incomingTcpListeners[@(port)];
-    UMMUTEX_UNLOCK(_registryLock);
+    ummutex_unlock(_registryLock);
     return e;
 }
 
 - (void)addTcpListener:(UMSocketSCTPListener2 *)listener
 {
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     listener.registry = self;
     _incomingTcpListeners[@(listener.port)] = listener;
-    UMMUTEX_UNLOCK(_registryLock);
+    ummutex_unlock(_registryLock);
 }
 
 - (void)removeTcpListener:(UMSocketSCTPListener2 *)listener
 {
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     listener.registry = NULL;
     [_incomingTcpListeners removeObjectForKey:@(listener.port)];
-    UMMUTEX_UNLOCK(_registryLock);
+    ummutex_unlock(_registryLock);
 }
 
 - (UMSynchronizedSortedDictionary *)descriptionDict;
@@ -341,7 +341,7 @@
     {
         NSLog(@"layerForLocalIp:%@ localPort:%d remoteIp:%@ remotePort:%d encapsulated:%@",ip1,port1,ip2,port2,encap ? @"YES": @"NO");
     }
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     NSString *key = [UMSocketSCTPRegistry registryKeyForLocalAddr:ip1
                                                         localPort:port1
                                                        remoteAddr:ip2
@@ -354,7 +354,7 @@
     }
 #endif
     UMLayerSctp *layer = _outgoingLayersByIpsAndPorts[key] ;
-    UMMUTEX_UNLOCK(_registryLock);
+    ummutex_unlock(_registryLock);
 
 #if defined(ULIBSCTP_CONFIG_DEBUG)
     if(_logLevel <=UMLOG_DEBUG)
@@ -372,10 +372,10 @@
 {
     if(layer)
     {
-        UMMUTEX_LOCK(_registryLock);
+        ummutex_lock(_registryLock);
         [_incomingLayers removeObject:layer];
         [_incomingLayers addObject:layer];
-        UMMUTEX_UNLOCK(_registryLock);
+        ummutex_unlock(_registryLock);
     }
 }
 
@@ -383,14 +383,14 @@
 {
     if(layer)
     {
-        UMMUTEX_LOCK(_registryLock);
+        ummutex_lock(_registryLock);
         [_incomingTcpLayers removeObject:layer];
         [_incomingTcpLayers addObject:layer];
         if(layer.encapsulatedOverTcpSessionKey)
         {
             [self registerSessionKey:layer.encapsulatedOverTcpSessionKey forLayer:layer];
         }
-        UMMUTEX_UNLOCK(_registryLock);
+        ummutex_unlock(_registryLock);
     }
 }
 
@@ -398,13 +398,13 @@
 {
     if(layer)
     {
-        UMMUTEX_LOCK(_registryLock);
+        ummutex_lock(_registryLock);
         [_incomingTcpLayers removeObject:layer];
         if(layer.encapsulatedOverTcpSessionKey)
         {
             [self unregisterSessionKey:layer.encapsulatedOverTcpSessionKey];
         }
-        UMMUTEX_UNLOCK(_registryLock);
+        ummutex_unlock(_registryLock);
     }
 }
 
@@ -419,14 +419,14 @@
 {
     if(layer)
     {
-        UMMUTEX_LOCK(_registryLock);
+        ummutex_lock(_registryLock);
         [_outgoingTcpLayers removeObject:layer];
         [_outgoingTcpLayers addObject:layer];
         if(layer.encapsulatedOverTcpSessionKey)
         {
             [self registerSessionKey:layer.encapsulatedOverTcpSessionKey forLayer:layer];
         }
-        UMMUTEX_UNLOCK(_registryLock);
+        ummutex_unlock(_registryLock);
     }
 }
 
@@ -434,13 +434,13 @@
 {
     if(layer)
     {
-        UMMUTEX_LOCK(_registryLock);
+        ummutex_lock(_registryLock);
         [_outgoingTcpLayers removeObject:layer];
         if(layer.encapsulatedOverTcpSessionKey)
         {
             [self unregisterSessionKey:layer.encapsulatedOverTcpSessionKey];
         }
-        UMMUTEX_UNLOCK(_registryLock);
+        ummutex_unlock(_registryLock);
     }
 }
 
@@ -448,7 +448,7 @@
 {
     if(layer)
     {
-        UMMUTEX_LOCK(_registryLock);
+        ummutex_lock(_registryLock);
         @try
         {
 
@@ -486,7 +486,7 @@
         }
         @finally
         {
-            UMMUTEX_UNLOCK(_registryLock);
+            ummutex_unlock(_registryLock);
         }
     }
 }
@@ -496,24 +496,24 @@
 {
     if(layer.encapsulatedOverTcpSessionKey)
     {
-        UMMUTEX_LOCK(_registryLock);
+        ummutex_lock(_registryLock);
         _layersBySessionKey[session_key] = layer;
-        UMMUTEX_UNLOCK(_registryLock);
+        ummutex_unlock(_registryLock);
     }
 }
 
 - (void)unregisterSessionKey:(NSString *)session_key
 {
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     [_layersBySessionKey removeObjectForKey:session_key];
-    UMMUTEX_UNLOCK(_registryLock);
+    ummutex_unlock(_registryLock);
 }
 
 - (void)unregisterLayer:(UMLayerSctp *)layer
 {
     if(layer)
     {
-        UMMUTEX_LOCK(_registryLock);
+        ummutex_lock(_registryLock);
         @try
         {
             /* we unregister every local IP / remote IP pair combination */
@@ -547,7 +547,7 @@
         }
         @finally
         {
-            UMMUTEX_UNLOCK(_registryLock);
+            ummutex_unlock(_registryLock);
         }
     }
 }
@@ -556,7 +556,7 @@
 - (NSString *)webStat
 {
     NSMutableString *s = [[NSMutableString alloc]init];
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     [s appendString:@"<html>\n"];
     [s appendString:@"<header>\n"];
     [s appendString:@"    <link rel=\"stylesheet\" href=\"/css/style.css\" type=\"text/css\">\n"];
@@ -598,15 +598,15 @@
     [s appendString:@"</table>\r\n"];
     [s appendString:@"</body>\r\n"];
     [s appendString:@"</html>\r\n"];
-    UMMUTEX_UNLOCK(_registryLock);
+    ummutex_unlock(_registryLock);
     return s;
 }
 
 - (UMLayerSctp *)layerForSessionKey:(NSString *)sessionKey
 {
-    UMMUTEX_LOCK(_registryLock);
+    ummutex_lock(_registryLock);
     UMLayerSctp *layer = _layersBySessionKey[sessionKey];
-    UMMUTEX_UNLOCK(_registryLock);
+    ummutex_unlock(_registryLock);
     return layer;
 }
 

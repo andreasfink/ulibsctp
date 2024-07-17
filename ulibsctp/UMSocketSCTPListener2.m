@@ -302,7 +302,7 @@
 
 - (void)startListeningFor:(UMLayerSctp *)layer
 {
-    UMMUTEX_LOCK(_listenerLock);
+    ummutex_lock(_listenerLock);
     @try
     {
         if(_layers.count==0) /* the first layer is being added */
@@ -314,13 +314,13 @@
     }
     @finally
     {
-        UMMUTEX_UNLOCK(_listenerLock);
+        ummutex_unlock(_listenerLock);
     }
 }
 
 - (void)stopListeningFor:(UMLayerSctp *)layer
 {
-    UMMUTEX_LOCK(_listenerLock);
+    ummutex_lock(_listenerLock);
     @try
     {
         [_layers removeObjectForKey:layer.layerName];
@@ -334,7 +334,7 @@
     }
     @finally
     {
-        UMMUTEX_UNLOCK(_listenerLock);
+        ummutex_unlock(_listenerLock);
     }
 }
 
@@ -344,7 +344,7 @@
     {
         return;
     }
-    UMMUTEX_LOCK(_listenerLock);
+    ummutex_lock(_listenerLock);
     @try
     {
         
@@ -361,7 +361,7 @@
     }
     @finally
     {
-        UMMUTEX_UNLOCK(_listenerLock);
+        ummutex_unlock(_listenerLock);
     }
 }
 
@@ -371,7 +371,7 @@
     {
         return;
     }
-    UMMUTEX_LOCK(_listenerLock);
+    ummutex_lock(_listenerLock);
     @try
     {
         UMLayerSctp *old = _assocs[assocId];
@@ -387,7 +387,7 @@
     }
     @finally
     {
-        UMMUTEX_UNLOCK(_listenerLock);
+        ummutex_unlock(_listenerLock);
     }
 }
 
