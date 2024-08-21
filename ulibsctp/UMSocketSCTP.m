@@ -8,7 +8,7 @@
 
 #define ULIBSCTP_INTERNAL   1
 
-#import <ulibsctp/ulibsctp_config.h>
+#include "ulibsctp/ulibsctp_config.h"
 
 #import "UMSocketSCTP.h"
 
@@ -31,7 +31,6 @@
 #include <netinet/tcp.h>
 #include <netdb.h>
 
-#include "ulibsctp_config.h"
 
 
 #ifdef HAVE_SCTP_SCTP_H

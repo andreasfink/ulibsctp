@@ -9,7 +9,8 @@
 
 #import <ulibsctp/ulibsctp.h>
 
-#include <ulibsctp/ulibsctp_config.h>
+
+#include "ulibsctp_config.h"
 #ifdef HAVE_SCTP_SCTP_H
 #import <sctp/sctp.h>
 #endif
