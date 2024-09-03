@@ -23,5 +23,4 @@
 #import <ulibsctp/UMLayerSctpApplicationContextProtocol.h>
 #import <ulibsctp/UMSocketSCTPRegistry.h>
 #import <ulibsctp/UMSocketSCTPListener2.h>
-#import <ulibsctp/UMLayerSctpReceiverThread.h>
 #import <ulibsctp/ulibsctp_config.h>
