@@ -19,6 +19,9 @@
 		A634B49A1A2E9AF700854472 /* UMLayerSctpUserProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */; };
 		A634B49B1A2E9AF700854472 /* UMLayerSctpUserProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */; };
 		A648DF4F247C370000F25226 /* ulibsctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6C78D0D1A29271D006C66A2 /* ulibsctp.framework */; };
+		A678C7832D0352D60042CD48 /* UMLayerTcp.m in Sources */ = {isa = PBXBuildFile; fileRef = A678C7822D0352D60042CD48 /* UMLayerTcp.m */; };
+		A678C7842D0352D60042CD48 /* UMLayerTcp.h in Headers */ = {isa = PBXBuildFile; fileRef = A678C7812D0352D60042CD48 /* UMLayerTcp.h */; };
+		A678C7852D0352D60042CD48 /* UMLayerTcp.m in Sources */ = {isa = PBXBuildFile; fileRef = A678C7822D0352D60042CD48 /* UMLayerTcp.m */; };
 		A68012612B288D0500C34D40 /* ulibsctp_config.h.in in Resources */ = {isa = PBXBuildFile; fileRef = A680125F2B288D0500C34D40 /* ulibsctp_config.h.in */; };
 		A68012622B288D0500C34D40 /* ulibsctp_config.h in Headers */ = {isa = PBXBuildFile; fileRef = A68012602B288D0500C34D40 /* ulibsctp_config.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A6827E121E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = A6827E101E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -103,6 +106,8 @@
 		A61F7D501A2C9D380090FC94 /* UMLayerSctpUserProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpUserProtocol.h; sourceTree = "<group>"; };
 		A634B4971A2E9AF700854472 /* UMLayerSctpUserProfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpUserProfile.h; sourceTree = "<group>"; };
 		A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMLayerSctpUserProfile.m; sourceTree = "<group>"; };
+		A678C7812D0352D60042CD48 /* UMLayerTcp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UMLayerTcp.h; sourceTree = "<group>"; };
+		A678C7822D0352D60042CD48 /* UMLayerTcp.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UMLayerTcp.m; sourceTree = "<group>"; };
 		A680125F2B288D0500C34D40 /* ulibsctp_config.h.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ulibsctp_config.h.in; sourceTree = "<group>"; };
 		A68012602B288D0500C34D40 /* ulibsctp_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ulibsctp_config.h; sourceTree = "<group>"; };
 		A6827E101E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpApplicationContextProtocol.h; sourceTree = "<group>"; };
@@ -226,6 +231,8 @@
 				A634B4971A2E9AF700854472 /* UMLayerSctpUserProfile.h */,
 				A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */,
 				A61B6E132583335A0094E14E /* UMSctpOverTcp.h */,
+				A678C7812D0352D60042CD48 /* UMLayerTcp.h */,
+				A678C7822D0352D60042CD48 /* UMLayerTcp.m */,
 				A6C78D6D1A2942AB006C66A2 /* UMLayerSctp.h */,
 				A6C78D6E1A2942AB006C66A2 /* UMLayerSctp.m */,
 				A6B8BE4E20A9B102004D4004 /* UMSocketSCTP.h */,
@@ -329,6 +336,7 @@
 				A6C78DAE1A2945FA006C66A2 /* UMSctpTask_Open.h in Headers */,
 				A6B8BE5020A9B102004D4004 /* UMSocketSCTP.h in Headers */,
 				A6F0C65B28B7630C00AE05BB /* UMSocketSCTPListener2.h in Headers */,
+				A678C7842D0352D60042CD48 /* UMLayerTcp.h in Headers */,
 				A6F0C65F28B780B500AE05BB /* UMSCTPListener.h in Headers */,
 				A68012622B288D0500C34D40 /* ulibsctp_config.h in Headers */,
 				A6C78DA41A2945C5006C66A2 /* UMSctpTask_AdminInit.h in Headers */,
@@ -485,6 +493,7 @@
 				A6C78D701A2942AB006C66A2 /* UMLayerSctp.m in Sources */,
 				A689747E1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m in Sources */,
 				A6C78DC81A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m in Sources */,
+				A678C7832D0352D60042CD48 /* UMLayerTcp.m in Sources */,
 				A6C78DAA1A2945D9006C66A2 /* UMSctpTask_AdminAttach.m in Sources */,
 				A60DE3BD20ADD18E0047E3A6 /* UMSocketSCTPRegistry.m in Sources */,
 				A6C78DC31A29466D006C66A2 /* UMSctpTask_Manual_InService.m in Sources */,
@@ -505,6 +514,7 @@
 				A6C78DBA1A294628006C66A2 /* UMSctpTask_Data.m in Sources */,
 				A6C78DC41A29466D006C66A2 /* UMSctpTask_Manual_InService.m in Sources */,
 				A6C78D711A2942AB006C66A2 /* UMLayerSctp.m in Sources */,
+				A678C7852D0352D60042CD48 /* UMLayerTcp.m in Sources */,
 				A6C78DAB1A2945D9006C66A2 /* UMSctpTask_AdminAttach.m in Sources */,
 				A689747F1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m in Sources */,
 			);

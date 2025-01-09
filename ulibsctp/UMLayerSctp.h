@@ -78,6 +78,8 @@
 
 @property(readwrite,strong) UMSynchronizedArray *users;
 
+@property(readwrite,assign) BOOL useTcp;
+
 @property(readwrite,strong) NSDate          *startButtonPressed;
 @property(readwrite,strong) NSDate          *stopButtonPressed;
 
