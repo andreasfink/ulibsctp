@@ -24,3 +24,7 @@
 #import <ulibsctp/UMSocketSCTPRegistry.h>
 #import <ulibsctp/UMSocketSCTPListener2.h>
 #import <ulibsctp/ulibsctp_config.h>
+#import <ulibsctp/ulibsctp_config.h>
+#import <ulibsctp/UMSctpOverTcp.h>
+#import <ulibsctp/UMSocketSCTPReceiver.h>
+

@@ -11,17 +11,14 @@
 		A60DE3BD20ADD18E0047E3A6 /* UMSocketSCTPRegistry.m in Sources */ = {isa = PBXBuildFile; fileRef = A60DE3BB20ADD18E0047E3A6 /* UMSocketSCTPRegistry.m */; };
 		A60DE3C020AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.h in Headers */ = {isa = PBXBuildFile; fileRef = A60DE3BE20AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A60DE3C120AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.m in Sources */ = {isa = PBXBuildFile; fileRef = A60DE3BF20AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.m */; };
-		A60DE3C420AECB050047E3A6 /* UMSocketSCTPReceiver.h in Headers */ = {isa = PBXBuildFile; fileRef = A60DE3C220AECB050047E3A6 /* UMSocketSCTPReceiver.h */; };
+		A60DE3C420AECB050047E3A6 /* UMSocketSCTPReceiver.h in Headers */ = {isa = PBXBuildFile; fileRef = A60DE3C220AECB050047E3A6 /* UMSocketSCTPReceiver.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A60DE3C520AECB050047E3A6 /* UMSocketSCTPReceiver.m in Sources */ = {isa = PBXBuildFile; fileRef = A60DE3C320AECB050047E3A6 /* UMSocketSCTPReceiver.m */; };
-		A61B6E152583335A0094E14E /* UMSctpOverTcp.h in Headers */ = {isa = PBXBuildFile; fileRef = A61B6E132583335A0094E14E /* UMSctpOverTcp.h */; };
+		A61B6E152583335A0094E14E /* UMSctpOverTcp.h in Headers */ = {isa = PBXBuildFile; fileRef = A61B6E132583335A0094E14E /* UMSctpOverTcp.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A61F7D511A2C9D380090FC94 /* UMLayerSctpUserProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = A61F7D501A2C9D380090FC94 /* UMLayerSctpUserProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A634B4991A2E9AF700854472 /* UMLayerSctpUserProfile.h in Headers */ = {isa = PBXBuildFile; fileRef = A634B4971A2E9AF700854472 /* UMLayerSctpUserProfile.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A634B49A1A2E9AF700854472 /* UMLayerSctpUserProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */; };
 		A634B49B1A2E9AF700854472 /* UMLayerSctpUserProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */; };
 		A648DF4F247C370000F25226 /* ulibsctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6C78D0D1A29271D006C66A2 /* ulibsctp.framework */; };
-		A678C7832D0352D60042CD48 /* UMLayerTcp.m in Sources */ = {isa = PBXBuildFile; fileRef = A678C7822D0352D60042CD48 /* UMLayerTcp.m */; };
-		A678C7842D0352D60042CD48 /* UMLayerTcp.h in Headers */ = {isa = PBXBuildFile; fileRef = A678C7812D0352D60042CD48 /* UMLayerTcp.h */; };
-		A678C7852D0352D60042CD48 /* UMLayerTcp.m in Sources */ = {isa = PBXBuildFile; fileRef = A678C7822D0352D60042CD48 /* UMLayerTcp.m */; };
 		A68012612B288D0500C34D40 /* ulibsctp_config.h.in in Resources */ = {isa = PBXBuildFile; fileRef = A680125F2B288D0500C34D40 /* ulibsctp_config.h.in */; };
 		A68012622B288D0500C34D40 /* ulibsctp_config.h in Headers */ = {isa = PBXBuildFile; fileRef = A68012602B288D0500C34D40 /* ulibsctp_config.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A6827E121E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = A6827E101E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -33,6 +30,8 @@
 		A689747E1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m in Sources */ = {isa = PBXBuildFile; fileRef = A689747C1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m */; };
 		A689747F1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m in Sources */ = {isa = PBXBuildFile; fileRef = A689747C1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m */; };
 		A69BCFF5240675D20083657F /* sctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A69BCFF4240675D20083657F /* sctp.framework */; };
+		A6AC8EFC2D3117AD00D0D108 /* ulib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6AC8EFB2D3117AD00D0D108 /* ulib.framework */; };
+		A6AC8EFE2D3117AD00D0D108 /* ulib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6AC8EFB2D3117AD00D0D108 /* ulib.framework */; };
 		A6B8BE5020A9B102004D4004 /* UMSocketSCTP.h in Headers */ = {isa = PBXBuildFile; fileRef = A6B8BE4E20A9B102004D4004 /* UMSocketSCTP.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A6B8BE5120A9B102004D4004 /* UMSocketSCTP.m in Sources */ = {isa = PBXBuildFile; fileRef = A6B8BE4F20A9B102004D4004 /* UMSocketSCTP.m */; };
 		A6C78D131A29271D006C66A2 /* ulibsctp.h in Headers */ = {isa = PBXBuildFile; fileRef = A6C78D121A29271D006C66A2 /* ulibsctp.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -41,8 +40,6 @@
 		A6C78D6F1A2942AB006C66A2 /* UMLayerSctp.h in Headers */ = {isa = PBXBuildFile; fileRef = A6C78D6D1A2942AB006C66A2 /* UMLayerSctp.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A6C78D701A2942AB006C66A2 /* UMLayerSctp.m in Sources */ = {isa = PBXBuildFile; fileRef = A6C78D6E1A2942AB006C66A2 /* UMLayerSctp.m */; };
 		A6C78D711A2942AB006C66A2 /* UMLayerSctp.m in Sources */ = {isa = PBXBuildFile; fileRef = A6C78D6E1A2942AB006C66A2 /* UMLayerSctp.m */; };
-		A6C78D741A2942EC006C66A2 /* ulib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6C78D731A2942EC006C66A2 /* ulib.framework */; };
-		A6C78D751A2942EC006C66A2 /* ulib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6C78D731A2942EC006C66A2 /* ulib.framework */; };
 		A6C78DA41A2945C5006C66A2 /* UMSctpTask_AdminInit.h in Headers */ = {isa = PBXBuildFile; fileRef = A6C78DA21A2945C5006C66A2 /* UMSctpTask_AdminInit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A6C78DA51A2945C5006C66A2 /* UMSctpTask_AdminInit.m in Sources */ = {isa = PBXBuildFile; fileRef = A6C78DA31A2945C5006C66A2 /* UMSctpTask_AdminInit.m */; };
 		A6C78DA61A2945C5006C66A2 /* UMSctpTask_AdminInit.m in Sources */ = {isa = PBXBuildFile; fileRef = A6C78DA31A2945C5006C66A2 /* UMSctpTask_AdminInit.m */; };
@@ -70,7 +67,6 @@
 		A6F0C66028B780B500AE05BB /* UMSCTPListener.m in Sources */ = {isa = PBXBuildFile; fileRef = A6F0C65E28B780B500AE05BB /* UMSCTPListener.m */; };
 		A6F1C627247BEA1E00FE7402 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A6F1C626247BEA1D00FE7402 /* main.m */; };
 		A6F1C629247BEC8600FE7402 /* sctp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A69BCFF4240675D20083657F /* sctp.framework */; };
-		A6F1C62A247BEC8900FE7402 /* ulib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6C78D731A2942EC006C66A2 /* ulib.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -106,8 +102,6 @@
 		A61F7D501A2C9D380090FC94 /* UMLayerSctpUserProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpUserProtocol.h; sourceTree = "<group>"; };
 		A634B4971A2E9AF700854472 /* UMLayerSctpUserProfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpUserProfile.h; sourceTree = "<group>"; };
 		A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMLayerSctpUserProfile.m; sourceTree = "<group>"; };
-		A678C7812D0352D60042CD48 /* UMLayerTcp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UMLayerTcp.h; sourceTree = "<group>"; };
-		A678C7822D0352D60042CD48 /* UMLayerTcp.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UMLayerTcp.m; sourceTree = "<group>"; };
 		A680125F2B288D0500C34D40 /* ulibsctp_config.h.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ulibsctp_config.h.in; sourceTree = "<group>"; };
 		A68012602B288D0500C34D40 /* ulibsctp_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ulibsctp_config.h; sourceTree = "<group>"; };
 		A6827E101E38001200F3048B /* UMLayerSctpApplicationContextProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctpApplicationContextProtocol.h; sourceTree = "<group>"; };
@@ -118,6 +112,7 @@
 		A689747B1A2D4C5D00854472 /* UMSctpTask_AdminDetach.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMSctpTask_AdminDetach.h; sourceTree = "<group>"; };
 		A689747C1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMSctpTask_AdminDetach.m; sourceTree = "<group>"; };
 		A69BCFF4240675D20083657F /* sctp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = sctp.framework; path = "/Library/Application Support/FinkTelecomServices/frameworks/sctp.framework"; sourceTree = "<absolute>"; };
+		A6AC8EFB2D3117AD00D0D108 /* ulib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ulib.framework; path = "/Library/Application Support/FinkTelecomServices/frameworks/ulib.framework"; sourceTree = "<absolute>"; };
 		A6B8BE4E20A9B102004D4004 /* UMSocketSCTP.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UMSocketSCTP.h; sourceTree = "<group>"; };
 		A6B8BE4F20A9B102004D4004 /* UMSocketSCTP.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UMSocketSCTP.m; sourceTree = "<group>"; };
 		A6C78D0D1A29271D006C66A2 /* ulibsctp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ulibsctp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -128,7 +123,6 @@
 		A6C78D1F1A29271D006C66A2 /* ulibsctpTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ulibsctpTests.m; sourceTree = "<group>"; };
 		A6C78D6D1A2942AB006C66A2 /* UMLayerSctp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMLayerSctp.h; sourceTree = "<group>"; };
 		A6C78D6E1A2942AB006C66A2 /* UMLayerSctp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMLayerSctp.m; sourceTree = "<group>"; };
-		A6C78D731A2942EC006C66A2 /* ulib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ulib.framework; path = "/Library/Application Support/FinkTelecomServices/frameworks/ulib.framework"; sourceTree = "<absolute>"; };
 		A6C78DA21A2945C5006C66A2 /* UMSctpTask_AdminInit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMSctpTask_AdminInit.h; sourceTree = "<group>"; };
 		A6C78DA31A2945C5006C66A2 /* UMSctpTask_AdminInit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UMSctpTask_AdminInit.m; sourceTree = "<group>"; };
 		A6C78DA71A2945D9006C66A2 /* UMSctpTask_AdminAttach.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UMSctpTask_AdminAttach.h; sourceTree = "<group>"; };
@@ -163,7 +157,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A6C78D741A2942EC006C66A2 /* ulib.framework in Frameworks */,
+				A6AC8EFC2D3117AD00D0D108 /* ulib.framework in Frameworks */,
 				A69BCFF5240675D20083657F /* sctp.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -172,7 +166,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A6C78D751A2942EC006C66A2 /* ulib.framework in Frameworks */,
 				A6C78D191A29271D006C66A2 /* ulibsctp.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -182,7 +175,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A648DF4F247C370000F25226 /* ulibsctp.framework in Frameworks */,
-				A6F1C62A247BEC8900FE7402 /* ulib.framework in Frameworks */,
+				A6AC8EFE2D3117AD00D0D108 /* ulib.framework in Frameworks */,
 				A6F1C629247BEC8600FE7402 /* sctp.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -231,8 +224,6 @@
 				A634B4971A2E9AF700854472 /* UMLayerSctpUserProfile.h */,
 				A634B4981A2E9AF700854472 /* UMLayerSctpUserProfile.m */,
 				A61B6E132583335A0094E14E /* UMSctpOverTcp.h */,
-				A678C7812D0352D60042CD48 /* UMLayerTcp.h */,
-				A678C7822D0352D60042CD48 /* UMLayerTcp.m */,
 				A6C78D6D1A2942AB006C66A2 /* UMLayerSctp.h */,
 				A6C78D6E1A2942AB006C66A2 /* UMLayerSctp.m */,
 				A6B8BE4E20A9B102004D4004 /* UMSocketSCTP.h */,
@@ -298,9 +289,9 @@
 		A6C78D721A2942D0006C66A2 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				A6AC8EFB2D3117AD00D0D108 /* ulib.framework */,
 				A6F1C62C247BECBE00FE7402 /* ulibsctp.framework */,
 				A69BCFF4240675D20083657F /* sctp.framework */,
-				A6C78D731A2942EC006C66A2 /* ulib.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -330,13 +321,11 @@
 			files = (
 				A6C78D131A29271D006C66A2 /* ulibsctp.h in Headers */,
 				A6C78D6F1A2942AB006C66A2 /* UMLayerSctp.h in Headers */,
-				A60DE3C420AECB050047E3A6 /* UMSocketSCTPReceiver.h in Headers */,
 				A6C78DC71A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.h in Headers */,
 				A6C78DC21A29466D006C66A2 /* UMSctpTask_Manual_InService.h in Headers */,
 				A6C78DAE1A2945FA006C66A2 /* UMSctpTask_Open.h in Headers */,
 				A6B8BE5020A9B102004D4004 /* UMSocketSCTP.h in Headers */,
 				A6F0C65B28B7630C00AE05BB /* UMSocketSCTPListener2.h in Headers */,
-				A678C7842D0352D60042CD48 /* UMLayerTcp.h in Headers */,
 				A6F0C65F28B780B500AE05BB /* UMSCTPListener.h in Headers */,
 				A68012622B288D0500C34D40 /* ulibsctp_config.h in Headers */,
 				A6C78DA41A2945C5006C66A2 /* UMSctpTask_AdminInit.h in Headers */,
@@ -347,10 +336,11 @@
 				A634B4991A2E9AF700854472 /* UMLayerSctpUserProfile.h in Headers */,
 				A61F7D511A2C9D380090FC94 /* UMLayerSctpUserProtocol.h in Headers */,
 				A6C78DB81A294628006C66A2 /* UMSctpTask_Data.h in Headers */,
-				A61B6E152583335A0094E14E /* UMSctpOverTcp.h in Headers */,
 				A60DE3BC20ADD18E0047E3A6 /* UMSocketSCTPRegistry.h in Headers */,
 				A60DE3C020AEC0050047E3A6 /* UMSocketSCTPReceivedPacket.h in Headers */,
+				A60DE3C420AECB050047E3A6 /* UMSocketSCTPReceiver.h in Headers */,
 				A689747D1A2D4C5D00854472 /* UMSctpTask_AdminDetach.h in Headers */,
+				A61B6E152583335A0094E14E /* UMSctpOverTcp.h in Headers */,
 				A68974791A2D440F00854472 /* UMLayerSctpUser.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -418,7 +408,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1540;
+				LastUpgradeCheck = 1620;
 				ORGANIZATIONNAME = "Andreas Fink (andreas@fink.org)";
 				TargetAttributes = {
 					A6C78D0C1A29271D006C66A2 = {
@@ -493,7 +483,6 @@
 				A6C78D701A2942AB006C66A2 /* UMLayerSctp.m in Sources */,
 				A689747E1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m in Sources */,
 				A6C78DC81A29467B006C66A2 /* UMSctpTask_Manual_ForceOutOfService.m in Sources */,
-				A678C7832D0352D60042CD48 /* UMLayerTcp.m in Sources */,
 				A6C78DAA1A2945D9006C66A2 /* UMSctpTask_AdminAttach.m in Sources */,
 				A60DE3BD20ADD18E0047E3A6 /* UMSocketSCTPRegistry.m in Sources */,
 				A6C78DC31A29466D006C66A2 /* UMSctpTask_Manual_InService.m in Sources */,
@@ -514,7 +503,6 @@
 				A6C78DBA1A294628006C66A2 /* UMSctpTask_Data.m in Sources */,
 				A6C78DC41A29466D006C66A2 /* UMSctpTask_Manual_InService.m in Sources */,
 				A6C78D711A2942AB006C66A2 /* UMLayerSctp.m in Sources */,
-				A678C7852D0352D60042CD48 /* UMLayerTcp.m in Sources */,
 				A6C78DAB1A2945D9006C66A2 /* UMSctpTask_AdminAttach.m in Sources */,
 				A689747F1A2D4C5D00854472 /* UMSctpTask_AdminDetach.m in Sources */,
 			);
@@ -546,7 +534,7 @@
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_MODULES = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -596,13 +584,13 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"\"/Library/Application Support/FinkTelecomServices/include/\"",
 				);
 				INFOPLIST_FILE = "\"Supporting Files/Info.plist\"";
 				INSTALL_PATH = /FinkTelecomServices/frameworks;
 				MACOSX_DEPLOYMENT_TARGET = 13.1;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = NO;
-				SDKROOT = auto;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 				WARNING_CFLAGS = "-Wimplicit-fallthrough";
@@ -616,7 +604,7 @@
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_MODULES = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -661,13 +649,13 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"\"/Library/Application Support/FinkTelecomServices/include/\"",
 				);
 				INFOPLIST_FILE = "\"Supporting Files/Info.plist\"";
 				INSTALL_PATH = /FinkTelecomServices/frameworks;
 				MACOSX_DEPLOYMENT_TARGET = 13.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				ONLY_ACTIVE_ARCH = NO;
-				SDKROOT = auto;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 				WARNING_CFLAGS = "-Wimplicit-fallthrough";
@@ -687,22 +675,15 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "$(DSTROOT)/$(INSTALL_PATH)";
 				ENABLE_MODULE_VERIFIER = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LOCAL_LIBRARY_DIR)/Frameworks",
-					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
-				);
 				FRAMEWORK_VERSION = A;
 				INFOPLIST_FILE = "$(SRCROOT)/SupportingFiles/Info.plist";
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.16.3;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu99 gnu++11";
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.fink-telecom.--PRODUCT-NAME-rfc1034identifier-";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SDKROOT = auto;
 			};
 			name = Debug;
 		};
@@ -719,22 +700,15 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "$(DSTROOT)/$(INSTALL_PATH)";
 				ENABLE_MODULE_VERIFIER = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LOCAL_LIBRARY_DIR)/Frameworks",
-					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
-				);
 				FRAMEWORK_VERSION = A;
 				INFOPLIST_FILE = "$(SRCROOT)/SupportingFiles/Info.plist";
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.16.3;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu99 gnu++11";
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.fink-telecom.--PRODUCT-NAME-rfc1034identifier-";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SDKROOT = auto;
 			};
 			name = Release;
 		};
@@ -750,6 +724,7 @@
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -780,6 +755,7 @@
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
 				);
 				INFOPLIST_FILE = ulibsctpTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -815,6 +791,7 @@
 					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
 					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
 					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
+					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
@@ -842,6 +819,7 @@
 				DEVELOPMENT_TEAM = 2GSNWPNR77;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
 					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
 					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
 					"$(LOCAL_LIBRARY_DIR)/Application\\ Support/FinkTelecomServices/frameworks",
