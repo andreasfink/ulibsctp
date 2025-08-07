@@ -146,9 +146,13 @@
 
 - (void)closeFor:(id<UMLayerSctpUserProtocol>)caller reason:(NSString *)reason
 {
-    NSString *s = [NSString stringWithFormat:@"queuing closeFor(%@) reason=%@",caller.layerName,reason? reason: @"unspecified"];
-    NSLog(@"%@",s);
-    [self addToLayerHistoryLog:s];
+    
+    if(_logLevel <= UMLOG_DEBUG)
+    {
+        NSString *s = [NSString stringWithFormat:@"queuing closeFor(%@) reason=%@",caller.layerName,reason? reason: @"unspecified"];
+        [_logFeed debugText:s];
+        [self addToLayerHistoryLog:s];
+    }
     UMSctpTask_Close *task = [[UMSctpTask_Close alloc]initWithReceiver:self sender:caller];
     task.reason = reason;
     [self queueFromUpper:task];
