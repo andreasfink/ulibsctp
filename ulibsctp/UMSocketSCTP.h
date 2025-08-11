@@ -55,7 +55,6 @@ typedef enum SCTP_SocketType_enum
     BOOL            _connectx_pending;
     NSData          *_localAddressesSockaddr;
     int             _localAddressesSockaddrCount;
-    int             _mtu;
     int             _maxSeg;
     int             _maxInStreams;
     int             _numOStreams;
