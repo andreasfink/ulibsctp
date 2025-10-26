@@ -62,6 +62,7 @@ typedef enum SCTP_SocketType_enum
     int             _initTimeout;
 	NSNumber		*_xassoc;
     BOOL            _pathMtuDiscovery;
+	//int				_mtu;
 }
 
 @property(readwrite,strong) NSArray        *requestedLocalAddresses;
@@ -74,7 +75,7 @@ typedef enum SCTP_SocketType_enum
 @property(readwrite,strong) id<UMSocketSCTP_dataDelegate>           dataDelegate;
 @property(readwrite,assign) BOOL            continuousConnectionAttempts;
 @property(readwrite,assign) NSTimeInterval  connectionRepeatTimer;
-@property(readwrite,assign) int mtu;
+//@property(readwrite,assign) int mtu;
 @property(readwrite,assign) int maxInStreams;
 @property(readwrite,assign) int numOStreams;
 @property(readwrite,assign) int maxInitAttempts;
