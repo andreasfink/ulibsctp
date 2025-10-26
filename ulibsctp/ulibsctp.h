@@ -26,5 +26,4 @@
 #import <ulibsctp/ulibsctp_config.h>
 #import <ulibsctp/ulibsctp_config.h>
 #import <ulibsctp/UMSctpOverTcp.h>
-#import <ulibsctp/UMSocketSCTPReceiver.h>
 
