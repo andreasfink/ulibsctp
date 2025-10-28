@@ -10,9 +10,5 @@
 #import "UMLayerSctpUserProfile.h"
 
 @implementation UMLayerSctpUser
-@synthesize profile;
-@synthesize user;
-@synthesize userId;
-
 
 @end

@@ -11,35 +11,30 @@
 @implementation UMLayerSctpUserProfile
 
 
-@synthesize allMessages;
-@synthesize statusUpdates;
-@synthesize streamIds;
-@synthesize protocolIds;
-@synthesize monitoring;
 
 - (UMLayerSctpUserProfile *)initWithDefaultProfile
 {
     self = [super init];
     if(self)
     {
-        allMessages = YES;
-        statusUpdates = YES;
-        monitoring = NO;
+        _allMessages = YES;
+        _statusUpdates = YES;
+        _monitoring = NO;
     }
     return self;
 }
 
 - (BOOL) wantsStreamId:(NSNumber *)stream
 {
-    if(allMessages)
+    if(_allMessages)
     {
         return YES;
     }
-    if(streamIds ==NULL)
+    if(_streamIds ==NULL)
     {
         return YES;
     }
-    for(NSNumber *n in streamIds)
+    for(NSNumber *n in _streamIds)
     {
         if (n.unsignedLongValue == stream.unsignedLongValue)
         {
@@ -51,15 +46,15 @@
 
 - (BOOL) wantsProtocolId:(NSNumber *)proto
 {
-    if(allMessages)
+    if(_allMessages)
     {
         return YES;
     }
-    if(protocolIds ==NULL)
+    if(_protocolIds ==NULL)
     {
         return YES;
     }
-    for(NSNumber *n in protocolIds)
+    for(NSNumber *n in _protocolIds)
     {
         if (n.unsignedLongValue == proto.unsignedLongValue)
         {
@@ -72,7 +67,7 @@
 
 - (BOOL) wantsStatusUpdates
 {
-    if(statusUpdates)
+    if(_statusUpdates)
     {
         return YES;
     }
@@ -81,7 +76,7 @@
 
 - (BOOL) wantsMonitor
 {
-    if(monitoring)
+    if(_monitoring)
     {
         return YES;
     }

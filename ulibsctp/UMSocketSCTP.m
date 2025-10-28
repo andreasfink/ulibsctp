@@ -1376,6 +1376,7 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
 	    NSLog(@"ReceivedPacket: %@",rx);
 
     }
+	NSLog(@"SCTP: ReceivedPacket: %@",rx);
     return rx;
 }
 

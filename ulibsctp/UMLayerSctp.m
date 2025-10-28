@@ -565,7 +565,6 @@
         @try
         {
             
-            BOOL failed = NO;
             UMSocketError uerr = UMSocketError_no_error;
             ssize_t sent_packets = 0;
             int attempts=0;
@@ -643,7 +642,6 @@
                 }
                 else
                 {
-                    failed=YES;
                     break;
                 }
             } /* end of while */
@@ -863,7 +861,6 @@
 
 - (void)reportStatusWithReason:(NSString *)reason socketNumber:(NSNumber *)socketNumber
 {
-    
     @autoreleasepool
     {
         NSArray *usrs = [_users arrayCopy];

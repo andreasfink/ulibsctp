@@ -13,9 +13,9 @@
 
 @interface UMLayerSctpUser : UMObject
 {
-    id<UMLayerSctpUserProtocol>         user;
-    UMLayerSctpUserProfile              *profile;
-    id                                  userId;
+    id<UMLayerSctpUserProtocol>         _user;
+    UMLayerSctpUserProfile              *_profile;
+    id                                  _userId;
 }
 
 @property(readwrite,strong)   id<UMLayerSctpUserProtocol> user;
