@@ -863,7 +863,6 @@
 
 - (void)reportStatusWithReason:(NSString *)reason socketNumber:(NSNumber *)socketNumber
 {
-    
     @autoreleasepool
     {
         NSArray *usrs = [_users arrayCopy];

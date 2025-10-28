@@ -10,11 +10,11 @@
 
 @interface UMLayerSctpUserProfile : UMObject
 {
-    BOOL allMessages;
-    BOOL statusUpdates;
-    NSArray *streamIds;
-    NSArray *protocolIds;
-    BOOL monitoring;
+    BOOL _allMessages;
+    BOOL _statusUpdates;
+    NSArray *_streamIds;
+    NSArray *_protocolIds;
+    BOOL _monitoring;
 }
 
 @property(readwrite,assign) BOOL allMessages;
