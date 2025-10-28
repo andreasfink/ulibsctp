@@ -1373,6 +1373,8 @@ int sctp_recvv(int s, const struct iovec *iov, int iovlen,
             rx.assocId = @(sinfo.sinfo_assoc_id);
         }
         rx.socket = @(_sock);
+	    NSLog(@"ReceivedPacket: %@",rx);
+
     }
     return rx;
 }
