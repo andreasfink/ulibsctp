@@ -64,14 +64,17 @@
     BOOL                _allowAnyRemotePortIncoming;
     NSNumber            *_assocId;
     UMSocketStatus      _status;
-    int                 _maxInitTimeout;
-    int                 _maxInitAttempts;
     BOOL                _encapsulatedOverTcp;
     NSString            *_encapsulatedOverTcpSessionKey;
     int                 _minReceiveBufferSize;
     int                 _minSendBufferSize;
     UMSCTPListener      *_directReceiver;
     BOOL                _usePeelOff;
+    
+    int                 _maxInStreams;
+    int                 _numOStreams;
+    int                 _maxInitAttempts;
+    int                 _maxInitTimeout;
 }
 
 //@property(readwrite,strong) UMSocketSCTP    *sctpSocket;
@@ -119,6 +122,12 @@
 @property(readwrite,strong,atomic)      UMSocket            *directTcpEncapsulatedSocket;
 @property(readwrite,assign,atomic)      BOOL                encapsulatedOverTcp;
 @property(readwrite,strong,atomic)      NSString            *encapsulatedOverTcpSessionKey;
+
+
+@property(readwrite,assign,atomic)     int maxInStreams;
+@property(readwrite,assign,atomic)     int numOStreams;
+@property(readwrite,assign,atomic)     int maxInitAttempts;
+@property(readwrite,assign,atomic)     int maxInitTimeout;
 
 - (UMLayerSctp *)initWithTaskQueueMulti:(UMTaskQueueMulti *)tq name:(NSString *)name;
 

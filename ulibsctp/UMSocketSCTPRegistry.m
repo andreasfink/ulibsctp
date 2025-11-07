@@ -96,7 +96,24 @@
     return [NSString stringWithFormat:@"%d,%@",port,addr];
 }
 
-- (UMSocketSCTPListener2 *)getOrAddListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips
+
+- (UMSocketSCTPListener2 *)getOrAddListenerForPort:(int)port
+                                          localIps:(NSArray<NSString *> *)ips
+{
+    return [self getOrAddListenerForPort:port
+                                localIps:ips
+                            maxInStreams:0
+                             numOStreams:0
+                         maxInitAttempts:0
+                             initTimeout:0];
+}
+
+- (UMSocketSCTPListener2 *)getOrAddListenerForPort:(int)port
+                                          localIps:(NSArray<NSString *> *)ips
+                                      maxInStreams:(int)maxInStreams
+                                       numOStreams:(int)numOStreams
+                                   maxInitAttempts:(int)maxInitAttempts
+                                       initTimeout:(int)initTimeout
 {
     UMSocketSCTPListener2 *listener = NULL;
     ummutex_lock(_registryLock);
@@ -108,6 +125,10 @@
             listener = [[UMSocketSCTPListener2 alloc]initWithPort:port localIpAddresses:ips];
             listener.logLevel = _logLevel;
             listener.sendAborts = _sendAborts;
+            listener.maxInStreams = maxInStreams;
+            listener.numOStreams = numOStreams;
+            listener.maxInitAttempts = maxInitAttempts;
+            listener.initTimeout = initTimeout;
             [self addListener:listener];
             NSLog(@"getOrAddListenerForPort returns new listener %@",listener.name);
         }
@@ -201,7 +222,8 @@
         listener = [self getTcpListenerForPort:port];
         if(listener == NULL)
         {
-            listener = [[UMSocketSCTPListener2 alloc]initWithPort:port localIpAddresses:NULL];
+            listener = [[UMSocketSCTPListener2 alloc]initWithPort:port
+                                                 localIpAddresses:NULL];
             [self addTcpListener:listener];
         }
     }

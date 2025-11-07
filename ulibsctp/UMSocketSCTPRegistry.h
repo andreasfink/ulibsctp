@@ -42,6 +42,13 @@
 
 
 - (UMSocketSCTPListener2 *)getOrAddListenerForPort:(int)port localIps:(NSArray<NSString *> *)ips;
+- (UMSocketSCTPListener2 *)getOrAddListenerForPort:(int)port
+                                          localIps:(NSArray<NSString *> *)ips
+                                      maxInStreams:(int)maxInStreams
+                                       numOStreams:(int)numOStreams
+                                   maxInitAttempts:(int)maxInitAttempts
+                                       initTimeout:(int)initTimeout;
+
 - (UMSocketSCTPListener2 *)getListenerForPort:(int)port localIp:(NSString *)ip;
 - (UMSocketSCTPListener2 *)getListenerForPort:(int)port localIps:(NSArray *)ips;
 - (void)addListener:(UMSocketSCTPListener2 *)listener;

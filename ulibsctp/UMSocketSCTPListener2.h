@@ -29,6 +29,10 @@
     BOOL                        _tcpEncapsulated;
     int                         _minReceiveBufferSize;
     int                         _minSendBufferSize;
+    int                         _maxInStreams;
+    int                         _numOStreams;
+    int                         _maxInitAttempts;
+    int                         _initTimeout;
     NSString                    *_dscp;
 }
 
@@ -46,6 +50,10 @@
 @property(readwrite,assign) int minReceiveBufferSize;
 @property(readwrite,assign) int minSendBufferSize;
 @property(readwrite,strong) NSString *dscp;
+@property(readwrite,assign) int maxInStreams;
+@property(readwrite,assign) int numOStreams;
+@property(readwrite,assign) int maxInitAttempts;
+@property(readwrite,assign) int initTimeout;
 
 - (UMSocketSCTPListener2 *)initWithPort:(int)localPort localIpAddresses:(NSArray *)addresses;
 - (void) processError:(UMSocketError)err;

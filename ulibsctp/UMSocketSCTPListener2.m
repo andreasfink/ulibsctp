@@ -55,6 +55,11 @@
     _umsocket = [[UMSocketSCTP alloc]initWithType:UMSOCKET_TYPE_SCTP_SEQPACKET name:_name];
     _umsocket.requestedLocalAddresses = _localIpAddresses;
     _umsocket.requestedLocalPort = _port;
+    _umsocket.maxInStreams = _maxInStreams;
+    _umsocket.numOStreams = _numOStreams;
+    _umsocket.maxInitAttempts = _maxInitAttempts;
+    _umsocket.initTimeout = _initTimeout;
+
     if(_configuredMtu)
     {
         [_umsocket updateMtu:_configuredMtu.intValue];

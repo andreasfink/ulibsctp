@@ -335,7 +335,17 @@
                     NSString *addrs = [_configured_local_addresses componentsJoinedByString:@","];
                     [self logDebug:[NSString stringWithFormat:@"getting listener on %@ on port %d",addrs,_configured_local_port]];
                 }
-                _listener =  [_registry getOrAddListenerForPort:_configured_local_port localIps:_configured_local_addresses];
+                _listener =  [_registry getOrAddListenerForPort:_configured_local_port      localIps:_configured_local_addresses];
+                
+                _listener = [_registry getOrAddListenerForPort:_configured_local_port
+                                                          localIps:_configured_local_addresses
+                                                      maxInStreams:_maxInStreams
+                                                       numOStreams:_numOStreams
+                                                   maxInitAttempts:_maxInitAttempts
+                                                       initTimeout:_maxInitTimeout];
+            
+                
+
                 if(self.listener == NULL)
                 {
                     [self logDebug:@"OOPS, _listener is NULL"];
@@ -1900,6 +1910,11 @@
             _dscp = [cfg[@"dscp"] stringValue];
         }
 
+        int                 _maxInStreams;
+        int                 _numOStreams;
+        int                 _maxInitAttempts;
+       // int                 _initTimeout;
+
         if (cfg[@"max-init-timeout"])
         {
             _maxInitTimeout = [cfg[@"max-init-timeout"] intValue];
@@ -1925,6 +1940,25 @@
         {
             _maxInitAttempts = 12; /* we try up to 12 titmes (3 minutes at 15sec intervalls) */
         }
+        
+        if (cfg[@"max-in-streams"])
+        {
+            _maxInStreams = [cfg[@"max-in-streams"] intValue];
+        }
+        else
+        {
+            _maxInStreams = 0;
+        }
+        
+        if (cfg[@"num-of-streams"])
+        {
+            _numOStreams = [cfg[@"num-of-streams"] intValue];
+        }
+        else
+        {
+            _numOStreams = 0;
+        }
+
         if (cfg[@"min-receive-buffer-size"])
         {
             _minReceiveBufferSize = [cfg[@"min-receive-buffer-size"] intValue];
@@ -1963,6 +1997,8 @@
         }
         config[@"max-init-timeout"] = @(_maxInitTimeout);
         config[@"max-init-attempts"] = @ (_maxInitAttempts);
+        config[@"max-in-streams"] = @(_maxInStreams);
+        config[@"num-of-streams"] = @ (_numOStreams);
         config[@"sctp-over-tcp"] = @(_encapsulatedOverTcp);
         return config;
     }
