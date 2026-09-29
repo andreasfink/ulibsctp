@@ -1,0 +1,3 @@
+ulibsctp is no longer needed
+its functionality has been merged into ulib since release 6.0.0
+
